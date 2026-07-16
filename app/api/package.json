@@ -1,0 +1,33 @@
+{
+  "name": "uae-einvoice-preflight-api",
+  "version": "1.0.0",
+  "description": "UAE e-invoice preflight validation API — deterministic PINT AE / UBL 2.1 rule engine. Preflight validation only; not FTA-accredited, does not transmit legal e-invoices, does not replace an accredited ASP or provide statutory archival.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed:key": "node scripts/seedApiKey.js",
+    "openapi": "node scripts/generateOpenapi.js"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.4.2",
+    "dotenv": "^16.4.7",
+    "fast-xml-parser": "^4.5.1",
+    "fastify": "^5.2.1",
+    "ioredis": "^5.4.2",
+    "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "ioredis-mock": "^8.9.0",
+    "mongodb-memory-server": "^10.1.3",
+    "vitest": "^2.1.8"
+  },
+  "license": "UNLICENSED"
+}

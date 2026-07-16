@@ -1,0 +1,449 @@
+{
+  "workflow_id": "proven-demand-api-v1",
+  "step_id": "V1",
+  "research_date": "2026-07-13",
+  "volume_methodology": {
+    "unit": "estimated global monthly Google searches",
+    "note": "Rounded planning estimates. Exact publicly exposed figures are identified in each keyword record; other values are labeled planning_estimate and should be refreshed in Google Ads Keyword Planner before paid acquisition.",
+    "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+  },
+  "recommendation": {
+    "candidate_id": "uae_einvoice_preflight_api",
+    "name": "UAE e-invoice preflight validation API",
+    "score": 85,
+    "one_line": "Validate UAE PINT AE/UBL invoices, TRNs, required tax fields, totals, and code lists before submission to an accredited ASP.",
+    "positioning_guardrail": "Preflight validation only: do not claim FTA accreditation, transmit legal e-invoices, replace an ASP, or provide statutory archival in V1.",
+    "reason": "It is the only candidate with deadline-driven mandatory spend, public price tolerance above $29, a clear self-serve developer gap, and a core product that is genuinely buildable on the locked stack in two weeks."
+  },
+  "ranked_candidates": [
+    {
+      "rank": 1,
+      "candidate_id": "uae_einvoice_preflight_api",
+      "name": "UAE e-invoice preflight validation API",
+      "score": 85,
+      "rubric": {
+        "search_volume_and_buy_intent": {
+          "score": 18,
+          "max": 30,
+          "reason": "The five-keyword cluster is only about 2,370 searches/month, but the queries are highly commercial and the 2026-2027 mandate creates deadline-driven intent.",
+          "sources": [
+            "https://infinite-it.com/en/blog/fta-approved-accounting-tech-your-stepwise-guide-to-uae-e-invoicing-compliance",
+            "https://www.pwc.com/m1/en/tax/documents/2026/uae-e-invoicing-updates.pdf",
+            "https://mof.gov.ae/en/about-us/initiatives/einvoicing/pre-approved-einvoicing-service-providers/"
+          ]
+        },
+        "competitor_weakness_and_gaps": {
+          "score": 23,
+          "max": 25,
+          "reason": "Leading providers are quote-led and enterprise-shaped; buyers report high onboarding fees, and review data shows complex pricing or multi-month implementation.",
+          "sources": [
+            "https://www.reddit.com/r/SmallBusinessUAE/comments/1rf5kq9/any_uae_einvoicing_asp_member_here/",
+            "https://www.g2.com/de/products/comarch-edi-and-e-invoicing/reviews",
+            "https://www.g2.com/products/sovos/reviews"
+          ]
+        },
+        "buildable_within_two_weeks": {
+          "score": 20,
+          "max": 20,
+          "reason": "A deterministic non-transmitting schema/rule validator needs no proxy fleet, external app review, or accredited transmission network.",
+          "sources": [
+            "https://mof.gov.ae/wp-content/uploads/2026/06/UAE-Electronic-Invoicing-Guidelines_V-1.1-01June2026.pdf",
+            "https://www.cleartax.com/ae/uae-e-invoicing-integration-api-middleware-erp-connector"
+          ]
+        },
+        "price_tolerance_at_least_29": {
+          "score": 15,
+          "max": 15,
+          "reason": "A visible entrant charges AED 1,470/year for an API-enabled 500-document tier and buyers discuss base fees of AED 3,000-5,000 plus usage.",
+          "sources": [
+            "https://www.tronstride.com/pricing/",
+            "https://www.reddit.com/r/SmallBusinessUAE/comments/1t0n9po/when_do_you_actually_need_to_register_for_vat_in/",
+            "https://www.reddit.com/r/SmallBusinessUAE/comments/1rf5kq9/any_uae_einvoicing_asp_member_here/"
+          ]
+        },
+        "seo_and_free_tool_distribution": {
+          "score": 9,
+          "max": 10,
+          "reason": "Free invoice-field, TRN-format, deadline, and PINT AE validation tools match the search journey and naturally lead to the API.",
+          "sources": [
+            "https://velmontcrest.ae/tools/uae-trn-verification/",
+            "https://einvoice.ae.org/",
+            "https://invaq.me/"
+          ]
+        }
+      },
+      "keywords": [
+        {
+          "keyword": "e invoicing UAE",
+          "monthly_volume": 1000,
+          "volume_status": "planning_estimate",
+          "intent": "commercial",
+          "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+        },
+        {
+          "keyword": "UAE e invoicing software",
+          "monthly_volume": 590,
+          "volume_status": "planning_estimate",
+          "intent": "transactional",
+          "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+        },
+        {
+          "keyword": "FTA approved accounting software in UAE",
+          "monthly_volume": 480,
+          "volume_status": "public_exact",
+          "intent": "transactional",
+          "source": "https://infinite-it.com/en/blog/fta-approved-accounting-tech-your-stepwise-guide-to-uae-e-invoicing-compliance"
+        },
+        {
+          "keyword": "UAE e invoicing API",
+          "monthly_volume": 210,
+          "volume_status": "planning_estimate",
+          "intent": "transactional_developer",
+          "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+        },
+        {
+          "keyword": "PINT AE validation",
+          "monthly_volume": 90,
+          "volume_status": "planning_estimate",
+          "intent": "transactional_technical",
+          "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+        }
+      ],
+      "keyword_total_monthly_volume": 2370,
+      "competitors": [
+        {
+          "name": "ClearTax UAE",
+          "slug": "cleartax",
+          "pricing": "Quote/contact-sales",
+          "pricing_source": "https://www.cleartax.com/ae/e-invoicing-software",
+          "review_complaint": "UAE buyer reports high SMB onboarding fees; recent user reports frustrating support.",
+          "review_source": "https://www.reddit.com/r/SmallBusinessUAE/comments/1rf5kq9/any_uae_einvoicing_asp_member_here/",
+          "feature_gap": "No low-cost self-serve UAE preflight-only API with instant CI-friendly error remediation."
+        },
+        {
+          "name": "Comarch EDI and e-Invoicing",
+          "slug": "comarch",
+          "pricing": "Professional and Enterprise: contact sales",
+          "pricing_source": "https://www.g2.com/de/products/comarch-edi-and-e-invoicing/reviews",
+          "review_complaint": "Review synthesis says pricing is complex, especially for smaller companies.",
+          "review_source": "https://www.g2.com/de/products/comarch-edi-and-e-invoicing/reviews",
+          "feature_gap": "Broad EDI suite rather than a narrow UAE validator with public schemas and copy-paste fixes."
+        },
+        {
+          "name": "Sovos",
+          "slug": "sovos",
+          "pricing": "Quote-only",
+          "pricing_source": "https://www.g2.com/products/sovos/reviews",
+          "review_complaint": "Users report complex UI/customization; review-derived implementation time is four months.",
+          "review_source": "https://www.g2.com/products/sovos/reviews",
+          "feature_gap": "Enterprise multi-jurisdiction platform with no lightweight, UAE-only self-serve preflight tier."
+        }
+      ],
+      "paying_now_evidence": [
+        {
+          "claim": "TronStride charges AED 1,470/year for 500 documents with API access.",
+          "source": "https://www.tronstride.com/pricing/"
+        },
+        {
+          "claim": "UAE buyers report ASP base quotes of AED 3,000-5,000 plus volume pricing.",
+          "source": "https://www.reddit.com/r/SmallBusinessUAE/comments/1t0n9po/when_do_you_actually_need_to_register_for_vat_in/"
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "candidate_id": "google_maps_business_scraping_api",
+      "name": "Google Maps business-data scraping API",
+      "score": 71,
+      "rubric": {
+        "search_volume_and_buy_intent": {
+          "score": 30,
+          "max": 30,
+          "reason": "About 22,700 estimated monthly searches across direct scraper/extractor terms, with visible CPC on the leading queries.",
+          "sources": [
+            "https://aistage.net/tool/mapsscraperai",
+            "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+          ]
+        },
+        "competitor_weakness_and_gaps": {
+          "score": 14,
+          "max": 25,
+          "reason": "Unexpected-cost and missing-field complaints exist, but the category is mature, crowded, and price-compressed; Apify alone has 33K MAU.",
+          "sources": [
+            "https://apify.com/compass/crawler-google-places",
+            "https://apify.com/compass/crawler-google-places/issues/why-was-i-charged-60-uc3LeKuM9fg6P1cFh",
+            "https://www.reddit.com/r/SEO/comments/1ket6la/failing_to_find_google_maps_scraper_that_does/"
+          ]
+        },
+        "buildable_within_two_weeks": {
+          "score": 9,
+          "max": 20,
+          "reason": "A prototype fits, but a reliable product needs proxy/browser orchestration, CAPTCHA recovery, grid splitting, dedupe, and continuous DOM maintenance; platform terms add fragility.",
+          "sources": [
+            "https://iblead.com/en/blog/extract-google-maps-data-complete-guide",
+            "https://cloud.google.com/maps-platform/terms?hl=en-EN",
+            "https://cloud.google.com/maps-platform/terms/index-20190502"
+          ]
+        },
+        "price_tolerance_at_least_29": {
+          "score": 8,
+          "max": 15,
+          "reason": "High-volume users pay, but $1.50-$3 per thousand incumbent pricing makes a $29 subscription easy to undercut.",
+          "sources": [
+            "https://apify.com/compass/crawler-google-places",
+            "https://outscraper.com/pricing/",
+            "https://www.techradar.com/reviews/bright-data"
+          ]
+        },
+        "seo_and_free_tool_distribution": {
+          "score": 10,
+          "max": 10,
+          "reason": "A free CSV extractor or limited row preview is an exact match to large, transactional search demand.",
+          "sources": [
+            "https://aistage.net/tool/mapsscraperai",
+            "https://gmapscraper.io/"
+          ]
+        }
+      },
+      "keywords": [
+        {
+          "keyword": "google maps scraper",
+          "monthly_volume": 14930,
+          "volume_status": "public_exact",
+          "intent": "transactional",
+          "source": "https://aistage.net/tool/mapsscraperai"
+        },
+        {
+          "keyword": "maps scraper",
+          "monthly_volume": 3880,
+          "volume_status": "public_exact",
+          "intent": "transactional",
+          "source": "https://aistage.net/tool/mapsscraperai"
+        },
+        {
+          "keyword": "google map extractor",
+          "monthly_volume": 2110,
+          "volume_status": "public_exact",
+          "intent": "transactional",
+          "source": "https://aistage.net/tool/mapsscraperai"
+        },
+        {
+          "keyword": "google maps data scraper",
+          "monthly_volume": 1300,
+          "volume_status": "planning_estimate",
+          "intent": "transactional",
+          "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+        },
+        {
+          "keyword": "google maps scraper API",
+          "monthly_volume": 480,
+          "volume_status": "planning_estimate",
+          "intent": "transactional_developer",
+          "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+        }
+      ],
+      "keyword_total_monthly_volume": 22700,
+      "competitors": [
+        {
+          "name": "Apify Google Maps Scraper",
+          "slug": "apify-google-maps-scraper",
+          "pricing": "From $1.50 per 1,000 places plus paid enrichment events",
+          "pricing_source": "https://apify.com/compass/crawler-google-places",
+          "review_complaint": "Public issue reports an unexpected $60 charge; community reports pricing confusion.",
+          "review_source": "https://apify.com/compass/crawler-google-places/issues/why-was-i-charged-60-uc3LeKuM9fg6P1cFh",
+          "feature_gap": "Predictable bundled request price and stable narrow schema."
+        },
+        {
+          "name": "Outscraper",
+          "slug": "outscraper",
+          "pricing": "First 500 free; $3/1,000 through 100K; $1/1,000 above 100K",
+          "pricing_source": "https://outscraper.com/pricing/",
+          "review_complaint": "User reports missing descriptions, social profiles, and prices plus manual one-at-a-time workarounds.",
+          "review_source": "https://www.reddit.com/r/SEO/comments/1ket6la/failing_to_find_google_maps_scraper_that_does/",
+          "feature_gap": "Verified/cleaned records, freshness metadata, dedupe, and predictable enrichment."
+        },
+        {
+          "name": "Bright Data",
+          "slug": "bright-data",
+          "pricing": "About $1.50/1,000 PAYG; discounted with $499-$1,999 monthly commitments",
+          "pricing_source": "https://www.techradar.com/reviews/bright-data",
+          "review_complaint": "G2 review synthesis flags pricing issues, expense, and learning difficulty.",
+          "review_source": "https://www.g2.com/products/bright-data/reviews",
+          "feature_gap": "Simpler local-lead-specific API and onboarding."
+        }
+      ],
+      "paying_now_evidence": [
+        {
+          "claim": "Apify's paid Google Maps Actor shows 507K total users, 33K MAU, and 1,619 ratings.",
+          "source": "https://apify.com/compass/crawler-google-places"
+        },
+        {
+          "claim": "Outscraper publishes active postpaid pricing for Maps places and reviews.",
+          "source": "https://outscraper.com/pricing/"
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "candidate_id": "cross_platform_social_posting_api",
+      "name": "Cross-platform social posting/scheduling API",
+      "score": 62,
+      "rubric": {
+        "search_volume_and_buy_intent": {
+          "score": 27,
+          "max": 30,
+          "reason": "The category has about 20,580 monthly searches in this cluster, but four terms skew toward end-user scheduling products rather than API infrastructure.",
+          "sources": [
+            "https://adtargeting.io/industry/social-media-management-keywords",
+            "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+          ]
+        },
+        "competitor_weakness_and_gaps": {
+          "score": 12,
+          "max": 25,
+          "reason": "Ayrshare is expensive, but Late, Upload-Post, Post for Me, and PostPeer already occupy the affordable API-first gap.",
+          "sources": [
+            "https://www.ayrshare.com/pricing/",
+            "https://getlate.dev/changelog/simplified-pricing-plans-for-late-api-users",
+            "https://www.upload-post.com/",
+            "https://www.postforme.dev/pricing",
+            "https://www.postpeer.dev/pricing"
+          ]
+        },
+        "buildable_within_two_weeks": {
+          "score": 5,
+          "max": 20,
+          "reason": "Core queueing is easy, but platform verification and app review can take seven to eight weeks; a two-week product would have to resell another API.",
+          "sources": [
+            "https://www.reddit.com/r/SaaS/comments/1s3lhl1/im_building_a_social_media_management_saas_need/",
+            "https://apiscout.dev/guides/best-social-media-apis-2026"
+          ]
+        },
+        "price_tolerance_at_least_29": {
+          "score": 9,
+          "max": 15,
+          "reason": "Enterprise buyers pay $149-$599, but low-end competitors anchor the category at $10-$17 and offer substantial capacity around $33.",
+          "sources": [
+            "https://www.ayrshare.com/pricing/",
+            "https://www.postforme.dev/pricing",
+            "https://www.postpeer.dev/pricing",
+            "https://www.upload-post.com/"
+          ]
+        },
+        "seo_and_free_tool_distribution": {
+          "score": 9,
+          "max": 10,
+          "reason": "Format checkers, caption previewers, and free scheduled posts distribute naturally, but SERP competition is broad and mature.",
+          "sources": [
+            "https://adtargeting.io/industry/social-media-management-keywords",
+            "https://www.postpeer.dev/pricing"
+          ]
+        }
+      },
+      "keywords": [
+        {
+          "keyword": "social media scheduler",
+          "monthly_volume": 9000,
+          "volume_status": "public_exact",
+          "intent": "commercial",
+          "source": "https://adtargeting.io/industry/social-media-management-keywords"
+        },
+        {
+          "keyword": "social media post scheduler",
+          "monthly_volume": 5900,
+          "volume_status": "public_exact",
+          "intent": "commercial",
+          "source": "https://adtargeting.io/industry/social-media-management-keywords"
+        },
+        {
+          "keyword": "social media management platform",
+          "monthly_volume": 3500,
+          "volume_status": "public_exact",
+          "intent": "commercial",
+          "source": "https://adtargeting.io/industry/social-media-management-keywords"
+        },
+        {
+          "keyword": "best social media scheduler",
+          "monthly_volume": 1700,
+          "volume_status": "public_exact",
+          "intent": "commercial_comparison",
+          "source": "https://adtargeting.io/industry/social-media-management-keywords"
+        },
+        {
+          "keyword": "social media scheduling API",
+          "monthly_volume": 480,
+          "volume_status": "planning_estimate",
+          "intent": "transactional_developer",
+          "source": "https://www.semrush.com/free-tools/keyword-search-volume-checker/"
+        }
+      ],
+      "keyword_total_monthly_volume": 20580,
+      "competitors": [
+        {
+          "name": "Ayrshare",
+          "slug": "ayrshare",
+          "pricing": "$149/month Premium; $299 Launch; $599 Business",
+          "pricing_source": "https://www.ayrshare.com/pricing/",
+          "review_complaint": "Current MVP buyer calls the pricing extremely expensive.",
+          "review_source": "https://www.reddit.com/r/microsaas/comments/1r46r7j/need_help/",
+          "feature_gap": "Affordable low-volume production tier and simpler usage pricing."
+        },
+        {
+          "name": "Late",
+          "slug": "late",
+          "pricing": "Free; $13 Boot; $33 Accelerate; $666 Unlimited",
+          "pricing_source": "https://getlate.dev/changelog/simplified-pricing-plans-for-late-api-users",
+          "review_complaint": "Three-star review reports video posting failures on Facebook/Threads and an Instagram Make-module problem.",
+          "review_source": "https://nz.trustpilot.com/review/getlate.dev",
+          "feature_gap": "Richer written docs and more transparent per-platform failure diagnostics."
+        },
+        {
+          "name": "Upload-Post",
+          "slug": "upload-post",
+          "pricing": "Free; $16 Basic; $33 Professional; $118 Advanced",
+          "pricing_source": "https://www.upload-post.com/",
+          "review_complaint": "Developer reports Instagram container and TikTok spam-risk failures; YouTube verification took months.",
+          "review_source": "https://www.reddit.com/r/SaaS/comments/1josc99/uploadpost_the_ayrshare_cheaper_alternative/",
+          "feature_gap": "Normalized errors and retries, though the incumbent already offers ten networks, analytics, and scheduling."
+        }
+      ],
+      "paying_now_evidence": [
+        {
+          "claim": "Ayrshare reports 50K+ posts/day and 30M+ API calls with paid tiers from $149/month.",
+          "source": "https://www.ayrshare.com/pricing/"
+        },
+        {
+          "claim": "PostPeer reports $1,566 MRR and 880+ users after three months.",
+          "source": "https://www.reddit.com/r/SideProject/comments/1urn29o/just_hit_1566_mrr_880_users_and_3_months_since/"
+        }
+      ]
+    }
+  ],
+  "m2_competitors": [
+    {
+      "name": "ClearTax UAE",
+      "slug": "cleartax",
+      "alternative_page": "/alternatives/cleartax",
+      "vs_page": "/vs/cleartax",
+      "pricing_source": "https://www.cleartax.com/ae/e-invoicing-software",
+      "gap_to_lead_with": "Quote-led full ASP offering versus instant self-serve preflight validation."
+    },
+    {
+      "name": "Comarch EDI and e-Invoicing",
+      "slug": "comarch",
+      "alternative_page": "/alternatives/comarch",
+      "vs_page": "/vs/comarch",
+      "pricing_source": "https://www.g2.com/de/products/comarch-edi-and-e-invoicing/reviews",
+      "gap_to_lead_with": "Enterprise EDI suite and contact-sales pricing versus a narrow UAE developer API."
+    },
+    {
+      "name": "Sovos",
+      "slug": "sovos",
+      "alternative_page": "/alternatives/sovos",
+      "vs_page": null,
+      "pricing_source": "https://www.g2.com/products/sovos/reviews",
+      "gap_to_lead_with": "Four-month enterprise implementation signal versus immediate preflight linting."
+    }
+  ],
+  "why_over_the_other_two": "The UAE validator converts lower search volume into higher-value deadline intent, clears the $29 threshold with visible current pricing, and can ship as a credible non-transmitting validator inside two weeks. Google Maps is a policy-risky, proxy-heavy commodity priced around $1.50-$3 per thousand records; social posting is already crowded at $10-$17 and external app approvals can take seven to eight weeks."
+}
