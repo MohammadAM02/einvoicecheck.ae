@@ -6,6 +6,7 @@ import { listKeys } from '@/lib/keys';
 import { usageSummary } from '@/lib/usage';
 import { PLANS } from '@/lib/plans';
 import { isBillingConfigured } from '@/lib/dodo';
+import { isLemonConfigured } from '@/lib/lemon';
 import { DashboardClient } from '@/components/DashboardClient';
 
 export const metadata: Metadata = {
@@ -14,7 +15,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// Never prerender: this page reads Mongo and the session cookie.
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
@@ -27,6 +27,10 @@ export default async function DashboardPage() {
     usageSummary(user._id, user.plan),
   ]);
 
+  const hasSubscription = Boolean(
+    user.dodoSubscriptionId || (user as Record<string, unknown>).lemonSubscriptionId,
+  );
+
   return (
     <DashboardClient
       email={user.email}
@@ -35,8 +39,8 @@ export default async function DashboardPage() {
       subscriptionStatus={user.subscriptionStatus}
       cancelAtPeriodEnd={user.cancelAtPeriodEnd}
       currentPeriodEnd={user.currentPeriodEnd ? new Date(user.currentPeriodEnd).toISOString() : null}
-      hasSubscription={Boolean(user.dodoSubscriptionId)}
-      billingConfigured={isBillingConfigured()}
+      hasSubscription={hasSubscription}
+      billingConfigured={isBillingConfigured() || isLemonConfigured()}
       keys={keys}
       usage={usage}
     />

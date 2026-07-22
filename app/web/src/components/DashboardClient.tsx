@@ -116,12 +116,13 @@ export function DashboardClient(props: Props) {
     setBusy(plan);
     setError(null);
     try {
-      // Already subscribed → change plan (with explicit proration). Otherwise checkout.
       if (props.hasSubscription && plan !== 'trial') {
+        // Existing subscriber switching plans — use Dodo change-plan
         await post('/api/billing/change-plan', { plan, proration: 'prorated_immediately' });
         router.refresh();
       } else {
-        const data = await post('/api/billing/checkout', { plan });
+        // New subscriber — route through Lemon Squeezy
+        const data = await post('/api/billing/lemon-checkout', { plan });
         window.location.href = String(data.checkoutUrl);
       }
     } catch (e) {
@@ -228,8 +229,9 @@ export function DashboardClient(props: Props) {
             <div className="notice">
               <strong>Billing is not configured on this deployment.</strong>
               <p>
-                <code>DODO_PAYMENTS_API_KEY</code> is unset, so checkout will return 503. See{' '}
-                <code>handoffs/E2/DODO_SETUP.md</code>.
+                Checkout runs through Lemon Squeezy. Set{' '}
+                <code>LEMON_SQUEEZY_API_KEY</code> and <code>LEMON_SQUEEZY_STORE_ID</code> in
+                Railway to enable payments.
               </p>
             </div>
           ) : null}
@@ -279,7 +281,7 @@ export function DashboardClient(props: Props) {
             </div>
           ) : null}
           <p className="muted" style={{ marginTop: 12 }}>
-            Payments are processed by Dodo Payments, our merchant of record.
+            Payments are processed by Lemon Squeezy, our merchant of record.
           </p>
         </div>
 
