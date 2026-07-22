@@ -22,6 +22,8 @@ export type Plan = {
   monthlyQuota: number;
   /** Env var holding the Dodo Payments product_id for this tier. */
   productIdEnv: string;
+  /** Env var holding the Lemon Squeezy variant_id for this tier. */
+  lemonVariantIdEnv: string;
   blurb: string;
   trialPeriodDays?: number;
 };
@@ -36,6 +38,7 @@ export const PLANS: Record<PlanId, Plan> = {
     rateLimitPerMinute: 10,
     monthlyQuota: 100,
     productIdEnv: 'DODO_PRODUCT_ID_TRIAL',
+    lemonVariantIdEnv: 'LEMON_VARIANT_ID_TRIAL',
     blurb: 'Enough to wire the API into one CI pipeline and see your real error list.',
     trialPeriodDays: 14,
   },
@@ -48,6 +51,7 @@ export const PLANS: Record<PlanId, Plan> = {
     rateLimitPerMinute: 60,
     monthlyQuota: 2000,
     productIdEnv: 'DODO_PRODUCT_ID_STARTER',
+    lemonVariantIdEnv: 'LEMON_VARIANT_ID_STARTER',
     blurb: 'For one finance system or ERP export you keep clean before it reaches your ASP.',
   },
   pro: {
@@ -59,6 +63,7 @@ export const PLANS: Record<PlanId, Plan> = {
     rateLimitPerMinute: 300,
     monthlyQuota: 15000,
     productIdEnv: 'DODO_PRODUCT_ID_PRO',
+    lemonVariantIdEnv: 'LEMON_VARIANT_ID_PRO',
     blurb: 'For teams validating every invoice in CI across several entities or clients.',
   },
 };

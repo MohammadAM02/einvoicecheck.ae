@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { GUARDRAIL } from '@/lib/site';
 
 /**
@@ -10,11 +13,22 @@ export function Todo({ children }: { children: string }) {
 }
 
 export function SiteHeader() {
+  useEffect(() => {
+    const nav = document.querySelector('header.site');
+    if (!nav) return;
+    const handler = () => {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handler, { passive: true });
+    handler();
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
+
   return (
     <header className="site">
-      <div className="container bar">
+      <div className="bar">
         <Link href="/" className="brand">
-          einvoicecheck<span style={{ color: '#34d399' }}>.ae</span>
+          einvoicecheck<span>.ae</span>
         </Link>
         <nav>
           <Link href="/pricing">Pricing</Link>
@@ -22,8 +36,8 @@ export function SiteHeader() {
           <Link href="/blog">Blog</Link>
           <Link href="/tools/uae-e-invoice-validator">Free tool</Link>
           <Link href="/login">Sign in</Link>
-          <Link href="/signup" className="btn btn-primary">
-            Get an API key
+          <Link href="/signup" className="nav-cta">
+            Get an API key →
           </Link>
         </nav>
       </div>
@@ -31,7 +45,7 @@ export function SiteHeader() {
   );
 }
 
-/** The honesty block. Must appear on every page - it is the positioning. */
+/** The honesty block. Must appear on every page — it is the positioning. */
 export function GuardrailNotice() {
   return (
     <div className="notice">
@@ -45,89 +59,56 @@ export function SiteFooter() {
   return (
     <footer className="site">
       <div className="container">
-        <div className="cols">
-          <div>
-            <h4>Product</h4>
-            <ul>
-              <li>
-                <Link href="/pricing">Pricing</Link>
-              </li>
-              <li>
-                <Link href="/docs">API docs</Link>
-              </li>
-              <li>
-                <Link href="/waitlist">Waitlist</Link>
-              </li>
-            </ul>
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <Link href="/" className="brand" style={{ fontSize: 16 }}>
+              einvoicecheck<span>.ae</span>
+            </Link>
+            <p>
+              Preflight validation for UAE e-invoicing. Catch file errors before
+              your accredited provider does.
+            </p>
           </div>
-          <div>
-            <h4>Free tools</h4>
-            <ul>
-              <li>
-                <Link href="/tools/uae-e-invoice-validator">UAE e-invoice validator</Link>
-              </li>
-              <li>
-                <Link href="/tools/pint-ae-validator">PINT AE validator</Link>
-              </li>
-              <li>
-                <Link href="/tools/trn-format-checker">TRN format checker</Link>
-              </li>
-            </ul>
+          <div className="footer-col">
+            <h5>Product</h5>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/docs">API docs</Link>
+            <Link href="/waitlist">Waitlist</Link>
           </div>
-          <div>
-            <h4>Compare</h4>
-            <ul>
-              <li>
-                <Link href="/alternatives/cleartax">ClearTax alternatives</Link>
-              </li>
-              <li>
-                <Link href="/alternatives/comarch">Comarch alternatives</Link>
-              </li>
-              <li>
-                <Link href="/alternatives/sovos">Sovos alternatives</Link>
-              </li>
-            </ul>
+          <div className="footer-col">
+            <h5>Free tools</h5>
+            <Link href="/tools/uae-e-invoice-validator">UAE e-invoice validator</Link>
+            <Link href="/tools/pint-ae-validator">PINT AE validator</Link>
+            <Link href="/tools/trn-format-checker">TRN format checker</Link>
           </div>
-          <div>
-            <h4>Learn</h4>
-            <ul>
-              <li>
-                <Link href="/blog">Blog</Link>
-              </li>
-              <li>
-                <Link href="/vs/cleartax">einvoicecheck vs ClearTax</Link>
-              </li>
-              <li>
-                <Link href="/vs/comarch">einvoicecheck vs Comarch</Link>
-              </li>
-            </ul>
+          <div className="footer-col">
+            <h5>Compare</h5>
+            <Link href="/alternatives/cleartax">ClearTax alternatives</Link>
+            <Link href="/alternatives/comarch">Comarch alternatives</Link>
+            <Link href="/alternatives/sovos">Sovos alternatives</Link>
           </div>
-          <div>
-            <h4>Company</h4>
-            <ul>
-              <li>
-                <Link href="/contact">Contact</Link>
-              </li>
-              <li>
-                <Link href="/legal/terms">Terms of Service</Link>
-              </li>
-              <li>
-                <Link href="/legal/privacy">Privacy Policy</Link>
-              </li>
-              <li>
-                <Link href="/legal/refunds">Refund Policy</Link>
-              </li>
-            </ul>
+          <div className="footer-col">
+            <h5>Company</h5>
+            <Link href="/blog">Blog</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href="/legal/terms">Terms of Service</Link>
+            <Link href="/legal/privacy">Privacy Policy</Link>
+            <Link href="/legal/refunds">Refund Policy</Link>
           </div>
         </div>
-        <p className="fine">
-          Payments are processed by Dodo Payments, which acts as the merchant of record for all
-          purchases. Billing is not live yet.
+        <div className="footer-bottom">
+          <span>&copy; {new Date().getFullYear()} einvoicecheck.ae</span>
+          <span>Dubai, UAE</span>
+        </div>
+        <p className="fine" style={{ marginTop: 16 }}>
+          Payments are processed by Dodo Payments and Lemon Squeezy, which act
+          as the merchant of record for all purchases.
         </p>
         <p className="fine">{GUARDRAIL}</p>
         <p className="fine" style={{ marginTop: 8 }}>
-          Before you file anything, check the official Ministry of Finance and Federal Tax Authority
-          guidance and use an accredited service provider from the official list.
+          Before you file anything, check the official Ministry of Finance and
+          Federal Tax Authority guidance and use an accredited service provider
+          from the official list.
         </p>
       </div>
     </footer>

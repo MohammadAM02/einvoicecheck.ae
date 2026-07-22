@@ -80,6 +80,8 @@ export type UserDoc = {
   subscriptionStatus: SubscriptionStatus;
   dodoCustomerId: string | null;
   dodoSubscriptionId: string | null;
+  lemonCustomerId: string | null;
+  lemonSubscriptionId: string | null;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
   lastPaymentStatus: 'succeeded' | 'failed' | null;
@@ -95,6 +97,8 @@ const userSchema = new Schema<UserDoc>(
     subscriptionStatus: { type: String, default: 'none', index: true },
     dodoCustomerId: { type: String, default: null, index: true },
     dodoSubscriptionId: { type: String, default: null, index: true },
+    lemonCustomerId: { type: String, default: null },
+    lemonSubscriptionId: { type: String, default: null },
     currentPeriodEnd: { type: Date, default: null },
     cancelAtPeriodEnd: { type: Boolean, default: false },
     lastPaymentStatus: { type: String, default: null },
