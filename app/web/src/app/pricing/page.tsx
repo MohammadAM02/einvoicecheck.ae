@@ -38,7 +38,7 @@ const offerSchema = {
       price: String(t.price),
       priceCurrency: 'USD',
       availability: 'https://schema.org/PreOrder',
-      url: `${SITE_URL}/waitlist`,
+      url: `${SITE_URL}/signup`,
     })),
   },
 };

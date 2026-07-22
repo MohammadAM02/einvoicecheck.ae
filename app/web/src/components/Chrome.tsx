@@ -34,7 +34,7 @@ export function SiteHeader() {
           <Link href="/pricing">Pricing</Link>
           <Link href="/docs">Docs</Link>
           <Link href="/blog">Blog</Link>
-          <Link href="/tools/uae-e-invoice-validator">Free tool</Link>
+          <Link href="/tools/uae-e-invoice-validator">Try it</Link>
           <Link href="/login">Sign in</Link>
           <Link href="/signup" className="nav-cta">
             Get an API key →
@@ -73,7 +73,7 @@ export function SiteFooter() {
             <h5>Product</h5>
             <Link href="/pricing">Pricing</Link>
             <Link href="/docs">API docs</Link>
-            <Link href="/waitlist">Waitlist</Link>
+            <Link href="/signup">Sign up</Link>
           </div>
           <div className="footer-col">
             <h5>Free tools</h5>

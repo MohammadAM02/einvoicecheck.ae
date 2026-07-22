@@ -128,8 +128,7 @@ export function PricingClient() {
             <p>
               Checkout is not wired up yet. No card details are collected anywhere on
               this site right now.{' '}
-              <Link href="/waitlist">Join the waitlist</Link> and you will get a launch
-              API key and locked launch pricing.
+              <Link href="/signup">Sign up</Link> for a free API key — no card required.
             </p>
           </div>
 
@@ -161,8 +160,8 @@ export function PricingClient() {
                     ))}
                   </ul>
                   {tier.name === 'Free trial' ? (
-                    <Link href="/waitlist" className="btn btn-secondary">
-                      Join the waitlist →
+                    <Link href="/signup" className="btn btn-secondary">
+                      Start free trial →
                     </Link>
                   ) : (
                     <button
@@ -260,7 +259,7 @@ export function PricingClient() {
             },
             {
               q: 'Can I pay today?',
-              a: 'No. Billing is not live yet. Payments will run through Lemon Squeezy once checkout is wired up. Until then, joining the waitlist is the only way to reserve a launch API key, and no card details are collected.',
+              a: 'Not yet. Billing runs through Lemon Squeezy and will be live soon. In the meantime, sign up for a free account — you will get an API key immediately with no card required.',
             },
             {
               q: 'Does the price include transmitting invoices to the FTA?',

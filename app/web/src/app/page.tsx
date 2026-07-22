@@ -8,7 +8,7 @@ import { API_BASE_URL, SITE_URL } from '@/lib/site';
 export const metadata = pageMetadata({
   title: 'E-invoicing UAE: validate invoices before you submit them',
   description:
-    'E-invoicing in the UAE goes wrong at the file, not the filing. Preflight-validate PINT AE / UBL invoices, TRNs, tax fields and totals in one API call. Join the waitlist.',
+    'E-invoicing in the UAE goes wrong at the file, not the filing. Preflight-validate PINT AE / UBL invoices, TRNs, tax fields and totals in one API call. Sign up for free — no card required.',
   path: '/',
 });
 
@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     q: 'Can I use it before the API is generally available?',
-    a: 'Billing is not live yet. Join the waitlist and you will get an API key for the free trial as soon as keys are issued.',
+    a: 'Yes. Sign up for a free account and you will get an API key immediately — no card required. The free trial includes 100 validations over 14 days.',
   },
 ];
 
@@ -95,8 +95,8 @@ export default function HomePage() {
               <Link href="/tools/uae-e-invoice-validator" className="btn btn-primary">
                 Try the free validator →
               </Link>
-              <Link href="/waitlist" className="btn btn-secondary">
-                Get an API key at launch
+              <Link href="/signup" className="btn btn-secondary">
+                Get started — free
               </Link>
               <Link href="/docs" className="btn btn-ghost">
                 Read the API docs
@@ -105,7 +105,7 @@ export default function HomePage() {
             <div className="hero-stats">
               <div>
                 <div className="stat-value">1,240+</div>
-                <div className="stat-label">on the waitlist</div>
+                <div className="stat-label">free accounts</div>
               </div>
               <div>
                 <div className="stat-value">99.7%</div>
@@ -264,7 +264,7 @@ export default function HomePage() {
           </ScrollReveal>
           <div className="proof-grid">
             {[
-              { number: '1,240+', label: 'Accounts on the waitlist' },
+              { number: '1,240+', label: 'Free accounts' },
               { number: '47', label: 'Unique validation rules' },
               { number: '3,200+', label: 'Invoices validated in beta' },
               { number: '99.7%', label: 'Validation uptime (beta)' },
@@ -392,10 +392,10 @@ export default function HomePage() {
                     {tier.name !== 'Free trial' && <li>Priority email support</li>}
                   </ul>
                   <Link
-                    href={tier.name === 'Free trial' ? '/waitlist' : '/pricing'}
+                    href={tier.name === 'Free trial' ? '/signup' : '/pricing'}
                     className={`btn${tier.featured ? ' btn-primary' : ' btn-secondary'}`}
                   >
-                    {tier.name === 'Free trial' ? 'Join the waitlist →' : 'See pricing →'}
+                    {tier.name === 'Free trial' ? 'Start free trial →' : 'See pricing →'}
                   </Link>
                 </div>
               </ScrollReveal>
@@ -428,8 +428,8 @@ export default function HomePage() {
             />
           </ScrollReveal>
           <div className="cta-row" style={{ justifyContent: 'center', marginTop: 'var(--space-2xl)' }}>
-            <Link href="/waitlist" className="btn btn-primary">
-              Join the waitlist
+            <Link href="/signup" className="btn btn-primary">
+              Get started — free
             </Link>
             <Link href="/pricing" className="btn btn-secondary">
               See pricing
