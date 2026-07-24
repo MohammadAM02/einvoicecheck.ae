@@ -53,7 +53,7 @@ interface HeroValidatorProps {
 const s: Record<string, React.CSSProperties> = {
   wrap: { display: 'flex', flexDirection: 'column', gap: 12 },
   textarea: {
-    width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+    width: '100%', minWidth: 0, background: 'var(--bg)', border: '1px solid var(--border)',
     borderRadius: 'var(--radius-md)', padding: 14, fontFamily: 'var(--font-code)',
     fontSize: 13, color: 'var(--ink)', resize: 'vertical', minHeight: 160,
     outline: 'none', outlineOffset: 0,
@@ -76,7 +76,7 @@ const s: Record<string, React.CSSProperties> = {
     padding: '10px 12px', borderBottom: '1px solid var(--border)',
   },
   errorHead: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', width: '100%', background: 'none', border: 'none', color: 'inherit', fontFamily: 'inherit', fontSize: 13, padding: 0, textAlign: 'left',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', width: '100%', background: 'none', border: 'none', color: 'inherit', fontFamily: 'inherit', fontSize: 'inherit',
   },
 };
 
@@ -201,7 +201,7 @@ export const HeroValidator: React.FC<HeroValidatorProps> = ({ onOpenAuth }) => {
               {expanded.has(i) && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-secondary)' }}>
                   <p style={{ marginBottom: 4 }}>{err.message}</p>
-                  {err.fix && <div style={{ padding: '6px 10px', borderRadius: 6, background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)', color: 'var(--success)', fontSize: 11 }}>Fix: {err.fix}</div>}
+                  {err.fix && <div style={{ padding: '6px 10px', borderRadius: 6, background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)', color: 'var(--success)', fontSize: 12 }}>✓ {err.fix}</div>}
                 </div>
               )}
             </div>
