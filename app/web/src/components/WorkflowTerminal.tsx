@@ -49,7 +49,7 @@ export const WorkflowTerminal: React.FC = () => {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
       {/* Card 1 */}
-      <div style={card}>
+      <div style={{ ...card, minWidth: 0 }}>
         <div style={cardHeader}>
           <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--ink-muted)', fontWeight: 700 }}>1. Send Payload</span>
           <span style={{ fontSize: 10, background: 'var(--bg)', color: 'var(--ink-muted)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-code)' }}>POST /api/tools/validate</span>
@@ -58,7 +58,7 @@ export const WorkflowTerminal: React.FC = () => {
       </div>
 
       {/* Card 2 */}
-      <div style={{ ...card, borderColor: 'rgba(14,165,196,0.3)', boxShadow: '0 4px 24px rgba(14,165,196,0.05)' }}>
+      <div style={{ ...card, minWidth: 0, borderColor: 'rgba(14,165,196,0.3)', boxShadow: '0 4px 24px rgba(14,165,196,0.05)' }}>
         <div style={cardHeader}>
           <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--accent)', fontWeight: 700 }}>2. Engine Check</span>
           <span style={{ fontSize: 10, background: 'rgba(14,165,196,0.08)', color: 'var(--accent)', border: '1px solid rgba(14,165,196,0.2)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-code)' }}>&lt;50ms</span>
@@ -74,7 +74,7 @@ export const WorkflowTerminal: React.FC = () => {
       </div>
 
       {/* Card 3 */}
-      <div style={card}>
+      <div style={{ ...card, minWidth: 0 }}>
         <div style={cardHeader}>
           <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--ink-muted)', fontWeight: 700 }}>3. Clean Output</span>
           <span style={{ fontSize: 10, background: 'rgba(52,211,153,0.08)', color: 'var(--success)', border: '1px solid rgba(52,211,153,0.2)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-code)' }}>200 OK</span>
