@@ -39,6 +39,27 @@ type ApiOk = {
 };
 type ApiErr = { ok: false; error: string };
 
+// Batch types
+type BatchItemResult = {
+  index: number;
+  valid: boolean;
+  invoiceType: string | null;
+  schemaVersion: string;
+  errors: ValidationError[];
+};
+type BatchItemError = {
+  index: number;
+  valid: false;
+  invoiceType: null;
+  schemaVersion: string;
+  error: string;
+};
+type BatchApiOk = {
+  ok: true;
+  results: (BatchItemResult | BatchItemError)[];
+  rateLimit: { limit: number; remaining: number; resetSeconds: number; degraded: boolean };
+};
+
 const SAMPLE_JSON = `{
   "invoiceType": "388",
   "invoiceNumber": "INV-2026-0001",
@@ -122,6 +143,9 @@ export function InvoiceValidator() {
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Batch validation state
+  const [batchData, setBatchData] = useState<BatchApiOk | null>(null);
+
   // Close dropdown on outside click
   useEffect(() => {
     if (!showDropdown) return;
@@ -162,6 +186,7 @@ export function InvoiceValidator() {
     setShowDropdown(false);
     setError('');
     setData(null);
+    setBatchData(null);
 
     try {
       const res = await fetch(`/api/templates/${encodeURIComponent(filename)}`);
@@ -208,6 +233,7 @@ export function InvoiceValidator() {
     setBusy(true);
     setError('');
     setData(null);
+    setBatchData(null);
     try {
       const res = await fetch('/api/tools/validate', {
         method: 'POST',
@@ -222,6 +248,42 @@ export function InvoiceValidator() {
       }
     } catch {
       setError('Could not reach the validator. Check your connection and try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function batchValidate() {
+    const docs = text
+      .split(/\n---+\n/)
+      .map((d) => d.trim())
+      .filter(Boolean);
+    if (docs.length < 2) {
+      setError('Paste 2 or more invoices separated by --- to use batch validation.');
+      return;
+    }
+    if (docs.length > 50) {
+      setError('Batch size exceeds the 50-invoice limit.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setData(null);
+    setBatchData(null);
+    try {
+      const res = await fetch('/api/tools/validate/batch', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ invoices: docs }),
+      });
+      const body = await res.json();
+      if (!res.ok || body.ok !== true) {
+        setError(body.error ?? 'Batch validation failed.');
+      } else {
+        setBatchData(body as BatchApiOk);
+      }
+    } catch {
+      setError('Could not reach the validator.');
     } finally {
       setBusy(false);
     }
@@ -251,9 +313,19 @@ export function InvoiceValidator() {
           placeholder='{"invoiceType":"388", ...}   or   <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"> ...'
           aria-label="Invoice document"
         />
+        <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+          For batch validation, paste multiple invoices separated by <code>---</code> and click Batch validate.
+        </p>
         <div className="cta-row">
           <button className="btn btn-primary" onClick={validate} disabled={busy || !text.trim()}>
             {busy ? 'Validating...' : 'Validate invoice'}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={batchValidate}
+            disabled={busy || !text.trim()}
+          >
+            {busy ? 'Validating...' : 'Batch validate'}
           </button>
           <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
             Upload a file
@@ -277,6 +349,7 @@ export function InvoiceValidator() {
                     setShowDropdown(false);
                     setError('');
                     setData(null);
+                    setBatchData(null);
                     setText(SAMPLE_JSON);
                     // Auto-validate the JSON sample too
                     setBusy(true);
@@ -390,6 +463,64 @@ export function InvoiceValidator() {
               Read the API docs
             </Link>
           </div>
+        </div>
+      ) : null}
+
+      {batchData ? (
+        <div className="card" style={{ marginTop: 20 }}>
+          <h3>Batch results &mdash; {batchData.results.length} invoices</h3>
+          <p className="muted" style={{ marginBottom: 'var(--space-md)' }}>
+            {batchData.results.filter((r) => r.valid).length} pass
+            &middot; {batchData.results.filter((r) => !r.valid).length} would be rejected
+            &middot; {batchData.rateLimit.remaining} of {batchData.rateLimit.limit} checks left
+            {batchData.rateLimit.degraded ? ' · degraded' : ''}
+          </p>
+          {batchData.results.map((r) => (
+            <div
+              key={r.index}
+              className="fix-row"
+              style={{
+                borderLeft: `3px solid ${r.valid ? 'var(--success)' : 'var(--error)'}`,
+                marginBottom: 'var(--space-sm)',
+              }}
+            >
+              <div className="fix-row-head">
+                <span className={`pill ${r.valid ? 'ok' : 'bad'}`}>
+                  #{r.index + 1}
+                </span>
+                <span className={`pill ${r.valid ? 'ok' : 'bad'}`}>
+                  {r.valid ? 'PASS' : 'FAIL'}
+                </span>
+                {'invoiceType' in r && r.invoiceType ? (
+                  <code style={{ fontSize: 12 }}>{r.invoiceType}</code>
+                ) : null}
+                <span className="muted" style={{ fontSize: 12 }}>
+                  {'schemaVersion' in r ? r.schemaVersion : ''}
+                </span>
+              </div>
+              {'error' in r ? (
+                <p className="fix-message">{r.error}</p>
+              ) : (
+                <>
+                  {r.errors.length > 0 ? (
+                    <p className="fix-message" style={{ marginBottom: 0 }}>
+                      {r.errors.filter((e: ValidationError) => e.severity === 'error').length} error(s)
+                      {r.errors.filter((e: ValidationError) => e.severity === 'warning').length > 0
+                        ? `, ${r.errors.filter((e: ValidationError) => e.severity === 'warning').length} warning(s)`
+                        : ''}
+                    </p>
+                  ) : (
+                    <p className="fix-message" style={{ marginBottom: 0, color: 'var(--success)' }}>
+                      No errors found
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+          <p className="muted" style={{ marginTop: 'var(--space-md)' }}>
+            {batchData.rateLimit.remaining} of {batchData.rateLimit.limit} free checks left this hour from your IP.
+          </p>
         </div>
       ) : null}
     </div>
