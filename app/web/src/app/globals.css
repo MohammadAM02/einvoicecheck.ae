@@ -1041,6 +1041,69 @@ footer.site .fine {
   padding: 4px 12px;
 }
 
+/* ---- SAMPLE DROPDOWN — template picker for the validator ---- */
+.sample-btn-wrapper {
+  position: relative;
+}
+.sample-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 380px;
+  max-width: 90vw;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+  z-index: 50;
+  padding: 6px 0;
+}
+.sample-dropdown-header {
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink-muted);
+}
+.sample-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+}
+.sample-option:hover {
+  background: var(--accent-subtle);
+}
+.sample-option-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.sample-option-desc {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+.sample-option-json {
+  border-bottom: 1px solid var(--border);
+}
+.sample-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
 .fix-list { margin-top: var(--space-md); }
 .fix-row {
   padding: 14px 16px;

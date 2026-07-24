@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * The free browser tool (GR1). Zero login: it POSTs the pasted document to
@@ -10,6 +10,12 @@ import { useRef, useState } from 'react';
  *
  * Results shown here are preflight only - nothing is transmitted anywhere.
  */
+
+type TemplateMeta = {
+  filename: string;
+  name: string;
+  description: string;
+};
 
 type ValidationError = {
   path: string;
@@ -94,8 +100,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1600);
         } catch {
-          // Clipboard API unavailable (older browser/permissions) - fail silently, the text is
-          // still fully visible and selectable on the page.
+          // Clipboard API unavailable - fail silently.
         }
       }}
     >
@@ -110,6 +115,86 @@ export function InvoiceValidator() {
   const [error, setError] = useState('');
   const [data, setData] = useState<ApiOk | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Sample template dropdown state
+  const [templates, setTemplates] = useState<TemplateMeta[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showDropdown) return;
+    const h = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [showDropdown]);
+
+  // Fetch templates list when dropdown opens
+  const openDropdown = useCallback(() => {
+    if (templates.length > 0) {
+      setShowDropdown(true);
+      return;
+    }
+    setLoadingTemplates(true);
+    fetch('/api/templates')
+      .then((r) => r.json())
+      .then((body) => {
+        if (body.ok && Array.isArray(body.templates)) {
+          setTemplates(body.templates);
+          setShowDropdown(true);
+        }
+      })
+      .catch(() => {
+        // fallback: show it anyway with just the JSON sample
+        setTemplates([]);
+        setShowDropdown(true);
+      })
+      .finally(() => setLoadingTemplates(false));
+  }, [templates.length]);
+
+  // Load a template: fetch XML, set in textarea, auto-validate
+  const loadTemplate = useCallback(async (filename: string) => {
+    setShowDropdown(false);
+    setError('');
+    setData(null);
+
+    try {
+      const res = await fetch(`/api/templates/${encodeURIComponent(filename)}`);
+      if (!res.ok) {
+        setError('Could not load the template. Try again.');
+        return;
+      }
+      const xml = await res.text();
+      setText(xml);
+
+      // Auto-validate
+      setBusy(true);
+      try {
+        const vres = await fetch('/api/tools/validate', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ document: xml }),
+        });
+        const body: ApiOk | ApiErr = await vres.json();
+        if (!vres.ok || body.ok !== true) {
+          setError((body as ApiErr).error ?? 'Validation failed.');
+        } else {
+          setData(body);
+        }
+      } catch {
+        setError('Could not reach the validator.');
+      } finally {
+        setBusy(false);
+      }
+    } catch {
+      setError('Could not load the template.');
+    }
+  }, []);
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -145,8 +230,6 @@ export function InvoiceValidator() {
   const result = data?.result;
   const errorCount = result?.errors.filter((e) => e.severity === 'error').length ?? 0;
   const warningCount = result?.errors.filter((e) => e.severity === 'warning').length ?? 0;
-  // Errors before warnings, so the blocking problems are never scrolled past. The engine's own
-  // order within each severity is preserved (stable sort) - we group, we don't re-rank.
   const sortedErrors = result?.errors
     ? [...result.errors].sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'error' ? -1 : 1))
     : [];
@@ -175,17 +258,66 @@ export function InvoiceValidator() {
           <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
             Upload a file
           </button>
-          <button
-            className="btn btn-ghost"
-            onClick={() => {
-              setText(SAMPLE_JSON);
-              setData(null);
-              setError('');
-            }}
-            disabled={busy}
-          >
-            Load a sample
-          </button>
+
+          {/* Load a sample — dropdown trigger */}
+          <div className="sample-btn-wrapper" ref={dropdownRef}>
+            <button
+              className="btn btn-ghost"
+              onClick={openDropdown}
+              disabled={busy || loadingTemplates}
+            >
+              {loadingTemplates ? 'Loading...' : 'Load a sample \u25BE'}
+            </button>
+
+            {showDropdown && (
+              <div className="sample-dropdown">
+                <div
+                  className="sample-option sample-option-json"
+                  onClick={async () => {
+                    setShowDropdown(false);
+                    setError('');
+                    setData(null);
+                    setText(SAMPLE_JSON);
+                    // Auto-validate the JSON sample too
+                    setBusy(true);
+                    try {
+                      const vres = await fetch('/api/tools/validate', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ document: SAMPLE_JSON }),
+                      });
+                      const body: ApiOk | ApiErr = await vres.json();
+                      if (!vres.ok || body.ok !== true) {
+                        setError((body as ApiErr).error ?? 'Validation failed.');
+                      } else {
+                        setData(body);
+                      }
+                    } catch {
+                      setError('Could not reach the validator.');
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  <span className="sample-option-label">Sample JSON invoice</span>
+                  <span className="sample-option-desc">Canonical JSON with a standard 5% VAT line</span>
+                </div>
+                <div className="sample-divider" />
+                <div className="sample-dropdown-header">Template XML invoices</div>
+                {templates.map((t) => (
+                  <div
+                    key={t.filename}
+                    className="sample-option"
+                    onClick={() => loadTemplate(t.filename)}
+                  >
+                    <span className="sample-option-label">{t.name}</span>
+                    <span className="sample-option-desc">{t.description}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <input
             ref={fileRef}
             type="file"
