@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { AnalyticsLoader } from '@/components/AnalyticsLoader';
 import { SiteFooter, SiteHeader } from '@/components/Chrome';
 import { jsonLd, organizationSchema, websiteSchema } from '@/lib/seo';
 import { SITE_URL } from '@/lib/site';
@@ -26,15 +27,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        {/* DM Sans for headings, Inter for body, JetBrains Mono for code */}
+        {/* Helvetica Now Display Bold for headings, Inter for body, JetBrains Mono for code */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
+        <link href="https://db.onlinewebfonts.com/c/04e6981992c0e2e7642af2074ebe3901?family=Helvetica+Now+Display+Bold" rel="stylesheet" />
       </head>
       <body>
+        <AnalyticsLoader />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={jsonLd([organizationSchema, websiteSchema])}
@@ -42,25 +45,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />
-        {/* Scroll reveal observer */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                var observer = new IntersectionObserver(function(entries) {
-                  entries.forEach(function(entry) {
-                    if (entry.isIntersecting) {
-                      entry.target.classList.add('revealed');
-                    }
-                  });
-                }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-                document.querySelectorAll('.scroll-reveal').forEach(function(el) {
-                  observer.observe(el);
-                });
-              })();
-            `,
-          }}
-        />
       </body>
     </html>
   );

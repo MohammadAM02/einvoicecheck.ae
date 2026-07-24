@@ -7,7 +7,12 @@ import { useState } from 'react';
  * Signup / login. On signup the server returns the raw API key exactly once —
  * we show it here and tell the user plainly that it will never be shown again.
  */
-export function AuthForm({ mode }: { mode: 'signup' | 'login' }) {
+interface AuthFormProps {
+  mode: 'signup' | 'login';
+  onSuccess?: () => void;
+}
+
+export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,10 +37,12 @@ export function AuthForm({ mode }: { mode: 'signup' | 'login' }) {
       }
       if (mode === 'signup' && data.apiKey) {
         setApiKey(data.apiKey);
+        if (onSuccess) onSuccess();
         return;
       }
       router.push('/dashboard');
       router.refresh();
+      if (onSuccess) onSuccess();
     } catch {
       setError('Network error. Try again.');
     } finally {
@@ -54,7 +61,10 @@ export function AuthForm({ mode }: { mode: 'signup' | 'login' }) {
         </p>
         <pre className="keybox">{apiKey}</pre>
         <div className="cta-row">
-          <button type="button" className="btn btn-primary" onClick={() => router.push('/dashboard')}>
+          <button type="button" className="btn btn-primary" onClick={() => {
+            router.push('/dashboard');
+            if (onSuccess) onSuccess();
+          }}>
             I have copied it — go to the dashboard
           </button>
         </div>

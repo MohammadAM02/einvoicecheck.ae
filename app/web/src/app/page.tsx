@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { GuardrailNotice } from '@/components/Chrome';
 import { ScrollReveal, FaqAccordion } from '@/components/ScrollReveal';
+import { HomeClient } from '@/components/HomeClient';
 import { faqSchema, jsonLd, pageMetadata } from '@/lib/seo';
-import { API_BASE_URL, SITE_URL } from '@/lib/site';
+import { SITE_URL } from '@/lib/site';
 
-// PRIMARY KEYWORD: "e invoicing UAE" (1,000/mo, broadest query in the cluster)
 export const metadata = pageMetadata({
   title: 'E-invoicing UAE: validate invoices before you submit them',
   description:
@@ -92,11 +92,8 @@ export default function HomePage() {
               <em>before</em> it leaves your system, in one API call.
             </p>
             <div className="hero-actions">
-              <Link href="/tools/uae-e-invoice-validator" className="btn btn-primary">
-                Try the free validator →
-              </Link>
-              <Link href="/signup" className="btn btn-secondary">
-                Get started — free
+              <Link href="/signup" className="btn btn-primary">
+                Get started — free →
               </Link>
               <Link href="/docs" className="btn btn-ghost">
                 Read the API docs
@@ -118,81 +115,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="hero-right">
-            <div className="code-block">
-              <div className="code-header">
-                <span className="code-dot" />
-                <span className="code-dot" />
-                <span className="code-dot" />
-              </div>
-              <div className="code-body">
-                <span className="cmt"># einvoicecheck.ae · PINT AE validator</span>
-                <br />
-                <br />
-                $ curl -X POST {API_BASE_URL}/v1/validate \<br />
-                &nbsp;&nbsp;-H <span className="str">&quot;x-api-key: $EINVO...KEY&quot;</span> \<br />
-                &nbsp;&nbsp;-H <span className="str">&quot;content-type: application/json&quot;</span> \<br />
-                &nbsp;&nbsp;--data-binary @invoice.json
-                <br />
-                <br />
-                {'{'}
-                <br />
-                &nbsp;&nbsp;<span className="key">&quot;valid&quot;</span>: <span className="kw">false</span>,
-                <br />
-                &nbsp;&nbsp;<span className="key">&quot;errors&quot;</span>: [
-                <br />
-                &nbsp;&nbsp;&nbsp;&nbsp;{'{'}
-                <br />
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="key">&quot;rule&quot;</span>: <span className="str">&quot;AE-TRN-FORMAT&quot;</span>,
-                <br />
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="key">&quot;severity&quot;</span>: <span className="err">&quot;error&quot;</span>,
-                <br />
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="key">&quot;fix&quot;</span>: <span className="fix">&quot;TRN must be 15 digits.&quot;</span>
-                <br />
-                &nbsp;&nbsp;&nbsp;&nbsp;{'}'}
-                <br />
-                &nbsp;&nbsp;]
-                <br />
-                {'}'}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section className="section-alt">
-        <div className="container">
-          <ScrollReveal>
-            <div className="section-header">
-              <div className="section-label">Workflow</div>
-              <h2 className="section-title">Three steps, no onboarding project</h2>
-              <p className="section-subtitle">
-                You keep your accredited service provider. This sits in front of it.
-              </p>
-            </div>
-          </ScrollReveal>
-          <div className="grid grid-3 steps" style={{ marginTop: 20 }}>
-            {[
-              {
-                title: 'POST the invoice',
-                body: 'Send one document to POST /v1/validate with your API key — canonical JSON, an envelope, or raw UBL 2.1 / PINT AE XML straight out of your ERP export. No file upload portal, no SFTP, no mapping project.',
-              },
-              {
-                title: 'Get normalized, field-level errors',
-                body: 'Back comes a deterministic list: JSON path, rule ID, severity, a human message, and a concrete fix. TRN format, required tax fields, VAT category vs rate, line and document total arithmetic, currency and code lists, invoice type.',
-              },
-              {
-                title: 'Fix it before your ASP rejects it',
-                body: 'Correct the file in your own pipeline, then hand the clean invoice to your accredited provider for transmission. The rejection never happens, so nobody has to reconcile it three days later.',
-              },
-            ].map((step, i) => (
-              <ScrollReveal key={i} delay={i + 1}>
-                <div className="card">
-                  <h3>{step.title}</h3>
-                  <p>{step.body}</p>
-                </div>
-              </ScrollReveal>
-            ))}
+            <HomeClient />
           </div>
         </div>
       </section>
@@ -336,74 +259,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── PRICING TEASER ── */}
-      <section>
-        <div className="container">
-          <ScrollReveal>
-            <div className="section-header">
-              <div className="section-label">Pricing</div>
-              <h2 className="section-title">Priced on the page. No discovery call.</h2>
-              <p className="section-subtitle">
-                Every other quote in this category starts with a phone call. Here is the number.
-              </p>
-            </div>
-          </ScrollReveal>
-          <div className="pricing-grid">
-            {[
-              {
-                name: 'Free trial',
-                price: '$0',
-                period: 'for 14 days',
-                usage: '100 validations',
-                blurb: 'Enough to wire the API into one CI pipeline and see your real error list.',
-                featured: false,
-              },
-              {
-                name: 'Starter',
-                price: '$29',
-                period: 'per month',
-                usage: '2,000 validations / month',
-                blurb: 'For one finance system or ERP export you keep clean before it reaches your ASP.',
-                featured: true,
-              },
-              {
-                name: 'Growth',
-                price: '$99',
-                period: 'per month',
-                usage: '15,000 validations / month',
-                blurb: 'For teams validating every invoice in CI across several entities or clients.',
-                featured: false,
-              },
-            ].map((tier, i) => (
-              <ScrollReveal key={i} delay={i + 1}>
-                <div className={`pricing-card${tier.featured ? ' featured' : ''}`}>
-                  {tier.featured && <div className="pricing-badge">Most popular</div>}
-                  <h3>{tier.name}</h3>
-                  <div className="pricing-price">{tier.price}</div>
-                  <div className="pricing-period">{tier.period}</div>
-                  <div className="pricing-usage">{tier.usage}</div>
-                  <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 'var(--space-lg)' }}>
-                    {tier.blurb}
-                  </p>
-                  <ul className="pricing-features">
-                    <li>POST /v1/validate (JSON, envelope, or XML)</li>
-                    <li>Per-key usage metering at GET /usage</li>
-                    <li>Machine-readable errors with a suggested fix</li>
-                    {tier.name !== 'Free trial' && <li>Priority email support</li>}
-                  </ul>
-                  <Link
-                    href={tier.name === 'Free trial' ? '/signup' : '/pricing'}
-                    className={`btn${tier.featured ? ' btn-primary' : ' btn-secondary'}`}
-                  >
-                    {tier.name === 'Free trial' ? 'Start free trial →' : 'See pricing →'}
-                  </Link>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── GUARDRAIL ── */}
       <section>
         <div className="container">
@@ -427,14 +282,6 @@ export default function HomePage() {
               items={faqs.map((f) => ({ q: f.q, a: <p>{f.a}</p> }))}
             />
           </ScrollReveal>
-          <div className="cta-row" style={{ justifyContent: 'center', marginTop: 'var(--space-2xl)' }}>
-            <Link href="/signup" className="btn btn-primary">
-              Get started — free
-            </Link>
-            <Link href="/pricing" className="btn btn-secondary">
-              See pricing
-            </Link>
-          </div>
         </div>
       </section>
     </>

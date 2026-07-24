@@ -18,26 +18,26 @@
   /* ink */
   --ink: #E8EEF5;
   --ink-secondary: #9DB0C3;
-  --ink-muted: #6B7F94;
+  --ink-muted: #8892A0;
   --ink-disabled: #3D5267;
 
-  /* accent — teal, precise and intentional for a UAE compliance tool */
-  --accent: #0EA5C4;
-  --accent-hover: #1FBFDF;
-  --accent-subtle: rgba(14, 165, 196, 0.12);
-  --accent-glow: rgba(14, 165, 196, 0.25);
+  /* accent — purple, from the design prototype */
+  --accent: #7342E2;
+  --accent-hover: #8B5CF6;
+  --accent-subtle: rgba(115, 66, 226, 0.12);
+  --accent-glow: rgba(115, 66, 226, 0.25);
 
   /* semantic */
   --success: #34D399;
   --success-subtle: rgba(52, 211, 153, 0.15);
   --warn: #FBBF24;
   --warn-subtle: rgba(251, 191, 36, 0.12);
-  --error: #F87171;
-  --error-subtle: rgba(248, 113, 113, 0.12);
+  --error: #FB7185;
+  --error-subtle: rgba(251, 113, 133, 0.12);
 
   /* borders */
   --border: #22303F;
-  --border-accent: #0EA5C4;
+  --border-accent: #7342E2;
   --border-subtle: rgba(34, 48, 63, 0.5);
 
   /* radii */
@@ -48,7 +48,7 @@
   --radius-full: 9999px;
 
   /* type */
-  --font-heading: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Helvetica Now Display Bold', 'DM Sans', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-code: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
@@ -204,7 +204,8 @@ strong { color: var(--ink); font-weight: 600; }
 .btn-primary {
   background: var(--accent);
   color: #fff !important;
-  box-shadow: 0 0 0 1px rgba(14, 165, 196, 0.3);
+  box-shadow: 0 0 0 1px rgba(115, 66, 226, 0.3);
+  border-radius: 50px;
 }
 .btn-primary:hover {
   background: var(--accent-hover);
@@ -562,9 +563,10 @@ header.site .nav-cta {
   padding: 8px 18px;
   background: var(--accent);
   color: #fff !important;
-  border-radius: var(--radius-sm);
+  border-radius: 50px;
   font-weight: 600;
   font-size: 14px;
+  box-shadow: 0 4px 20px var(--accent-glow);
   transition: background 0.2s, box-shadow 0.2s;
 }
 header.site .nav-cta:hover {
@@ -1184,4 +1186,16 @@ footer.site .fine {
   header.site nav { display: none; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* ---- HERO RIGHT CONTAINER ---- */
+.hero-right {
+  min-width: 0;
+  max-width: 520px;
+}
+
+/* ---- RESPONSIVE: hero grid ---- */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; gap: var(--space-2xl); }
+  .hero-right { max-width: 100%; }
 }

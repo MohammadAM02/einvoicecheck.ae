@@ -1,22 +1,21 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-/**
- * Wraps children in a scroll-triggered reveal animation.
- * Elements fade + slide up when they enter the viewport.
- */
+interface ScrollRevealProps {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+  threshold?: number;
+}
+
 export function ScrollReveal({
   children,
   className = '',
   delay = 0,
   threshold = 0.1,
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-  threshold?: number;
-}) {
+}: ScrollRevealProps) {
+  const [isRevealed, setIsRevealed] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,7 +25,7 @@ export function ScrollReveal({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          el.classList.add('revealed');
+          setIsRevealed(true);
           observer.unobserve(el);
         }
       },
@@ -40,7 +39,7 @@ export function ScrollReveal({
   return (
     <div
       ref={ref}
-      className={`scroll-reveal${delay ? ` delay-${delay}` : ''} ${className}`}
+      className={`scroll-reveal${delay ? ` delay-${delay}` : ''} ${className}${isRevealed ? ' revealed' : ''}`}
       style={delay ? { transitionDelay: `${delay * 100}ms` } : undefined}
     >
       {children}
@@ -67,8 +66,6 @@ export function FaqAccordion({
     </div>
   );
 }
-
-import { useState } from 'react';
 
 function FaqItem({
   question,

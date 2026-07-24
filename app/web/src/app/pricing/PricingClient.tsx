@@ -4,50 +4,26 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { GuardrailNotice } from '@/components/Chrome';
 import { ScrollReveal } from '@/components/ScrollReveal';
+import { PLANS, PLAN_IDS, type PlanId } from '@/lib/plans';
 
-const tiers = [
-  {
-    name: 'Free trial',
-    price: '$0',
-    period: 'for 14 days',
-    usage: '100 validations',
-    blurb: 'Enough to wire the API into one CI pipeline and see your real error list.',
-    planId: 'trial' as const,
-    features: [
-      'POST /v1/validate (JSON, envelope, or XML)',
-      'Per-key usage metering at GET /usage',
-      'Machine-readable errors with a suggested fix',
-    ],
-  },
-  {
-    name: 'Starter',
-    price: '$29',
-    period: 'per month',
-    usage: '2,000 validations / month',
-    blurb: 'For one finance system or ERP export you keep clean before it reaches your ASP.',
-    planId: 'starter' as const,
-    features: [
-      'POST /v1/validate (JSON, envelope, or XML)',
-      'Per-key usage metering at GET /usage',
-      'Machine-readable errors with a suggested fix',
-      'Priority email support',
-    ],
-  },
-  {
-    name: 'Growth',
-    price: '$99',
-    period: 'per month',
-    usage: '15,000 validations / month',
-    blurb: 'For teams validating every invoice in CI across several entities or clients.',
-    planId: 'pro' as const,
-    features: [
-      'POST /v1/validate (JSON, envelope, or XML)',
-      'Per-key usage metering at GET /usage',
-      'Machine-readable errors with a suggested fix',
-      'Priority email support',
-    ],
-  },
-];
+const tiers = PLAN_IDS.map((id) => {
+  const p = PLANS[id];
+  const features = [
+    'POST /v1/validate (JSON, envelope, or XML)',
+    'Per-key usage metering at GET /usage',
+    'Machine-readable errors with a suggested fix',
+  ];
+  if (id !== 'trial') features.push('Priority email support');
+  return {
+    name: p.name,
+    price: p.priceLabel,
+    period: p.cadence,
+    usage: `${p.monthlyQuota} validations / month`,
+    blurb: p.blurb,
+    planId: id,
+    features,
+  };
+});
 
 export function PricingClient() {
   const [checkingOut, setCheckingOut] = useState(false);

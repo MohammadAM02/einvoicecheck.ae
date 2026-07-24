@@ -27,11 +27,9 @@ const XIcon = () => <Icon d="M18 6L6 18M6 6l12 12" />;
 
 const NAV = [
   { label: 'Validate', href: '/tools/uae-e-invoice-validator' },
-  { label: 'Templates', href: '/templates' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: '/docs' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '/contact' },
+  { label: 'API Status', href: '/health' },
 ];
 
 export function SiteHeader() {
@@ -56,14 +54,14 @@ export function SiteHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="nav-links" style={{ display: 'none' }}>
+        <div className="nav-links">
           {NAV.map((l) => (
             <Link key={l.label} href={l.href}>{l.label}</Link>
           ))}
         </div>
 
         {/* Desktop CTAs */}
-        <div style={{ display: 'none', gap: 12, alignItems: 'center' }}>
+        <div style={{ gap: 12, alignItems: 'center' }}>
           <Link href="/login" className="nav-signin">Sign In</Link>
           <Link href="/signup" className="nav-cta">Start For Free</Link>
         </div>
