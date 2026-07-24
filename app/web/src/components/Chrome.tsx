@@ -54,14 +54,14 @@ export function SiteHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="nav-links">
+        <div className="nav-links" style={{ display: 'none' }}>
           {NAV.map((l) => (
             <Link key={l.label} href={l.href}>{l.label}</Link>
           ))}
         </div>
 
         {/* Desktop CTAs */}
-        <div style={{ gap: 12, alignItems: 'center' }}>
+        <div style={{ display: 'none', gap: 12, alignItems: 'center' }}>
           <Link href="/login" className="nav-signin">Sign In</Link>
           <Link href="/signup" className="nav-cta">Start For Free</Link>
         </div>

@@ -29,7 +29,7 @@ const MINIMAL_VALID_INVOICE = JSON.stringify({
 const card: React.CSSProperties = {
   background: 'var(--bg-card)', border: '1px solid var(--border)',
   borderRadius: 'var(--radius-lg)', padding: 16,
-  display: 'flex', flexDirection: 'column',
+  display: 'flex', flexDirection: 'column', minWidth: 0,
 };
 const cardHeader: React.CSSProperties = {
   display: 'flex', justifyContent: 'space-between', alignItems: 'center',

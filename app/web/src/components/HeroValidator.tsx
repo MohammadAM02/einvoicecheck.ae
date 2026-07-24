@@ -51,12 +51,12 @@ interface HeroValidatorProps {
 }
 
 const s: Record<string, React.CSSProperties> = {
-  wrap: { display: 'flex', flexDirection: 'column', gap: 12 },
+  wrap: { display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 },
   textarea: {
     width: '100%', minWidth: 0, background: 'var(--bg)', border: '1px solid var(--border)',
     borderRadius: 'var(--radius-md)', padding: 14, fontFamily: 'var(--font-code)',
-    fontSize: 13, color: 'var(--ink)', resize: 'vertical', minHeight: 160,
-    outline: 'none', outlineOffset: 0,
+    fontSize: 13, color: 'var(--ink)', resize: 'vertical', minHeight: 120, maxHeight: 300, overflow: 'auto',
+ outline: 'none', outlineOffset: 0,
   },
   row: { display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' },
   btn: {

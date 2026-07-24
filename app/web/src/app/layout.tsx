@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={jsonLd([organizationSchema, websiteSchema])}
         />
         <SiteHeader />
-        <main>{children}</main>
+        <main style={{ overflowX: 'hidden' }}>{children}</main>
         <SiteFooter />
       </body>
     </html>
