@@ -23,7 +23,31 @@ export function HomeClient() {
   return (
     <>
       {/* Hero right column — inline validator */}
-      <HeroValidator onOpenAuth={() => openAuth('signup')} />
+      <section className="container mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="min-w-0">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            UAE e-invoicing breaks
+            <br />
+            at the <span className="text-purple-400">file</span>,
+            <br />
+            not at the filing.
+          </h1>
+          <p className="text-lg text-gray-300 mb-8">
+            A wrong TRN, a 0.01 rounding gap, a VAT category that doesn&apos;t match its rate — and your accredited provider bounces the invoice back days later. einvoicecheck.ae validates the PINT AE / UBL file before it leaves your system, in one API call.
+          </p>
+          <div className="flex gap-4 mb-12">
+            <Link href="/signup" className="btn btn-primary">
+              Get started — free →
+            </Link>
+            <Link href="/docs" className="btn btn-secondary">
+              Read the API docs
+            </Link>
+          </div>
+        </div>
+        <div className="min-w-0">
+          <HeroValidator onOpenAuth={() => openAuth('signup')} />
+        </div>
+      </section>
 
       {/* ── WORKFLOW ── */}
       <section className="section-alt" style={{ marginTop: 60 }}>
@@ -81,7 +105,7 @@ export function HomeClient() {
               },
             ].map((tier, i) => (
               <ScrollReveal key={i} delay={i + 1}>
-                <div className={`pricing-card${tier.featured ? ' featured' : ''}`}>
+                <div className={`min-w-0 pricing-card${tier.featured ? ' featured' : ''}`}>
                   {tier.featured && <div className="pricing-badge">Most popular</div>}
                   <h3>{tier.name}</h3>
                   <div className="pricing-price">{tier.price}</div>
