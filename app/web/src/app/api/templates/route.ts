@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import fs from 'node:fs';
-import path from 'node:path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,52 +7,21 @@ export const dynamic = 'force-dynamic';
  * GET /api/templates
  *
  * Returns the list of available invoice template files.
+ * The 16 XML files live in public/templates/ and Next.js serves them
+ * as static assets at /templates/<filename>. We hardcode the metadata
+ * here to avoid any filesystem path resolution issues in production.
  *
- * Response shape:
- *   {
- *     "ok": true,
- *     "templates": [
- *       {
- *         "filename": "Standard tax invoice.xml",
- *         "name": "Standard Tax Invoice",
- *         "description": "..."
- *       },
- *       ...
- *     ]
- *   }
+ * Response:
+ *   { ok: true, templates: [{ filename, name, description }] }
  */
 
-const TEMPLATES_DIR = (() => {
-  // Next.js production may be at project root or app/web
-  const candidates = [
-    path.join(process.cwd(), 'public', 'templates'),
-    path.join(process.cwd(), 'app', 'web', 'public', 'templates'),
-  ];
-  for (const dir of candidates) {
-    if (fs.existsSync(dir)) return dir;
-  }
-  return candidates[0]; // fallback — will error with helpful message
-})();
+type TemplateMeta = { filename: string; name: string; description: string };
 
-/**
- * Human-readable display name from a filename.
- * "Standard tax invoice.xml" -> "Standard Tax Invoice"
- * "Standard tax invoice - predefined endpoint.xml" -> "Standard Tax Invoice — Predefined Endpoint"
- */
 function displayName(filename: string): string {
   const name = filename.replace(/\.xml$/i, '');
-  // Preserve hyphenated compounds (e.g. "e-commerce"), replace em-dash-like
-  // hyphens with a spaced em dash for readability
   const spaced = name.replace(/\s+[-–]\s+/g, ' \u2014 ');
-  // Title case each word, preserving words after hyphens
   return spaced.replace(/(^|\s|[-—])(\w)/g, (_, sep, ch) => sep + ch.toUpperCase());
 }
-
-type TemplateMeta = {
-  filename: string;
-  name: string;
-  description: string;
-};
 
 const TEMPLATE_INFO: Record<string, string> = {
   'Commercial invoice.xml':
@@ -91,25 +58,14 @@ const TEMPLATE_INFO: Record<string, string> = {
     'For zero-rated supplies (0% VAT) such as exports, international transport, and certain investment-grade precious metals.',
 };
 
+const FILENAMES = Object.keys(TEMPLATE_INFO).sort((a, b) => a.localeCompare(b));
+
 export async function GET() {
-  try {
-    const files = await fs.promises.readdir(TEMPLATES_DIR);
-    const xmlFiles = files
-      .filter((f) => f.endsWith('.xml'))
-      .sort((a, b) => a.localeCompare(b));
+  const templates: TemplateMeta[] = FILENAMES.map((filename) => ({
+    filename,
+    name: displayName(filename),
+    description: TEMPLATE_INFO[filename],
+  }));
 
-    const templates: TemplateMeta[] = xmlFiles.map((filename) => ({
-      filename,
-      name: displayName(filename),
-      description:
-        TEMPLATE_INFO[filename] ?? `${displayName(filename)} — PINT AE invoice template.`,
-    }));
-
-    return NextResponse.json({ ok: true, templates });
-  } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: `Could not list templates: ${e instanceof Error ? e.message : 'Unknown error'}` },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json({ ok: true, templates });
 }
