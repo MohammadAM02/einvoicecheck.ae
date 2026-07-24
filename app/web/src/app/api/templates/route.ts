@@ -24,7 +24,17 @@ export const dynamic = 'force-dynamic';
  *   }
  */
 
-const TEMPLATES_DIR = path.join(process.cwd(), 'public', 'templates');
+const TEMPLATES_DIR = (() => {
+  // Next.js production may be at project root or app/web
+  const candidates = [
+    path.join(process.cwd(), 'public', 'templates'),
+    path.join(process.cwd(), 'app', 'web', 'public', 'templates'),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) return dir;
+  }
+  return candidates[0]; // fallback — will error with helpful message
+})();
 
 /**
  * Human-readable display name from a filename.
