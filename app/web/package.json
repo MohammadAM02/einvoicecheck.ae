@@ -5,7 +5,7 @@
   "description": "Marketing site for einvoicecheck.ae - UAE e-invoice preflight validation API",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && cp -r public/templates .next/standalone/public/templates",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "test": "vitest run",
@@ -14,6 +14,7 @@
   "dependencies": {
     "dodopayments": "^2.42.2",
     "fast-xml-parser": "^4.5.7",
+    "framer-motion": "^12.42.2",
     "ioredis": "^5.11.1",
     "mongoose": "^9.7.4",
     "next": "^15.5.0",
