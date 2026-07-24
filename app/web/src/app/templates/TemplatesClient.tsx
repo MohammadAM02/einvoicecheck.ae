@@ -38,13 +38,26 @@ export function TemplatesClient() {
     return () => { cancelled = true; };
   }, []);
 
-  const handleDownload = useCallback((filename: string) => {
-    const a = document.createElement('a');
-    a.href = `/templates/${encodeURIComponent(filename)}`;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleDownload = useCallback(async (filename: string) => {
+    try {
+      const res = await fetch(`/api/templates/${encodeURIComponent(filename)}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(body.error ?? 'Template file was not available on the server.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Could not download the template. Please try again.');
+    }
   }, []);
 
   // Group templates into categories for visual organisation
