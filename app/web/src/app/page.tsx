@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { HomeClient } from '@/components/HomeClient';
-import { GuardrailNotice } from '@/components/GuardrailNotice';
+import { GuardrailNotice } from '@/components/Chrome';
 
 export const metadata: Metadata = {
   title: 'E-Invoice Validation API | Enterprise Ready',
