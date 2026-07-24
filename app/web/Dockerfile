@@ -21,6 +21,7 @@ ENV PORT=3000
 # Standalone server + static assets
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public/templates ./public/templates
 
 # Waitlist stub store (TODO(E2): replace with a real datastore; container FS is ephemeral).
 RUN mkdir -p /app/data
