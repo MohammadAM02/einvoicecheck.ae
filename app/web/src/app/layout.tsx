@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Chrome } from "@/components/Chrome";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Chrome } from '@/components/Chrome';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "einvoicecheck.ae — UAE E-Invoice Validation API",
-  description: "Preflight validation engine for UAE PINT AE & UBL 2.1 e-invoices.",
+  title: 'einvoicecheck.ae — UAE E-Invoice Validation API',
+  description: 'Preflight validation engine for UAE PINT AE & UBL 2.1 e-invoices.',
 };
 
 export default function RootLayout({
