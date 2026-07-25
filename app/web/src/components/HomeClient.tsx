@@ -6,10 +6,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, ChevronDown, Building2, Code2, ShieldCheck } from 'lucide-react';
 import { PLANS } from '@/lib/plans';
 import { GUARDRAIL } from '@/lib/site';
-import HeroValidator from './HeroValidator';
-import WorkflowTerminal from './WorkflowTerminal';
-import ContactGuarantees from './ContactGuarantees';
-import AuthModal from './AuthModal';
+import { HeroValidator } from './HeroValidator';
+import { WorkflowTerminal } from './WorkflowTerminal';
+import { ContactGuarantees } from './ContactGuarantees';
+import { AuthModal } from './AuthModal';
 
 const WHO_ITS_FOR = [
   {
