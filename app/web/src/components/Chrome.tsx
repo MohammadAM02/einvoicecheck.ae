@@ -1,34 +1,12 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-
-export function Todo({ children }: { children: string }) {
-  return (
-    <mark
-      className="todo"
-      style={{
-        background: "#fef08a",
-        color: "#111827",
-        fontWeight: 600,
-        padding: "1px 6px",
-        borderRadius: 4,
-        border: "1px dashed #a16207",
-        fontSize: "0.92em",
-      }}
-    >
-      {children}
-    </mark>
-  );
-}
-
-export function GuardrailNotice() {
-  return null;
-}
+import React from 'react';
+import Link from 'next/link';
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-[#0B0F14] text-[#E8EEF5] flex flex-col">
+      {/* Top Header */}
       <header className="w-full border-b border-slate-800/80 bg-[#0B0F14]/90 backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold text-white tracking-tight">
@@ -64,6 +42,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+      {/* Main Content Area */}
       <main className="w-full flex-1">{children}</main>
     </div>
   );
