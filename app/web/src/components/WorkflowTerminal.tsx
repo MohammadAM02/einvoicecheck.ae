@@ -26,69 +26,57 @@ const MINIMAL_VALID_INVOICE = JSON.stringify({
   }
 });
 
-const card: React.CSSProperties = {
-  background: 'var(--bg-card)', border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-lg)', padding: 16,
-  display: 'flex', flexDirection: 'column', minWidth: 0,
-};
-const cardHeader: React.CSSProperties = {
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  paddingBottom: 8, borderBottom: '1px solid var(--border)', marginBottom: 8,
-};
-const pre: React.CSSProperties = {
-  background: 'var(--bg)', padding: 8, borderRadius: 'var(--radius-sm)',
-  fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--ink-secondary)',
-  overflowX: 'auto', lineHeight: 1.6, border: '1px solid rgba(34,48,63,0.6)',
-  flex: 1, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-};
-
 export const WorkflowTerminal: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const curlCommand = `curl -X POST ${API_BASE_URL}/api/tools/validate -H "content-type: application/json" -d '${MINIMAL_VALID_INVOICE}'`;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Card 1 */}
-      <div style={{ ...card, minWidth: 0 }}>
-        <div style={cardHeader}>
-          <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--ink-muted)', fontWeight: 700 }}>1. Send Payload</span>
-          <span style={{ fontSize: 10, background: 'var(--bg)', color: 'var(--ink-muted)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-code)' }}>POST /api/tools/validate</span>
+      <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col min-w-0">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-800 mb-2">
+          <span className="text-xs font-mono text-slate-400 font-bold">1. Send Payload</span>
+          <span className="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded font-mono border border-slate-800">POST /api/tools/validate</span>
         </div>
-        <pre style={pre}>{MINIMAL_VALID_INVOICE.slice(0, 120)}&hellip;</pre>
+        <pre className="bg-slate-950 p-2 rounded text-[11px] font-mono text-slate-300 overflow-x-auto leading-relaxed border border-slate-800/60 flex-1 m-0 whitespace-pre-wrap break-words">
+          {MINIMAL_VALID_INVOICE.slice(0, 120)}&hellip;
+        </pre>
       </div>
 
       {/* Card 2 */}
-      <div style={{ ...card, minWidth: 0, borderColor: 'rgba(14,165,196,0.3)', boxShadow: '0 4px 24px rgba(14,165,196,0.05)' }}>
-        <div style={cardHeader}>
-          <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--accent)', fontWeight: 700 }}>2. Engine Check</span>
-          <span style={{ fontSize: 10, background: 'rgba(14,165,196,0.08)', color: 'var(--accent)', border: '1px solid rgba(14,165,196,0.2)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-code)' }}>&lt;50ms</span>
+      <div className="bg-slate-900/50 border border-cyan-500/30 rounded-xl p-4 flex flex-col min-w-0 shadow-lg shadow-cyan-500/5">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-800 mb-2">
+          <span className="text-xs font-mono text-cyan-400 font-bold">2. Engine Check</span>
+          <span className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded font-mono">&lt;50ms</span>
         </div>
-        <div style={{ ...pre, padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="bg-slate-950 p-2 rounded border border-slate-800/60 flex-1 flex flex-col gap-1.5 font-mono text-xs">
           {['TRN Format (15 Digits)', 'VAT Category & Rate', 'Line Extension Sums'].map((label, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--success)', fontSize: 11 }}>
+            <div key={i} className="flex justify-between items-center text-emerald-400 text-[11px]">
               <span>{label}</span>
-              <CheckCircle2 style={{ width: 14, height: 14 }} />
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           ))}
         </div>
       </div>
 
       {/* Card 3 */}
-      <div style={{ ...card, minWidth: 0 }}>
-        <div style={cardHeader}>
-          <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--ink-muted)', fontWeight: 700 }}>3. Clean Output</span>
-          <span style={{ fontSize: 10, background: 'rgba(52,211,153,0.08)', color: 'var(--success)', border: '1px solid rgba(52,211,153,0.2)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-code)' }}>200 OK</span>
+      <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col min-w-0">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-800 mb-2">
+          <span className="text-xs font-mono text-slate-400 font-bold">3. Clean Output</span>
+          <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono">200 OK</span>
         </div>
-        <pre style={{ ...pre, color: 'var(--success)' }}>{`{ "valid": true, "errors": [] }`}</pre>
-        <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <pre className="bg-slate-950 p-2 rounded text-[11px] font-mono text-emerald-400 overflow-x-auto leading-relaxed border border-slate-800/60 flex-1 m-0 whitespace-pre-wrap break-words">
+          {`{ "valid": true, "errors": [] }`}
+        </pre>
+        <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between">
           <button
             onClick={() => { navigator.clipboard.writeText(curlCommand); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-            style={{ background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-code)', display: 'flex', alignItems: 'center', gap: 4 }}
+            className="bg-transparent border-none text-slate-400 hover:text-white cursor-pointer text-xs font-mono flex items-center gap-1 transition-colors"
           >
-            {copied ? <Check style={{ width: 14, height: 14, color: 'var(--success)' }} /> : <Copy style={{ width: 14, height: 14 }} />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             {copied ? 'Copied' : 'Copy cURL'}
           </button>
-          <span style={{ fontSize: 10, color: 'var(--ink-disabled)', fontFamily: 'var(--font-code)' }}>Try it</span>
+          <span className="text-[10px] text-slate-600 font-mono">Try it</span>
         </div>
       </div>
     </div>
