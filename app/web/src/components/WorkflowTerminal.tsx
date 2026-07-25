@@ -31,7 +31,7 @@ export const WorkflowTerminal: React.FC = () => {
   const curlCommand = `curl -X POST ${API_BASE_URL}/api/tools/validate -H "content-type: application/json" -d '${MINIMAL_VALID_INVOICE}'`;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Card 1 */}
       <div className="card" style={{ minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: '1px solid var(--border)', marginBottom: 8 }}>
@@ -49,9 +49,9 @@ export const WorkflowTerminal: React.FC = () => {
         </div>
         <div style={{ background: 'var(--bg)', padding: 8, borderRadius: 'var(--radius-sm)', fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--ink-secondary)', border: '1px solid rgba(34,48,63,0.6)', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {['TRN Format (15 Digits)', 'VAT Category & Rate', 'Line Extension Sums'].map((label, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--success)', fontSize: 11 }}>
+            <div key={i} className="flex justify-between items-center text-emerald-400 text-[11px]">
               <span>{label}</span>
-              <CheckCircle2 style={{ width: 14, height: 14 }} />
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           ))}
         </div>
@@ -70,7 +70,7 @@ export const WorkflowTerminal: React.FC = () => {
             className="btn btn-ghost"
             style={{ fontSize: 12, fontFamily: 'var(--font-code)', padding: '4px 10px' }}
           >
-            {copied ? <Check style={{ width: 14, height: 14, color: 'var(--success)' }} /> : <Copy style={{ width: 14, height: 14 }} />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             {copied ? 'Copied' : 'Copy cURL'}
           </button>
           <span style={{ fontSize: 10, color: 'var(--ink-muted)', fontFamily: 'var(--font-code)' }}>Try it</span>
