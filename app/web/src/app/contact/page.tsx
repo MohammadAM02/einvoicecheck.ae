@@ -44,7 +44,11 @@ export default function ContactPage() {
             <strong>The support mailbox is not provisioned yet</strong>
             <p>
               The API is pre-launch and billing is not live. Until the support address is live, the{' '}
-                <Link href="/signup">signup form</Link> is the working channel - it reaches the
+              <Link href="/signup">signup form</Link> is the working channel - it reaches the
+              operator directly and is monitored.
+            </p>
+          </div>
+
           <h2>Who operates this service</h2>
           <ul className="clean">
             <li>
