@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { HomeClient } from '@/components/HomeClient';
+import HomeClient from '@/components/HomeClient';
 import { GuardrailNotice } from '@/components/Chrome';
 
 export const metadata: Metadata = {

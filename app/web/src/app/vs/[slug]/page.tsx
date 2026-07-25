@@ -8,6 +8,7 @@ import {
   VS_SLUGS,
 } from '@/lib/competitors';
 import { breadcrumbSchema, faqSchema, jsonLd, pageMetadata } from '@/lib/seo';
+import { PLANS } from '@/lib/plans';
 import { GUARDRAIL, type CompetitorSlug } from '@/lib/site';
 
 /**
@@ -85,7 +86,7 @@ export default async function VsPage({ params }: { params: Promise<{ slug: strin
             This is not a fair fight and it is not meant to be one. {c.shortName} can file your
             invoice with the tax authority. <strong>We cannot, and never will.</strong> What we do is
             stop the invoice being wrong before it gets there - for{' '}
-            {PRICING.starter.priceLabel} a month, with no sales call.
+            {PLANS.starter.priceLabel} a month, with no sales call.
           </p>
 
           <GuardrailNotice />
@@ -126,7 +127,7 @@ export default async function VsPage({ params }: { params: Promise<{ slug: strin
               <tr>
                 <th className="rowhead">Free tier</th>
                 <td className="us">
-                  {PRICING.trial.priceLabel} - {PRICING.trial.docs}, no card.
+                  {PLANS.trial.priceLabel} - {PLANS.trial.cadence}, no card.
                 </td>
                 <td>Not published on their page (checked {SOURCES_FETCHED_ON}).</td>
               </tr>
