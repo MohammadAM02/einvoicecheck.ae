@@ -118,12 +118,7 @@ export function Todo({ children }: { children: string }) {
 }
 
 export function GuardrailNotice() {
-  return (
-    <div className="notice">
-      <strong>What this is not</strong>
-      <p>{GUARDRAIL}</p>
-    </div>
-  );
+  return null;
 }
 
 export function SiteFooter() {
