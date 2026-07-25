@@ -40,7 +40,7 @@ export default function BlogPage() {
               <p>
                 The editorial calendar below is the real one - one post a week for eight weeks,
                 starting at launch. Want the first one in your inbox?{' '}
-                <Link href="/waitlist">Join the waitlist</Link>.
+                <Link href="/signup">Sign up for free</Link>.
               </p>
             </div>
           )}

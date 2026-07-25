@@ -87,12 +87,11 @@ export default function PrivacyPage() {
               <code>GET /usage</code> reports back to you.
             </li>
             <li>
-              We store the email address you gave us (waitlist or account), so we can send you the
-              key and service notices.
+              We store the email address you gave us when you created your account, so we can send
+              you the key and service notices.
             </li>
             <li>
-              Retention: usage events and request logs - <Todo>{TODO.logRetention}</Todo>. Waitlist
-              emails - <Todo>{TODO.waitlistRetention}</Todo>.
+              Retention: usage events and request logs - <Todo>{TODO.logRetention}</Todo>.
             </li>
           </ul>
 
@@ -122,7 +121,7 @@ export default function PrivacyPage() {
               service up.
             </li>
             <li>
-              <strong>Consent:</strong> waitlist and product emails. Every email has a way to stop
+              <strong>Consent:</strong> product and service emails. Every email has a way to stop
               them.
             </li>
           </ul>
@@ -149,10 +148,8 @@ export default function PrivacyPage() {
           <h2>6. Your rights</h2>
           <p>
             You can ask us what we hold about you, ask for a copy, ask us to correct it, or ask us
-            to delete it - including deleting your key, your usage history and your waitlist entry.
-            Write to <Todo>{TODO.supportEmail}</Todo>. We will respond within{' '}
-            <Todo>{TODO.supportSla}</Todo>. Deleting your account data does not delete records Dodo
-            Payments must keep as merchant of record for its own tax and accounting obligations.
+              to delete it - including deleting your key and your usage history. Write to{' '}
+              <Todo>{TODO.supportEmail}</Todo>. We will respond within{' '}
           </p>
 
           <h2>7. Security</h2>

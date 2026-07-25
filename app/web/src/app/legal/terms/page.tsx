@@ -81,7 +81,7 @@ export default function TermsPage() {
           <p>
             <strong>Billing is not live.</strong> At the time of writing, checkout is in test mode.
             No plan can be purchased, no card details are collected anywhere on this site, and no
-            money changes hands. Joining the <Link href="/waitlist">waitlist</Link> creates no
+            money changes hands. Signing up for a free account creates no
             payment obligation.
           </p>
 

@@ -59,7 +59,6 @@ export const TODO = {
   supportSla: '[OPERATOR TO COMPLETE: support response-time commitment]',
   payloadRetention: '[OPERATOR TO COMPLETE: retention period for submitted invoice payloads]',
   logRetention: '[OPERATOR TO COMPLETE: retention period for request logs and metering events]',
-  waitlistRetention: '[OPERATOR TO COMPLETE: retention period for waitlist email addresses]',
   legalEffectiveDate: '[OPERATOR TO COMPLETE: effective date of these terms]',
   governingLawEmirate: '[OPERATOR TO COMPLETE: governing law / courts (emirate) - confirm with counsel]',
 } as const;

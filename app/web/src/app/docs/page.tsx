@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: 'How do I authenticate?',
-    a: 'Send your key in the x-api-key header, or as a bearer token in the Authorization header. Keys are issued to waitlist members at launch.',
+    a: 'Send your key in the x-api-key header, or as a bearer token in the Authorization header. Keys are issued upon signup.',
   },
   {
     q: 'Does the API submit my invoice to the FTA?',
@@ -53,7 +53,7 @@ export default function DocsPage() {
             <p>
               The endpoint contracts here are final; the public base URL is not published yet
               because the service has not been deployed to production.{' '}
-              <Link href="/waitlist">Join the waitlist</Link> to be sent the base URL and a key.
+              <Link href="/signup">Sign up</Link> to get your base URL and a key.
             </p>
           </div>
         </div>
@@ -192,8 +192,8 @@ x-api-key: $EINVOICECHECK_KEY
             </div>
           ))}
           <div className="cta-row">
-            <Link href="/waitlist" className="btn btn-primary">
-              Get a launch API key
+            <Link href="/signup" className="btn btn-primary">
+              Get your API key
             </Link>
             <Link href="/pricing" className="btn btn-ghost">
               See pricing

@@ -8,7 +8,7 @@ import {
   VS_SLUGS,
 } from '@/lib/competitors';
 import { breadcrumbSchema, faqSchema, jsonLd, pageMetadata } from '@/lib/seo';
-import { GUARDRAIL, PRICING, type CompetitorSlug } from '@/lib/site';
+import { GUARDRAIL, type CompetitorSlug } from '@/lib/site';
 
 /**
  * M2 head-to-head page. Supports "UAE e invoicing software" comparison intent.
@@ -166,8 +166,8 @@ export default async function VsPage({ params }: { params: Promise<{ slug: strin
           ))}
 
           <div className="cta-row">
-            <Link href="/waitlist" className="btn btn-primary">
-              Start free - join the waitlist
+            <Link href="/signup" className="btn btn-primary">
+              Start free - sign up now
             </Link>
             <Link href="/pricing" className="btn btn-ghost">
               See pricing
@@ -177,8 +177,7 @@ export default async function VsPage({ params }: { params: Promise<{ slug: strin
             </Link>
           </div>
           <p className="source">
-            Free tier: {PRICING.trial.docs}, no card. Billing is not live yet, so the waitlist is the
-            way in.
+            Free tier: {PLANS.trial.monthlyQuota} validations, no card. Sign up to get started immediately.
           </p>
         </div>
       </section>

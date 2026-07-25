@@ -44,11 +44,7 @@ export default function ContactPage() {
             <strong>The support mailbox is not provisioned yet</strong>
             <p>
               The API is pre-launch and billing is not live. Until the support address is live, the{' '}
-              <Link href="/waitlist">waitlist form</Link> is the working channel - it reaches the
-              operator directly and is monitored.
-            </p>
-          </div>
-
+                <Link href="/signup">signup form</Link> is the working channel - it reaches the
           <h2>Who operates this service</h2>
           <ul className="clean">
             <li>
@@ -108,7 +104,7 @@ export default function ContactPage() {
               <tr>
                 <td>Pre-launch access</td>
                 <td>
-                  <Link href="/waitlist">Join the waitlist</Link>
+                  <Link href="/signup">Sign up for free</Link>
                 </td>
                 <td>One email when keys are issued</td>
               </tr>

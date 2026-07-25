@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { GuardrailNotice } from '@/components/Chrome';
 import { InvoiceValidator } from '@/components/InvoiceValidator';
-import { WaitlistForm } from '@/components/WaitlistForm';
 import { breadcrumbSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { API_BASE_URL, PRICING, TOOL_SLUGS, type ToolSlug } from '@/lib/site';
 import { TOOL_RATE_LIMIT } from '@/lib/toolRateLimit';
@@ -11,7 +10,7 @@ import { TOOL_RATE_LIMIT } from '@/lib/toolRateLimit';
  * RESERVED ROUTE for GR1 (free browser tool).
  * GR1 has shipped the live tool on `uae-e-invoice-validator` (see the
  * <InvoiceValidator /> block below); the other two slugs still render the
- * waitlist shell. Keep TOOL_SLUGS in src/lib/site.ts in sync.
+ * upcoming tool shell. Keep TOOL_SLUGS in src/lib/site.ts in sync.
  */
 
 /** cURL + Node snippets for the "do this programmatically" CTA. Real contract (handoffs/E1/openapi.yaml). */
@@ -226,10 +225,14 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 : 'Get it when it lands'}
             </h3>
             <p className="muted">
-              Optional - the tool above works without it. Waitlist members get an API key on the free
-              trial at launch.
+              Optional - the tool above works without it. Sign up to receive launch access and an
+              API key.
             </p>
-            <WaitlistForm source={`tool:${slug}`} />
+            <div className="cta-row">
+              <Link href="/signup" className="btn btn-primary">
+                Sign up for launch access
+              </Link>
+            </div>
           </div>
 
           <GuardrailNotice />

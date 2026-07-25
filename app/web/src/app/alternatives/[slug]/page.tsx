@@ -202,8 +202,8 @@ export default async function AlternativesPage({ params }: { params: Promise<{ s
           ))}
 
           <div className="cta-row">
-            <Link href="/waitlist" className="btn btn-primary">
-              Start free - join the waitlist
+            <Link href="/signup" className="btn btn-primary">
+              Start free - sign up now
             </Link>
             <Link href="/pricing" className="btn btn-ghost">
               See the $29 price
@@ -215,8 +215,7 @@ export default async function AlternativesPage({ params }: { params: Promise<{ s
             )}
           </div>
           <p className="source">
-            The free tier is 100 validations, no card. Billing is not live yet - the waitlist is how
-            you get in first.
+            The free tier is 100 validations, no card. Sign up to get started immediately.
           </p>
         </div>
       </section>
