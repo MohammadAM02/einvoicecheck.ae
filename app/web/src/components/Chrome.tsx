@@ -3,6 +3,37 @@
 import React from 'react';
 import Link from 'next/link';
 
+export function Todo({ children }: { children: string }) {
+  return (
+    <mark
+      className="todo"
+      style={{
+        background: '#fef08a',
+        color: '#111827',
+        fontWeight: 600,
+        padding: '1px 6px',
+        borderRadius: 4,
+        border: '1px dashed #a16207',
+        fontSize: '0.92em',
+      }}
+    >
+      {children}
+    </mark>
+  );
+}
+
+export function GuardrailNotice() {
+  return null;
+}
+
+export function SiteHeader() {
+  return null;
+}
+
+export function SiteFooter() {
+  return null;
+}
+
 export function Chrome({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-[#0B0F14] text-[#E8EEF5] flex flex-col">
@@ -43,7 +74,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Page Content */}
-      <main className="flex-1 w-full">{children}</main>
+      <main className="w-full flex-1">{children}</main>
     </div>
   );
 }
