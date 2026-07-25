@@ -2,7 +2,6 @@ import { breadcrumbSchema, faqSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { SITE_URL } from '@/lib/site';
 import { PricingClient } from './PricingClient';
 
-// PRIMARY KEYWORD: "UAE e invoicing software" (590/mo, transactional)
 export const metadata = pageMetadata({
   title: 'Pricing — UAE e-invoicing software without the sales call',
   description:

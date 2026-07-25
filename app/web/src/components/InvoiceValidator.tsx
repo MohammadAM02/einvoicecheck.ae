@@ -3,14 +3,6 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/**
- * The free browser tool (GR1). Zero login: it POSTs the pasted document to
- * /api/tools/validate, which runs the SAME rule engine as POST /v1/validate.
- * No email is required to see a result; email capture happens after the result.
- *
- * Results shown here are preflight only - nothing is transmitted anywhere.
- */
-
 type TemplateMeta = {
   filename: string;
   name: string;
@@ -39,7 +31,6 @@ type ApiOk = {
 };
 type ApiErr = { ok: false; error: string };
 
-// Batch types
 type BatchItemResult = {
   index: number;
   valid: boolean;
@@ -89,7 +80,6 @@ const SAMPLE_JSON = `{
   }
 }`;
 
-/** Plain-text summary of a result, safe to paste into Slack/email/a ticket. Never invents values. */
 function toReportText(result: ValidationResult): string {
   const lines = [
     `einvoicecheck.ae preflight result - ${result.valid ? 'PASS' : 'WOULD BE REJECTED'}`,
@@ -114,16 +104,15 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   return (
     <button
       type="button"
-      className="btn btn-ghost btn-copy"
+      className="btn btn-ghost"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text);
           setCopied(true);
           setTimeout(() => setCopied(false), 1600);
-        } catch {
-          // Clipboard API unavailable - fail silently.
-        }
+        } catch { /* Clipboard API unavailable */ }
       }}
+      style={{ fontSize: 12 }}
     >
       {copied ? 'Copied' : label}
     </button>
@@ -137,16 +126,13 @@ export function InvoiceValidator() {
   const [data, setData] = useState<ApiOk | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Sample template dropdown state
   const [templates, setTemplates] = useState<TemplateMeta[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Batch validation state
   const [batchData, setBatchData] = useState<BatchApiOk | null>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     if (!showDropdown) return;
     const h = (e: MouseEvent) => {
@@ -158,7 +144,6 @@ export function InvoiceValidator() {
     return () => document.removeEventListener('mousedown', h);
   }, [showDropdown]);
 
-  // Fetch templates list when dropdown opens
   const openDropdown = useCallback(() => {
     if (templates.length > 0) {
       setShowDropdown(true);
@@ -174,51 +159,32 @@ export function InvoiceValidator() {
         }
       })
       .catch(() => {
-        // fallback: show it anyway with just the JSON sample
         setTemplates([]);
         setShowDropdown(true);
       })
       .finally(() => setLoadingTemplates(false));
   }, [templates.length]);
 
-  // Load a template: fetch XML, set in textarea, auto-validate
   const loadTemplate = useCallback(async (filename: string) => {
     setShowDropdown(false);
     setError('');
     setData(null);
     setBatchData(null);
-
     try {
       const res = await fetch(`/api/templates/${encodeURIComponent(filename)}`);
-      if (!res.ok) {
-        setError('Could not load the template. Try again.');
-        return;
-      }
+      if (!res.ok) { setError('Could not load the template. Try again.'); return; }
       const xml = await res.text();
       setText(xml);
-
-      // Auto-validate
       setBusy(true);
       try {
         const vres = await fetch('/api/tools/validate', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ document: xml }),
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ document: xml }),
         });
         const body: ApiOk | ApiErr = await vres.json();
-        if (!vres.ok || body.ok !== true) {
-          setError((body as ApiErr).error ?? 'Validation failed.');
-        } else {
-          setData(body);
-        }
-      } catch {
-        setError('Could not reach the validator.');
-      } finally {
-        setBusy(false);
-      }
-    } catch {
-      setError('Could not load the template.');
-    }
+        if (!vres.ok || body.ok !== true) setError((body as ApiErr).error ?? 'Validation failed.');
+        else setData(body);
+      } catch { setError('Could not reach the validator.'); } finally { setBusy(false); }
+    } catch { setError('Could not load the template.'); }
   }, []);
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -230,63 +196,30 @@ export function InvoiceValidator() {
   }
 
   async function validate() {
-    setBusy(true);
-    setError('');
-    setData(null);
-    setBatchData(null);
+    setBusy(true); setError(''); setData(null); setBatchData(null);
     try {
       const res = await fetch('/api/tools/validate', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: text }),
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ document: text }),
       });
       const body: ApiOk | ApiErr = await res.json();
-      if (!res.ok || body.ok !== true) {
-        setError((body as ApiErr).error ?? 'Validation failed. Try again.');
-      } else {
-        setData(body);
-      }
-    } catch {
-      setError('Could not reach the validator. Check your connection and try again.');
-    } finally {
-      setBusy(false);
-    }
+      if (!res.ok || body.ok !== true) setError((body as ApiErr).error ?? 'Validation failed. Try again.');
+      else setData(body);
+    } catch { setError('Could not reach the validator. Check your connection and try again.'); } finally { setBusy(false); }
   }
 
   async function batchValidate() {
-    const docs = text
-      .split(/\n---+\n/)
-      .map((d) => d.trim())
-      .filter(Boolean);
-    if (docs.length < 2) {
-      setError('Paste 2 or more invoices separated by --- to use batch validation.');
-      return;
-    }
-    if (docs.length > 50) {
-      setError('Batch size exceeds the 50-invoice limit.');
-      return;
-    }
-    setBusy(true);
-    setError('');
-    setData(null);
-    setBatchData(null);
+    const docs = text.split(/\n---+\n/).map((d) => d.trim()).filter(Boolean);
+    if (docs.length < 2) { setError('Paste 2 or more invoices separated by --- to use batch validation.'); return; }
+    if (docs.length > 50) { setError('Batch size exceeds the 50-invoice limit.'); return; }
+    setBusy(true); setError(''); setData(null); setBatchData(null);
     try {
       const res = await fetch('/api/tools/validate/batch', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ invoices: docs }),
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ invoices: docs }),
       });
       const body = await res.json();
-      if (!res.ok || body.ok !== true) {
-        setError(body.error ?? 'Batch validation failed.');
-      } else {
-        setBatchData(body as BatchApiOk);
-      }
-    } catch {
-      setError('Could not reach the validator.');
-    } finally {
-      setBusy(false);
-    }
+      if (!res.ok || body.ok !== true) setError(body.error ?? 'Batch validation failed.');
+      else setBatchData(body as BatchApiOk);
+    } catch { setError('Could not reach the validator.'); } finally { setBusy(false); }
   }
 
   const result = data?.result;
@@ -299,8 +232,8 @@ export function InvoiceValidator() {
   return (
     <div className="tool">
       <div className="card">
-        <h3>Paste your invoice</h3>
-        <p className="muted">
+        <h3 style={{ marginBottom: 8 }}>Paste your invoice</h3>
+        <p className="muted" style={{ marginBottom: 12 }}>
           Canonical JSON, or a UBL 2.1 / PINT AE XML document. Nothing is stored: the document is
           validated in memory and discarded with the request.
         </p>
@@ -320,56 +253,33 @@ export function InvoiceValidator() {
           <button className="btn btn-primary" onClick={validate} disabled={busy || !text.trim()}>
             {busy ? 'Validating...' : 'Validate invoice'}
           </button>
-          <button
-            className="btn btn-secondary"
-            onClick={batchValidate}
-            disabled={busy || !text.trim()}
-          >
+          <button className="btn btn-secondary" onClick={batchValidate} disabled={busy || !text.trim()}>
             {busy ? 'Validating...' : 'Batch validate'}
           </button>
           <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
             Upload a file
           </button>
 
-          {/* Load a sample — dropdown trigger */}
           <div className="sample-btn-wrapper" ref={dropdownRef}>
-            <button
-              className="btn btn-ghost"
-              onClick={openDropdown}
-              disabled={busy || loadingTemplates}
-            >
+            <button className="btn btn-ghost" onClick={openDropdown} disabled={busy || loadingTemplates}>
               {loadingTemplates ? 'Loading...' : 'Load a sample \u25BE'}
             </button>
 
             {showDropdown && (
               <div className="sample-dropdown">
                 <div
-                  className="sample-option sample-option-json"
+                  className="sample-option"
                   onClick={async () => {
-                    setShowDropdown(false);
-                    setError('');
-                    setData(null);
-                    setBatchData(null);
-                    setText(SAMPLE_JSON);
-                    // Auto-validate the JSON sample too
+                    setShowDropdown(false); setError(''); setData(null); setBatchData(null); setText(SAMPLE_JSON);
                     setBusy(true);
                     try {
                       const vres = await fetch('/api/tools/validate', {
-                        method: 'POST',
-                        headers: { 'content-type': 'application/json' },
-                        body: JSON.stringify({ document: SAMPLE_JSON }),
+                        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ document: SAMPLE_JSON }),
                       });
                       const body: ApiOk | ApiErr = await vres.json();
-                      if (!vres.ok || body.ok !== true) {
-                        setError((body as ApiErr).error ?? 'Validation failed.');
-                      } else {
-                        setData(body);
-                      }
-                    } catch {
-                      setError('Could not reach the validator.');
-                    } finally {
-                      setBusy(false);
-                    }
+                      if (!vres.ok || body.ok !== true) setError((body as ApiErr).error ?? 'Validation failed.');
+                      else setData(body);
+                    } catch { setError('Could not reach the validator.'); } finally { setBusy(false); }
                   }}
                 >
                   <span className="sample-option-label">Sample JSON invoice</span>
@@ -378,11 +288,7 @@ export function InvoiceValidator() {
                 <div className="sample-divider" />
                 <div className="sample-dropdown-header">Template XML invoices</div>
                 {templates.map((t) => (
-                  <div
-                    key={t.filename}
-                    className="sample-option"
-                    onClick={() => loadTemplate(t.filename)}
-                  >
+                  <div key={t.filename} className="sample-option" onClick={() => loadTemplate(t.filename)}>
                     <span className="sample-option-label">{t.name}</span>
                     <span className="sample-option-desc">{t.description}</span>
                   </div>
@@ -391,28 +297,24 @@ export function InvoiceValidator() {
             )}
           </div>
 
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".json,.xml,.txt,application/json,application/xml,text/xml"
-            onChange={onFile}
-            hidden
-          />
+          <input ref={fileRef} type="file" accept=".json,.xml,.txt,application/json,application/xml,text/xml" onChange={onFile} hidden />
         </div>
-        {error ? <p className="form-msg err">{error}</p> : null}
+        {error ? <p className="form-msg err" style={{ marginTop: 12 }}>{error}</p> : null}
       </div>
 
       {result ? (
         <div className="card" style={{ marginTop: 20 }}>
-          <span className={`badge ${result.valid ? 'ok' : 'bad'}`}>
-            {result.valid ? 'Passes preflight' : 'Would be rejected'}
-          </span>
-          <h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <span className={`badge ${result.valid ? 'ok' : 'bad'}`}>
+              {result.valid ? 'Passes preflight' : 'Would be rejected'}
+            </span>
+          </div>
+          <h3 style={{ marginBottom: 8 }}>
             {result.valid
               ? 'No blocking errors found'
               : `${errorCount} error${errorCount === 1 ? '' : 's'}${warningCount ? ` and ${warningCount} warning${warningCount === 1 ? '' : 's'}` : ''}`}
           </h3>
-          <div className="dash-head">
+          <div className="dash-head" style={{ marginBottom: 8 }}>
             <p className="muted" style={{ margin: 0 }}>
               Invoice type: <code>{result.invoiceType ?? 'not detected'}</code> &middot; profile:{' '}
               <code>{result.schemaVersion}</code>
@@ -426,9 +328,12 @@ export function InvoiceValidator() {
           {result.errors.length ? (
             <div className="fix-list">
               {sortedErrors.map((e, i) => (
-                <div className={`fix-row fix-row-${e.severity}`} key={`${e.rule}-${e.path}-${i}`}>
+                <div className={`fix-row`} key={`${e.rule}-${e.path}-${i}`}>
                   <div className="fix-row-head">
-                    <span className={`pill ${e.severity}`}>{e.severity}</span>
+                    <span className={`pill ${e.severity}`} style={{
+                      background: e.severity === 'error' ? 'var(--error-subtle)' : 'var(--warn-subtle)',
+                      color: e.severity === 'error' ? 'var(--error)' : 'var(--warn)',
+                    }}>{e.severity}</span>
                     <code>{e.path}</code>
                     <span className="muted fix-rule">{e.rule}</span>
                   </div>
@@ -444,14 +349,14 @@ export function InvoiceValidator() {
               ))}
             </div>
           ) : (
-            <p>
+            <p className="muted">
               Every rule in the engine passed. That means the file is structurally and
               arithmetically clean - it does <strong>not</strong> mean it has been filed, accepted,
               or made legally compliant. Preflight only.
             </p>
           )}
 
-          <p className="muted">
+          <p className="muted" style={{ marginTop: 12 }}>
             {data ? `${data.rateLimit.remaining} of ${data.rateLimit.limit} free checks left this hour from your IP.` : null}
           </p>
 
@@ -468,57 +373,37 @@ export function InvoiceValidator() {
 
       {batchData ? (
         <div className="card" style={{ marginTop: 20 }}>
-          <h3>Batch results &mdash; {batchData.results.length} invoices</h3>
-          <p className="muted" style={{ marginBottom: 'var(--space-md)' }}>
+          <h3 style={{ marginBottom: 8 }}>Batch results &mdash; {batchData.results.length} invoices</h3>
+          <p className="muted" style={{ marginBottom: 12 }}>
             {batchData.results.filter((r) => r.valid).length} pass
             &middot; {batchData.results.filter((r) => !r.valid).length} would be rejected
             &middot; {batchData.rateLimit.remaining} of {batchData.rateLimit.limit} checks left
             {batchData.rateLimit.degraded ? ' · degraded' : ''}
           </p>
           {batchData.results.map((r) => (
-            <div
-              key={r.index}
-              className="fix-row"
-              style={{
-                borderLeft: `3px solid ${r.valid ? 'var(--success)' : 'var(--error)'}`,
-                marginBottom: 'var(--space-sm)',
-              }}
-            >
+            <div key={r.index} className="fix-row" style={{ borderLeft: `3px solid ${r.valid ? 'var(--success)' : 'var(--error)'}`, marginBottom: 8 }}>
               <div className="fix-row-head">
-                <span className={`pill ${r.valid ? 'ok' : 'bad'}`}>
-                  #{r.index + 1}
-                </span>
-                <span className={`pill ${r.valid ? 'ok' : 'bad'}`}>
-                  {r.valid ? 'PASS' : 'FAIL'}
-                </span>
-                {'invoiceType' in r && r.invoiceType ? (
-                  <code style={{ fontSize: 12 }}>{r.invoiceType}</code>
-                ) : null}
-                <span className="muted" style={{ fontSize: 12 }}>
-                  {'schemaVersion' in r ? r.schemaVersion : ''}
-                </span>
+                <span className={`pill ${r.valid ? 'ok' : 'bad'}`}>#{r.index + 1}</span>
+                <span className={`pill ${r.valid ? 'ok' : 'bad'}`}>{r.valid ? 'PASS' : 'FAIL'}</span>
+                {'invoiceType' in r && r.invoiceType ? (<code style={{ fontSize: 12 }}>{r.invoiceType}</code>) : null}
+                <span className="muted" style={{ fontSize: 12 }}>{'schemaVersion' in r ? r.schemaVersion : ''}</span>
               </div>
               {'error' in r ? (
                 <p className="fix-message">{r.error}</p>
               ) : (
-                <>
-                  {r.errors.length > 0 ? (
-                    <p className="fix-message" style={{ marginBottom: 0 }}>
-                      {r.errors.filter((e: ValidationError) => e.severity === 'error').length} error(s)
-                      {r.errors.filter((e: ValidationError) => e.severity === 'warning').length > 0
-                        ? `, ${r.errors.filter((e: ValidationError) => e.severity === 'warning').length} warning(s)`
-                        : ''}
-                    </p>
-                  ) : (
-                    <p className="fix-message" style={{ marginBottom: 0, color: 'var(--success)' }}>
-                      No errors found
-                    </p>
-                  )}
-                </>
+                r.errors.length > 0 ? (
+                  <p className="fix-message" style={{ marginBottom: 0 }}>
+                    {r.errors.filter((e: ValidationError) => e.severity === 'error').length} error(s)
+                    {r.errors.filter((e: ValidationError) => e.severity === 'warning').length > 0
+                      ? `, ${r.errors.filter((e: ValidationError) => e.severity === 'warning').length} warning(s)` : ''}
+                  </p>
+                ) : (
+                  <p className="fix-message" style={{ marginBottom: 0, color: 'var(--success)' }}>No errors found</p>
+                )
               )}
             </div>
           ))}
-          <p className="muted" style={{ marginTop: 'var(--space-md)' }}>
+          <p className="muted" style={{ marginTop: 12 }}>
             {batchData.rateLimit.remaining} of {batchData.rateLimit.limit} free checks left this hour from your IP.
           </p>
         </div>

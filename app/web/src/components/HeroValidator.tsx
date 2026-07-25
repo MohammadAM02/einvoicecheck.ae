@@ -50,36 +50,6 @@ interface HeroValidatorProps {
   onOpenAuth: () => void;
 }
 
-const s: Record<string, React.CSSProperties> = {
-  wrap: { display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 },
-  textarea: {
-    width: '100%', minWidth: 0, background: 'var(--bg)', border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-md)', padding: 14, fontFamily: 'var(--font-code)',
-    fontSize: 13, color: 'var(--ink)', resize: 'vertical', minHeight: 120, maxHeight: 300, overflow: 'auto',
- outline: 'none', outlineOffset: 0,
-  },
-  row: { display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' },
-  btn: {
-    display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '8px 18px', borderRadius: 'var(--radius-full)', border: 'none',
-    fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-  },
-  sampleBtn: {
-    display: 'inline-flex', background: 'var(--bg-card)', color: 'var(--ink-muted)',
-    border: '1px solid var(--border)', padding: '4px 10px', borderRadius: 'var(--radius-sm)',
-    fontSize: 11, fontFamily: 'var(--font-code)', cursor: 'pointer', transition: 'all 0.15s',
-  },
-  status: {
-    padding: 14, borderRadius: 'var(--radius-md)', fontSize: 13, lineHeight: 1.5, border: '1px solid',
-  },
-  errorItem: {
-    padding: '10px 12px', borderBottom: '1px solid var(--border)',
-  },
-  errorHead: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', width: '100%', background: 'none', border: 'none', color: 'inherit', fontFamily: 'inherit', fontSize: 'inherit',
-  },
-};
-
 export const HeroValidator: React.FC<HeroValidatorProps> = ({ onOpenAuth }) => {
   const [input, setInput] = useState(VALID_SAMPLE);
   const [loading, setLoading] = useState(false);
@@ -116,28 +86,45 @@ export const HeroValidator: React.FC<HeroValidatorProps> = ({ onOpenAuth }) => {
   }, [input]);
 
   return (
-    <div style={s.wrap}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
       <div style={{ position: 'relative' }}>
         <textarea
           value={input} onChange={e => { setInput(e.target.value); setError(null); setResult(null); setRateLimit(null); }}
           placeholder='{"invoiceType": "388", ...}' rows={8}
-          onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-          onBlur={e => e.target.style.borderColor = 'var(--border)'}
-          style={s.textarea} spellCheck={false}
+          className="tool-input"
+          style={{ minHeight: 140 }}
+          spellCheck={false}
         />
         <div style={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 4 }}>
-          <button style={s.sampleBtn} onClick={() => setInput(VALID_SAMPLE)}>Valid</button>
-          <button style={s.sampleBtn} onClick={() => setInput(BROKEN_SAMPLE)}>Broken</button>
+          <button
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: '4px 10px', fontFamily: 'var(--font-code)' }}
+            onClick={() => setInput(VALID_SAMPLE)}
+          >
+            Valid
+          </button>
+          <button
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: '4px 10px', fontFamily: 'var(--font-code)' }}
+            onClick={() => setInput(BROKEN_SAMPLE)}
+          >
+            Broken
+          </button>
         </div>
       </div>
 
-      <div style={s.row}>
-        <button onClick={validate} disabled={loading || !input.trim()}
-          style={{ ...s.btn, background: 'var(--accent)', color: '#0B0F14', opacity: loading ? 0.6 : 1 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+        <button
+          onClick={validate} disabled={loading || !input.trim()}
+          className="btn btn-primary btn-cut"
+          style={{ opacity: loading ? 0.6 : 1 }}
+        >
           {loading ? 'Checking...' : 'Validate'}
         </button>
-        <button onClick={() => fileRef.current?.click()}
-          style={{ ...s.btn, background: 'transparent', color: 'var(--ink-muted)', border: '1px solid var(--border)' }}>
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="btn btn-secondary"
+        >
           Upload
         </button>
         <input ref={fileRef} type="file" accept=".json,.xml,.txt" onChange={e => {
@@ -150,13 +137,11 @@ export const HeroValidator: React.FC<HeroValidatorProps> = ({ onOpenAuth }) => {
       </div>
 
       {error && (
-        <div style={{ ...s.status, background: 'var(--error-subtle)', borderColor: 'var(--error)', color: 'var(--error)' }}>
-          {error}
-        </div>
+        <div className="form-msg err">{error}</div>
       )}
 
       {loading && !error && (
-        <div style={{ ...s.status, background: 'rgba(14,165,196,0.06)', borderColor: 'rgba(14,165,196,0.2)', color: 'var(--ink-muted)' }}>
+        <div className="notice" style={{ borderColor: 'rgba(14,165,196,0.2)', color: 'var(--ink-muted)' }}>
           Running all 47 rules...
         </div>
       )}
@@ -176,17 +161,24 @@ export const HeroValidator: React.FC<HeroValidatorProps> = ({ onOpenAuth }) => {
                 {result.invoiceType || 'Unknown'} · {result.schemaVersion} · {result.ms}ms
               </div>
             </div>
-            <button onClick={onOpenAuth} style={{ ...s.btn, background: 'var(--accent)', color: '#0B0F14', padding: '4px 12px', fontSize: 12 }}>
+            <button onClick={onOpenAuth} className="btn btn-primary btn-cut-sm" style={{ padding: '4px 12px', fontSize: 12 }}>
               API key
             </button>
           </div>
           {result.errors?.slice(0, 5).map((err: any, i: number) => (
-            <div key={i} style={s.errorItem}>
-              <button style={s.errorHead} onClick={() => {
-                const n = new Set(expanded);
-                n.has(i) ? n.delete(i) : n.add(i);
-                setExpanded(n);
-              }}>
+            <div key={i} style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+              <button
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  cursor: 'pointer', width: '100%', background: 'none', border: 'none',
+                  color: 'inherit', fontFamily: 'inherit', fontSize: 'inherit',
+                }}
+                onClick={() => {
+                  const n = new Set(expanded);
+                  n.has(i) ? n.delete(i) : n.add(i);
+                  setExpanded(n);
+                }}
+              >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{
                     fontSize: 10, fontWeight: 600, fontFamily: 'var(--font-code)',
@@ -201,7 +193,7 @@ export const HeroValidator: React.FC<HeroValidatorProps> = ({ onOpenAuth }) => {
               {expanded.has(i) && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-secondary)' }}>
                   <p style={{ marginBottom: 4 }}>{err.message}</p>
-                  {err.fix && <div style={{ padding: '6px 10px', borderRadius: 6, background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)', color: 'var(--success)', fontSize: 12 }}>✓ {err.fix}</div>}
+                  {err.fix && <div className="fix-callout" style={{ marginTop: 0 }}>✓ {err.fix}</div>}
                 </div>
               )}
             </div>
@@ -221,7 +213,7 @@ export const HeroValidator: React.FC<HeroValidatorProps> = ({ onOpenAuth }) => {
       )}
 
       {!result && !loading && !error && (
-        <div style={{ padding: 12, background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', textAlign: 'center', fontSize: 12, color: 'var(--ink-muted)' }}>
+        <div className="notice" style={{ textAlign: 'center' }}>
           All 47 UAE FTA rules. Same engine as <code style={{ fontFamily: 'var(--font-code)', color: 'var(--accent)' }}>POST /v1/validate</code>.
         </div>
       )}

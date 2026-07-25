@@ -11,31 +11,31 @@ export const metadata = pageMetadata({
 export default function TemplatesPage() {
   return (
     <>
-      <section>
+      <div className="section">
         <div className="container">
-          <span className="badge">Free templates &middot; no signup</span>
-          <h1>Invoice templates for UAE e-invoicing</h1>
-          <p className="lead">
+          <span className="badge" style={{ marginBottom: 12 }}>Free templates &middot; no signup</span>
+          <h1 style={{ marginBottom: 12 }}>Invoice templates for UAE e-invoicing</h1>
+          <p className="lead" style={{ marginBottom: 24 }}>
             Download ready-to-use PINT AE invoice XML templates for all 16 UAE
             e-invoicing scenarios. Each template includes the mandatory fields
             and can be validated with the{' '}
-            <a href="/tools/uae-e-invoice-validator">free validator</a> before
+            <a href="/tools/uae-e-invoice-validator" style={{ color: 'var(--accent)' }}>free validator</a> before
             sending to your accredited service provider.
           </p>
         </div>
-      </section>
+      </div>
 
-      <section>
+      <div className="section-alt">
         <div className="container">
           <TemplatesClient />
         </div>
-      </section>
+      </div>
 
-      <section>
+      <div className="section">
         <div className="container">
           <div className="notice">
             <strong>Preflight only — disclaimer</strong>
-            <p>
+            <p style={{ marginTop: 4 }}>
               These templates are provided as examples for the PINT AE profile.
               They include the mandatory fields required by the UAE FTA
               e-invoicing mandate but do not constitute legal or tax advice.
@@ -44,7 +44,7 @@ export default function TemplatesPage() {
             </p>
           </div>
         </div>
-      </section>
+      </div>
     </>
   );
 }

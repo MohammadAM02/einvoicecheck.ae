@@ -23,8 +23,9 @@ export default function TermsPage() {
         )}
       />
 
-      <section>
+      <div className="section">
         <div className="container legal">
+          <div className="section-label">Legal</div>
           <h1>Terms of Service</h1>
           <p className="meta">
             Effective date: <Todo>{TODO.legalEffectiveDate}</Todo>
@@ -198,7 +199,7 @@ export default function TermsPage() {
 
           <GuardrailNotice />
         </div>
-      </section>
+      </div>
     </>
   );
 }

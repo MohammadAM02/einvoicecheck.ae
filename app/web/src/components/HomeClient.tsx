@@ -65,256 +65,300 @@ export default function HomeClient() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] text-[#E8EEF5] space-y-16 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      
-      {/* 1. Hero Header Section */}
-      <section className="text-center max-w-3xl mx-auto space-y-6 pt-4">
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-          Validate UAE E-Invoices <br className="hidden sm:inline" />
-          <span className="text-cyan-400">Before Your ASP Does</span>
-        </h1>
-        <p className="text-slate-400 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-          Catch TRN formatting errors, VAT calculation discrepancies, and line item mismatches instantly. 47+ deterministic rules built for PINT AE & UBL 2.1.
-        </p>
-        <div className="pt-2 flex flex-col items-center gap-3">
-          <button
-            onClick={() => triggerAuth('signup')}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-sm transition-all shadow-lg shadow-cyan-500/20"
-          >
-            Get Free API Key <ArrowRight className="w-4 h-4" />
+    <div className="main-content">
+      <div className="center-area">
+        {/* Left side tagline (desktop) */}
+        <div className="side-tagline anim-stagger" style={{ animationDelay: '0.4s' }}>
+          <p>
+            Programmatic<br />
+            preflight validation<br />
+            for every invoice
+          </p>
+          <div>
+            <div className="side-dots-row">
+              <div className="side-dot"></div>
+              <div className="side-dot filled"></div>
+            </div>
+            <div className="side-dots-row" style={{ marginTop: 4 }}>
+              <div className="side-dot filled"></div>
+              <div className="side-dot"></div>
+            </div>
+            <div className="side-stat">
+              <span>
+                Deterministic<br />
+                Validation
+              </span>
+              <span className="num">47 rules</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Center heading */}
+        <div className="hero-heading anim-stagger" style={{ animationDelay: '0.5s' }}>
+          <h1>
+            Validate UAE<br />
+            E‑Invoices Before<br />
+            <span className="hero-accent">Your ASP Does</span>
+          </h1>
+        </div>
+      </div>
+
+      {/* Bottom Row */}
+      <div className="bottom-row">
+        {/* Col 1: description */}
+        <div className="bottom-col-1 anim-stagger" style={{ animationDelay: '0.7s' }}>
+          <p>
+            47+ deterministic rules covering TRN format,
+            VAT categories, line totals, currency codes, and
+            invoice type — before your ASP rejects it.
+          </p>
+        </div>
+
+        {/* Col 2: CTA */}
+        <div className="bottom-col-2 anim-stagger" style={{ animationDelay: '0.85s' }}>
+          <span className="bottom-label">REST API</span>
+          <button className="cta-button btn-cut" onClick={() => triggerAuth('signup')}>
+            <span>Try the Validator</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </button>
-          <p className="text-xs text-slate-500">
-            Standalone preflight validator • Not FTA-accredited
-          </p>
-        </div>
-      </section>
-
-      {/* 2. Interactive Hero Validator Box */}
-      <section className="max-w-4xl mx-auto bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl">
-        <HeroValidator onOpenAuth={() => triggerAuth('signup')} />
-      </section>
-
-      {/* 3. Interactive Workflow Terminal */}
-      <section className="max-w-4xl mx-auto">
-        <WorkflowTerminal />
-      </section>
-
-      {/* 4. Who It's For (Strict 3-Column Grid) */}
-      <section className="space-y-8 max-w-6xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-100">
-            Built for UAE Systems & Tech Teams
-          </h2>
-          <p className="text-slate-400 text-sm">
-            Deterministic validation tailored for software engineers and finance operators.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {WHO_ITS_FOR.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div 
-                key={idx}
-                className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-6 flex flex-col justify-start hover:border-slate-700 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-4">
-                  <Icon className="w-5 h-5 text-cyan-400" />
+        {/* Col 3: stats / social proof */}
+        <div className="bottom-col-3 anim-stagger" style={{ animationDelay: '1s' }}>
+          <div className="stat-pill btn-cut-sm">
+            <span className="stat-number">1.2k</span>
+            <span className="stat-label">ACCOUNTS</span>
+          </div>
+          <div className="stat-pill btn-cut-sm">
+            <span className="stat-number">99.7</span>
+            <span className="stat-label">UPTIME</span>
+          </div>
+          <div className="stat-pill btn-cut-sm">
+            <span className="stat-number">3.2k</span>
+            <span className="stat-label">VALIDATED</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll content below hero */}
+      <div className="section">
+        {/* 1. Interactive Hero Validator Box */}
+        <section className="container" style={{ marginBottom: 48 }}>
+          <div className="hero-card">
+            <HeroValidator onOpenAuth={() => triggerAuth('signup')} />
+          </div>
+        </section>
+
+        {/* 2. Interactive Workflow Terminal */}
+        <section className="container" style={{ marginBottom: 48 }}>
+          <WorkflowTerminal />
+        </section>
+
+        {/* 3. Who It's For (Strict 3-Column Grid) */}
+        <section className="container" style={{ marginBottom: 48 }}>
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <div className="section-label">Audience</div>
+            <h2 className="section-title" style={{ maxWidth: 500, margin: '0 auto' }}>
+              Built for UAE Systems &amp; Tech Teams
+            </h2>
+            <p className="muted" style={{ marginTop: 8, maxWidth: 500, margin: '8px auto 0' }}>
+              Deterministic validation tailored for software engineers and finance operators.
+            </p>
+          </div>
+
+          <div className="grid grid-3">
+            {WHO_ITS_FOR.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <div key={idx} className="card">
+                  <div style={{
+                    width: 40, height: 40,
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'rgba(14,165,196,0.1)',
+                    border: '1px solid rgba(14,165,196,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 16,
+                  }}>
+                    <Icon style={{ width: 20, height: 20, color: 'var(--accent)' }} />
+                  </div>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: 8 }}>{item.title}</h3>
+                  <p className="muted">{item.description}</p>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-100 mb-2">{item.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{item.description}</p>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 4. Social Proof Metrics (Strict 4-Column Grid) */}
+        <section style={{
+          borderTop: '1px solid var(--border)',
+          borderBottom: '1px solid var(--border)',
+          padding: '40px 0',
+          marginBottom: 48,
+        }}>
+          <div className="container">
+            <div className="grid grid-4" style={{ textAlign: 'center' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent)' }}>47</div>
+                <div className="section-label" style={{ marginTop: 4, color: 'var(--ink-muted)' }}>Deterministic Rules</div>
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 5. Social Proof Metrics (Strict 4-Column Grid) */}
-      <section className="border-y border-slate-800/80 bg-slate-900/30 py-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center max-w-5xl mx-auto">
-          <div className="space-y-1">
-            <div className="text-2xl sm:text-3xl font-bold text-cyan-400">47</div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-400">Deterministic Rules</div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent)' }}>PINT AE</div>
+                <div className="section-label" style={{ marginTop: 4, color: 'var(--ink-muted)' }}>Specification Checked</div>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent)' }}>&lt;50ms</div>
+                <div className="section-label" style={{ marginTop: 4, color: 'var(--ink-muted)' }}>Engine Latency</div>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent)' }}>0</div>
+                <div className="section-label" style={{ marginTop: 4, color: 'var(--ink-muted)' }}>Persistent Storage</div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-1">
-            <div className="text-2xl sm:text-3xl font-bold text-cyan-400">PINT AE</div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-400">Specification Checked</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-2xl sm:text-3xl font-bold text-cyan-400">&lt;50ms</div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-400">Engine Latency</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-2xl sm:text-3xl font-bold text-cyan-400">0</div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-400">Persistent Storage</div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 6. Pricing Grid (Strict 3-Column Grid) */}
-      <section className="space-y-8 max-w-5xl mx-auto" id="pricing">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-100">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-slate-400 text-sm">
-            No mandatory enterprise sales calls. Start in 60 seconds.
-          </p>
-        </div>
+        {/* 5. Pricing Grid (Strict 3-Column Grid) */}
+        <section className="container" style={{ marginBottom: 48 }} id="pricing">
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <div className="section-label">Pricing</div>
+            <h2 className="section-title" style={{ maxWidth: 500, margin: '0 auto' }}>
+              Simple, Transparent Pricing
+            </h2>
+            <p className="muted" style={{ marginTop: 8, maxWidth: 400, margin: '8px auto 0' }}>
+              No mandatory enterprise sales calls. Start in 60 seconds.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {/* Trial */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-100">{PLANS.trial.name}</h3>
-              <div className="text-3xl font-bold text-slate-100">{PLANS.trial.priceLabel}</div>
-              <p className="text-xs text-slate-400">No credit card required</p>
+          <div className="pricing-grid">
+            {/* Trial */}
+            <div className="pricing-card">
+              <h3 style={{ fontSize: '1.1rem' }}>{PLANS.trial.name}</h3>
+              <div className="pricing-price">{PLANS.trial.priceLabel}</div>
+              <p className="muted">No credit card required</p>
 
-              <ul className="space-y-2.5 text-xs text-slate-300 pt-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  {PLANS.trial.monthlyQuota} validations / mo
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  {PLANS.trial.rateLimitPerMinute} req / min rate limit
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  Full 47-rule validation engine
-                </li>
+              <ul className="pricing-features">
+                <li>{PLANS.trial.monthlyQuota} validations / mo</li>
+                <li>{PLANS.trial.rateLimitPerMinute} req / min rate limit</li>
+                <li>Full 47-rule validation engine</li>
               </ul>
-            </div>
-            <button 
-              onClick={() => triggerAuth('signup')} 
-              className="mt-6 w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold rounded-lg transition-colors"
-            >
-              Get Started Free
-            </button>
-          </div>
 
-          {/* Starter */}
-          <div className="bg-slate-900/90 border-2 border-cyan-500/60 rounded-xl p-6 flex flex-col justify-between relative shadow-xl shadow-cyan-500/10">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-500 text-slate-950 text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">
-              Most Popular
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-100">{PLANS.starter.name}</h3>
-              <div className="text-3xl font-bold text-slate-100">{PLANS.starter.priceLabel}<span className="text-xs font-normal text-slate-400">/mo</span></div>
-              <p className="text-xs text-slate-400">Production access</p>
-
-              <ul className="space-y-2.5 text-xs text-slate-300 pt-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  {PLANS.starter.monthlyQuota.toLocaleString()} validations / mo
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  {PLANS.starter.rateLimitPerMinute} req / min rate limit
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  API Key management dashboard
-                </li>
-              </ul>
-            </div>
-            <button 
-              onClick={() => triggerAuth('signup')} 
-              className="mt-6 w-full py-2.5 px-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-semibold rounded-lg transition-colors"
-            >
-              Start Starter Plan
-            </button>
-          </div>
-
-          {/* Pro */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-100">{PLANS.pro.name}</h3>
-              <div className="text-3xl font-bold text-slate-100">{PLANS.pro.priceLabel}<span className="text-xs font-normal text-slate-400">/mo</span></div>
-              <p className="text-xs text-slate-400">High volume ERPs</p>
-
-              <ul className="space-y-2.5 text-xs text-slate-300 pt-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  {PLANS.pro.monthlyQuota.toLocaleString()} validations / mo
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  {PLANS.pro.rateLimitPerMinute} req / min rate limit
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  Priority API routing
-                </li>
-              </ul>
-            </div>
-            <button 
-              onClick={() => triggerAuth('signup')} 
-              className="mt-6 w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold rounded-lg transition-colors"
-            >
-              Start Pro Plan
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Guarantees */}
-      <section className="max-w-4xl mx-auto">
-        <ContactGuarantees />
-      </section>
-
-      {/* 8. FAQ Accordion */}
-      <section className="max-w-2xl mx-auto space-y-6">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-100 text-center">
-          Frequently Asked Questions
-        </h2>
-        <div className="space-y-3">
-          {FAQS.map((faq, idx) => {
-            const isOpen = openFaq === idx;
-            return (
-              <div 
-                key={idx} 
-                className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden"
+              <button
+                onClick={() => triggerAuth('signup')}
+                className="btn btn-secondary"
+                style={{ marginTop: 'auto', width: '100%' }}
               >
-                <button
-                  onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full px-5 py-3.5 text-left flex items-center justify-between text-slate-200 text-sm font-medium hover:text-white transition-colors"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="px-5 pb-4 text-slate-400 text-xs leading-relaxed border-t border-slate-800/40 pt-3"
-                    >
-                      {faq.a}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+                Get Started Free
+              </button>
+            </div>
 
-      {/* 9. Footer Disclaimer */}
-      <footer className="text-center max-w-2xl mx-auto pt-8 border-t border-slate-800/60">
-        <p className="text-[11px] text-slate-500 leading-relaxed">
-          {GUARDRAIL}
-        </p>
-      </footer>
+            {/* Starter */}
+            <div className="pricing-card featured">
+              <div className="pricing-badge">Most Popular</div>
+              <h3 style={{ fontSize: '1.1rem' }}>{PLANS.starter.name}</h3>
+              <div className="pricing-price">{PLANS.starter.priceLabel}<span className="pricing-period">/mo</span></div>
+              <p className="muted">Production access</p>
 
-      {/* 10. Auth Modal */}
-      <AuthModal 
-        isOpen={authOpen} 
-        mode={authMode} 
-        onClose={() => setAuthOpen(false)} 
+              <ul className="pricing-features">
+                <li>{PLANS.starter.monthlyQuota.toLocaleString()} validations / mo</li>
+                <li>{PLANS.starter.rateLimitPerMinute} req / min rate limit</li>
+                <li>API Key management dashboard</li>
+              </ul>
+
+              <button
+                onClick={() => triggerAuth('signup')}
+                className="btn btn-primary"
+                style={{ marginTop: 'auto', width: '100%' }}
+              >
+                Start Starter Plan
+              </button>
+            </div>
+
+            {/* Pro */}
+            <div className="pricing-card">
+              <h3 style={{ fontSize: '1.1rem' }}>{PLANS.pro.name}</h3>
+              <div className="pricing-price">{PLANS.pro.priceLabel}<span className="pricing-period">/mo</span></div>
+              <p className="muted">High volume ERPs</p>
+
+              <ul className="pricing-features">
+                <li>{PLANS.pro.monthlyQuota.toLocaleString()} validations / mo</li>
+                <li>{PLANS.pro.rateLimitPerMinute} req / min rate limit</li>
+                <li>Priority API routing</li>
+              </ul>
+
+              <button
+                onClick={() => triggerAuth('signup')}
+                className="btn btn-secondary"
+                style={{ marginTop: 'auto', width: '100%' }}
+              >
+                Start Pro Plan
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Guarantees */}
+        <section className="container" style={{ marginBottom: 48 }}>
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <div className="section-label">Trust</div>
+            <h2 className="section-title" style={{ maxWidth: 500, margin: '0 auto' }}>
+              Built for Enterprise Confidence
+            </h2>
+          </div>
+          <ContactGuarantees />
+        </section>
+
+        {/* 7. FAQ Accordion */}
+        <section className="container" style={{ marginBottom: 48, maxWidth: 640 }}>
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <div className="section-label">FAQ</div>
+            <h2 className="section-title">Frequently Asked Questions</h2>
+          </div>
+          <div className="faq-list">
+            {FAQS.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div key={idx} className={`faq-item${isOpen ? ' open' : ''}`}>
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="faq-question"
+                  >
+                    {faq.q}
+                    <span className="arrow">▾</span>
+                  </button>
+                  <div className="faq-answer">
+                    <div className="faq-answer-inner">{faq.a}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 8. Footer Disclaimer */}
+        <footer className="container" style={{
+          textAlign: 'center',
+          paddingTop: 24,
+          borderTop: '1px solid var(--border)',
+          maxWidth: 640,
+        }}>
+          <p className="muted" style={{ fontSize: 11 }}>
+            {GUARDRAIL}
+          </p>
+        </footer>
+      </div>
+
+      {/* 9. Auth Modal */}
+      <AuthModal
+        isOpen={authOpen}
+        mode={authMode}
+        onClose={() => setAuthOpen(false)}
       />
     </div>
   );
 }
-

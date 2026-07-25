@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-black text-white overflow-x-hidden">
-      <GuardrailNotice/>
-      <HomeClient/>
+    <>
+      <GuardrailNotice />
+      <HomeClient />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -23,6 +23,6 @@ export default function Page() {
           }),
         }}
       />
-    </main>
+    </>
   );
 }

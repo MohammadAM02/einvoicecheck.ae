@@ -23,8 +23,9 @@ export default function PrivacyPage() {
         )}
       />
 
-      <section>
+      <div className="section">
         <div className="container legal">
+          <div className="section-label">Legal</div>
           <h1>Privacy Policy</h1>
           <p className="meta">
             Effective date: <Todo>{TODO.legalEffectiveDate}</Todo>
@@ -176,7 +177,7 @@ export default function PrivacyPage() {
 
           <GuardrailNotice />
         </div>
-      </section>
+      </div>
     </>
   );
 }

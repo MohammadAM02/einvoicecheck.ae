@@ -15,12 +15,12 @@ export const ContactGuarantees: React.FC = () => {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
       {items.map((item) => (
-        <div key={item.title} style={{ padding: 16, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
+        <div key={item.title} className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <item.icon style={{ width: 16, height: 16, color: item.color }} />
             <span style={{ color: item.color, fontWeight: 700, fontSize: 12, fontFamily: 'var(--font-code)' }}>{item.title}</span>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.6, margin: 0 }}>{item.desc}</p>
+          <p className="muted" style={{ margin: 0 }}>{item.desc}</p>
         </div>
       ))}
     </div>

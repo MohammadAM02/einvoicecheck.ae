@@ -12,19 +12,19 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <section className="section">
+    <div className="section">
       <div className="container narrow">
-        <h1>Create your account</h1>
-        <p className="lead">
+        <h1 style={{ marginBottom: 12 }}>Create your account</h1>
+        <p className="lead" style={{ marginBottom: 24 }}>
           You get an API key the moment the account exists — no sales call, no waiting. The free
           trial covers 100 validations.
         </p>
         <GuardrailNotice />
         <AuthForm mode="signup" />
         <p className="muted" style={{ marginTop: 16 }}>
-          Already have an account? <Link href="/login">Sign in</Link>.
+          Already have an account? <Link href="/login" style={{ color: 'var(--accent)' }}>Sign in</Link>.
         </p>
       </div>
-    </section>
+    </div>
   );
 }

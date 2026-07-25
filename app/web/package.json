@@ -5,7 +5,7 @@
   "description": "Marketing site for einvoicecheck.ae - UAE e-invoice preflight validation API",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && mkdir -p .next/standalone/public/templates && cp -r public/templates/ .next/standalone/public/templates/",
+    "build": "next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "test": "vitest run",

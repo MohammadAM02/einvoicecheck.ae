@@ -3,10 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-/**
- * Signup / login. On signup the server returns the raw API key exactly once —
- * we show it here and tell the user plainly that it will never be shown again.
- */
 interface AuthFormProps {
   mode: 'signup' | 'login';
   onSuccess?: () => void;
@@ -53,9 +49,9 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   if (apiKey) {
     return (
       <div className="card">
-        <h3>Your API key</h3>
-        <p>
-          <strong>Copy it now.</strong> This is the only time it is ever displayed — we store only a
+        <h3 style={{ marginBottom: 12 }}>Your API key</h3>
+        <p className="muted" style={{ marginBottom: 12 }}>
+          <strong style={{ color: 'var(--ink)' }}>Copy it now.</strong> This is the only time it is ever displayed — we store only a
           SHA-256 hash of it, so we cannot show it to you again. Lost it? Create a new key and
           revoke this one.
         </p>
@@ -73,7 +69,8 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   }
 
   return (
-    <form className="card form" onSubmit={submit}>
+    <form className="form" onSubmit={submit}>
+      <h3 style={{ marginBottom: 4 }}>{mode === 'signup' ? 'Create your account' : 'Sign in'}</h3>
       <label htmlFor="email">Work email</label>
       <input
         id="email"
@@ -94,7 +91,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         onChange={(e) => setPassword(e.target.value)}
       />
       {mode === 'signup' ? <p className="muted">At least 10 characters.</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="form-msg err">{error}</p> : null}
       <button type="submit" className="btn btn-primary" disabled={busy}>
         {busy ? 'Working…' : mode === 'signup' ? 'Create account + get API key' : 'Sign in'}
       </button>

@@ -117,11 +117,9 @@ export function DashboardClient(props: Props) {
     setError(null);
     try {
       if (props.hasSubscription && plan !== 'trial') {
-        // Existing subscriber switching plans — use Dodo change-plan
         await post('/api/billing/change-plan', { plan, proration: 'prorated_immediately' });
         router.refresh();
       } else {
-        // New subscriber — route through Lemon Squeezy
         const data = await post('/api/billing/lemon-checkout', { plan });
         window.location.href = String(data.checkoutUrl);
       }
@@ -176,35 +174,32 @@ export function DashboardClient(props: Props) {
   const quotaPct = Math.min(100, Math.round((usage.quota.used / usage.quota.monthlyQuota) * 100));
 
   return (
-    <section className="section">
+    <div className="section">
       <div className="container">
         <div className="dash-head">
           <div>
             <h1>Dashboard</h1>
             <p className="muted">{props.email}</p>
           </div>
-          <form action="/api/auth/logout" method="post">
-            <button
-              type="button"
-              className="btn"
-              onClick={async () => {
-                await fetch('/api/auth/logout', { method: 'POST' });
-                router.push('/login');
-                router.refresh();
-              }}
-            >
-              Sign out
-            </button>
-          </form>
+          <button
+            className="btn btn-secondary"
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              router.push('/login');
+              router.refresh();
+            }}
+          >
+            Sign out
+          </button>
         </div>
 
-        {error ? <p className="error">{error}</p> : null}
+        {error ? <p className="form-msg err" style={{ marginBottom: 16 }}>{error}</p> : null}
 
-        {/* ------------------------------------------------------- plan */}
-        <div className="card">
-          <h2>Plan</h2>
-          <p>
-            <strong>{props.planName}</strong> — status:{' '}
+        {/* Plan */}
+        <div className="card" style={{ marginBottom: 20 }}>
+          <h2 style={{ marginBottom: 12 }}>Plan</h2>
+          <p className="muted" style={{ marginBottom: 8 }}>
+            <strong style={{ color: 'var(--ink)' }}>{props.planName}</strong> — status:{' '}
             <span className={`pill pill-${props.subscriptionStatus}`}>{props.subscriptionStatus}</span>
             {props.cancelAtPeriodEnd ? ' (cancels at period end)' : null}
             {props.currentPeriodEnd
@@ -213,22 +208,21 @@ export function DashboardClient(props: Props) {
           </p>
 
           {props.subscriptionStatus === 'on_hold' ? (
-            <div className="notice">
+            <div className="notice" style={{ marginBottom: 16 }}>
               <strong>Payment failed — your subscription is on hold.</strong>
-              <p>
-                Your limits have dropped to the trial tier until a working payment method is on
-                file.
+              <p style={{ marginTop: 4 }}>
+                Your limits have dropped to the trial tier until a working payment method is on file.
               </p>
-              <button type="button" className="btn btn-primary" onClick={recover} disabled={busy === 'recover'}>
+              <button type="button" className="btn btn-primary" onClick={recover} disabled={busy === 'recover'} style={{ marginTop: 8 }}>
                 Update payment method
               </button>
             </div>
           ) : null}
 
           {!props.billingConfigured ? (
-            <div className="notice">
+            <div className="notice" style={{ marginBottom: 16 }}>
               <strong>Billing is not configured on this deployment.</strong>
-              <p>
+              <p style={{ marginTop: 4 }}>
                 Checkout runs through Lemon Squeezy. Set{' '}
                 <code>LEMON_SQUEEZY_API_KEY</code> and <code>LEMON_SQUEEZY_STORE_ID</code> in
                 Railway to enable payments.
@@ -236,21 +230,22 @@ export function DashboardClient(props: Props) {
             </div>
           ) : null}
 
-          <div className="grid grid-3" style={{ marginTop: 16 }}>
+          <div className="grid grid-3">
             {PLAN_IDS.map((id) => {
               const p = PLANS[id];
               const current = props.plan === id;
               return (
                 <div key={id} className={`card${current ? ' highlight' : ''}`}>
-                  <h3>{p.name}</h3>
-                  <div className="price">
-                    <strong>{p.priceLabel}</strong> <span className="muted">{p.cadence}</span>
+                  <h3 style={{ marginBottom: 8 }}>{p.name}</h3>
+                  <div style={{ marginBottom: 8 }}>
+                    <strong style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem' }}>{p.priceLabel}</strong>{' '}
+                    <span className="muted">{p.cadence}</span>
                   </div>
-                  <ul className="clean">
+                  <ul className="clean" style={{ marginBottom: 12 }}>
                     <li>{p.monthlyQuota.toLocaleString()} validations / month</li>
                     <li>{p.rateLimitPerMinute} requests / minute</li>
                   </ul>
-                  <p className="muted">{p.blurb}</p>
+                  <p className="muted" style={{ marginBottom: 12 }}>{p.blurb}</p>
                   <button
                     type="button"
                     className="btn btn-primary"
@@ -269,12 +264,12 @@ export function DashboardClient(props: Props) {
           </div>
 
           {props.hasSubscription ? (
-            <div className="cta-row" style={{ marginTop: 16 }}>
+            <div className="cta-row">
               <button type="button" className="btn" onClick={openPortal} disabled={busy === 'portal'}>
                 Billing portal + invoices
               </button>
               {!props.cancelAtPeriodEnd ? (
-                <button type="button" className="btn" onClick={cancel} disabled={busy === 'cancel'}>
+                <button type="button" className="btn btn-danger" onClick={cancel} disabled={busy === 'cancel'}>
                   Cancel subscription
                 </button>
               ) : null}
@@ -285,25 +280,25 @@ export function DashboardClient(props: Props) {
           </p>
         </div>
 
-        {/* ------------------------------------------------------ usage */}
-        <div className="card">
-          <h2>Usage</h2>
-          <p className="muted">
+        {/* Usage */}
+        <div className="card" style={{ marginBottom: 20 }}>
+          <h2 style={{ marginBottom: 12 }}>Usage</h2>
+          <p className="muted" style={{ marginBottom: 8 }}>
             Metered from every API call. Last 30 days: <strong>{usage.totals.last30Days.toLocaleString()}</strong>{' '}
             calls · today: <strong>{usage.totals.today.toLocaleString()}</strong> · all time:{' '}
             <strong>{usage.totals.allTime.toLocaleString()}</strong>
           </p>
           <UsageGraph usage={usage} />
-          <p className="muted">
+          <p className="muted" style={{ marginBottom: 8 }}>
             <span className="swatch swatch-valid" /> valid{' '}
             <span className="swatch swatch-invalid" /> invalid{' '}
             <span className="swatch swatch-error" /> error
           </p>
-          <div className="quota">
+          <div>
             <div className="quota-bar">
               <span style={{ width: `${quotaPct}%` }} />
             </div>
-            <p className="muted">
+            <p className="muted" style={{ marginTop: 4 }}>
               {usage.quota.used.toLocaleString()} of {usage.quota.monthlyQuota.toLocaleString()}{' '}
               included validations used ({quotaPct}%).
               {usage.quota.overage > 0
@@ -313,11 +308,11 @@ export function DashboardClient(props: Props) {
           </div>
         </div>
 
-        {/* ------------------------------------------------------- keys */}
+        {/* API keys */}
         <div className="card">
-          <h2>API keys</h2>
+          <h2 style={{ marginBottom: 12 }}>API keys</h2>
           {freshKey ? (
-            <div className="notice">
+            <div className="notice" style={{ marginBottom: 16 }}>
               <strong>Copy this key now — it is shown exactly once.</strong>
               <pre className="keybox">{freshKey}</pre>
               <button type="button" className="btn" onClick={() => setFreshKey(null)}>
@@ -326,12 +321,24 @@ export function DashboardClient(props: Props) {
             </div>
           ) : null}
 
-          <div className="cta-row">
+          <div className="cta-row" style={{ marginBottom: 16 }}>
             <input
               aria-label="Key name"
               placeholder="Key name (e.g. CI pipeline)"
               value={keyName}
               onChange={(e) => setKeyName(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--ink)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                outline: 'none',
+                flex: 1,
+                minWidth: 180,
+              }}
             />
             <button type="button" className="btn btn-primary" onClick={createKey} disabled={busy === 'create'}>
               Create key
@@ -353,9 +360,7 @@ export function DashboardClient(props: Props) {
               {keys.map((k) => (
                 <tr key={k.id}>
                   <td>{k.name}</td>
-                  <td>
-                    <code>{k.prefix}…</code>
-                  </td>
+                  <td><code>{k.prefix}…</code></td>
                   <td>{k.createdAt.slice(0, 10)}</td>
                   <td>{k.lastUsedAt ? k.lastUsedAt.slice(0, 10) : '—'}</td>
                   <td>
@@ -381,6 +386,6 @@ export function DashboardClient(props: Props) {
           </table>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

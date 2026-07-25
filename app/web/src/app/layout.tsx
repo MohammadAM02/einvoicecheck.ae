@@ -1,50 +1,40 @@
-import type { Metadata } from 'next';
-import './globals.css';
-import { AnalyticsLoader } from '@/components/AnalyticsLoader';
-import { SiteFooter, SiteHeader } from '@/components/Chrome';
-import { jsonLd, organizationSchema, websiteSchema } from '@/lib/seo';
-import { SITE_URL } from '@/lib/site';
+import type { Metadata } from "next";
+import { Inter, DM_Sans, JetBrains_Mono } from "next/font/google";
+import "./globals.css";
+import { Chrome } from "@/components/Chrome";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dm-sans",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: 'einvoicecheck.ae — UAE e-invoice preflight validation API',
-    template: '%s | einvoicecheck.ae',
-  },
-  description:
-    'Catch UAE e-invoice errors before you submit. Preflight validation for PINT AE / UBL 2.1 invoices, TRNs, tax fields and totals. Not an accredited service provider.',
-  applicationName: 'einvoicecheck.ae',
-  authors: [{ name: 'einvoicecheck.ae' }],
-  formatDetection: { telephone: false },
+  title: "einvoicecheck.ae — UAE E-Invoice Validation API",
+  description: "Preflight validation engine for UAE PINT AE & UBL 2.1 e-invoices.",
 };
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
-      <head>
-        {/* Helvetica Now Display Bold for headings, Inter for body, JetBrains Mono for code */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-        <link href="https://db.onlinewebfonts.com/c/04e6981992c0e2e7642af2074ebe3901?family=Helvetica+Now+Display+Bold" rel="stylesheet" />
-      </head>
-      <body>
-        <AnalyticsLoader />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={jsonLd([organizationSchema, websiteSchema])}
-        />
-        <SiteHeader />
-        <main style={{ overflowX: 'hidden' }}>{children}</main>
-        <SiteFooter />
+    <html lang="en" className="dark">
+      <body
+        className={`${inter.variable} ${dmSans.variable} ${jetbrainsMono.variable} antialiased`}
+      >
+        <Chrome>{children}</Chrome>
       </body>
     </html>
   );

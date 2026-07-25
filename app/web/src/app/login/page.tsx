@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <section className="section">
+    <div className="section">
       <div className="container narrow">
-        <h1>Sign in</h1>
+        <h1 style={{ marginBottom: 24 }}>Sign in</h1>
         <AuthForm mode="login" />
         <p className="muted" style={{ marginTop: 16 }}>
-          No account yet? <Link href="/signup">Create one</Link>.
+          No account yet? <Link href="/signup" style={{ color: 'var(--accent)' }}>Create one</Link>.
         </p>
       </div>
-    </section>
+    </div>
   );
 }

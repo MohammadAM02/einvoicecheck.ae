@@ -23,8 +23,9 @@ export default function RefundsPage() {
         )}
       />
 
-      <section>
+      <div className="section">
         <div className="container legal">
+          <div className="section-label">Legal</div>
           <h1>Refund Policy</h1>
           <p className="meta">
             Effective date: <Todo>{TODO.legalEffectiveDate}</Todo>
@@ -133,7 +134,7 @@ export default function RefundsPage() {
 
           <GuardrailNotice />
         </div>
-      </section>
+      </div>
     </>
   );
 }

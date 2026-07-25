@@ -8,11 +8,6 @@ type TemplateMeta = {
   description: string;
 };
 
-/**
- * Client component that fetches the template list from /api/templates and
- * renders a responsive grid of cards. Each card shows the template name,
- * a description, and a download button.
- */
 export function TemplatesClient() {
   const [templates, setTemplates] = useState<TemplateMeta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,16 +19,10 @@ export function TemplatesClient() {
       try {
         const res = await fetch('/api/templates');
         const body = await res.json();
-        if (!res.ok || body.ok !== true) {
-          if (!cancelled) setError(body.error ?? 'Failed to load templates.');
-          return;
-        }
+        if (!res.ok || body.ok !== true) { if (!cancelled) setError(body.error ?? 'Failed to load templates.'); return; }
         if (!cancelled) setTemplates(body.templates);
-      } catch {
-        if (!cancelled) setError('Could not reach the server. Check your connection.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      } catch { if (!cancelled) setError('Could not reach the server. Check your connection.'); }
+      finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -41,43 +30,24 @@ export function TemplatesClient() {
   const handleDownload = useCallback(async (filename: string) => {
     try {
       const res = await fetch(`/api/templates/${encodeURIComponent(filename)}`);
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        alert(body.error ?? 'Template file was not available on the server.');
-        return;
-      }
+      if (!res.ok) { alert('Template file was not available on the server.'); return; }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch {
-      alert('Could not download the template. Please try again.');
-    }
+    } catch { alert('Could not download the template. Please try again.'); }
   }, []);
 
-  // Group templates into categories for visual organisation
   const categorized = groupByCategory(templates);
 
   if (loading) {
-    return (
-      <div className="templates-loading">
-        <p className="muted">Loading templates…</p>
-      </div>
-    );
+    return <div className="templates-loading"><p className="muted">Loading templates…</p></div>;
   }
-
-  if (error) {
-    return <p className="form-msg err">{error}</p>;
-  }
-
-  if (templates.length === 0) {
-    return <p className="muted">No templates available yet.</p>;
-  }
+  if (error) return <p className="form-msg err">{error}</p>;
+  if (templates.length === 0) return <p className="muted">No templates available yet.</p>;
 
   return (
     <div className="templates-page">
@@ -92,10 +62,7 @@ export function TemplatesClient() {
                   <p className="template-desc">{t.description}</p>
                 </div>
                 <div className="template-card-footer">
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => handleDownload(t.filename)}
-                  >
+                  <button className="btn btn-primary" onClick={() => handleDownload(t.filename)}>
                     Download XML
                   </button>
                 </div>
@@ -108,35 +75,15 @@ export function TemplatesClient() {
   );
 }
 
-/**
- * Group templates into logical categories based on filename patterns.
- */
 function groupByCategory(templates: TemplateMeta[]): Record<string, TemplateMeta[]> {
-  const categories: Record<string, TemplateMeta[]> = {
-    'Core Invoices': [],
-    'Special Scenarios': [],
-    'References': [],
-  };
-
+  const categories: Record<string, TemplateMeta[]> = { 'Core Invoices': [], 'Special Scenarios': [], 'References': [] };
   for (const t of templates) {
     const fn = t.filename.toLowerCase();
-    if (fn.startsWith('standard') || fn.startsWith('summary') || fn.startsWith('commercial')) {
-      categories['Core Invoices'].push(t);
-    } else if (
-      fn.includes('extensive') ||
-      fn.includes('mandatory') ||
-      fn.includes('predefined')
-    ) {
-      categories['References'].push(t);
-    } else {
-      categories['Special Scenarios'].push(t);
-    }
+    if (fn.startsWith('standard') || fn.startsWith('summary') || fn.startsWith('commercial')) categories['Core Invoices'].push(t);
+    else if (fn.includes('extensive') || fn.includes('mandatory') || fn.includes('predefined')) categories['References'].push(t);
+    else categories['Special Scenarios'].push(t);
   }
-
-  // Remove empty categories
   const result: Record<string, TemplateMeta[]> = {};
-  for (const [key, value] of Object.entries(categories)) {
-    if (value.length > 0) result[key] = value;
-  }
+  for (const [key, value] of Object.entries(categories)) { if (value.length > 0) result[key] = value; }
   return result;
 }

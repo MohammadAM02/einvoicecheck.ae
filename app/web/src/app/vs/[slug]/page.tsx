@@ -74,11 +74,11 @@ export default async function VsPage({ params }: { params: Promise<{ slug: strin
         )}
       />
 
-      <section>
-        <div className="container">
-          <nav aria-label="Breadcrumb" className="source" style={{ marginBottom: 12 }}>
+      <div className="section">
+        <div className="container" style={{ maxWidth: 720 }}>
+          <p className="source" style={{ marginBottom: 12 }}>
             <Link href="/">Home</Link> / Compare / einvoicecheck.ae vs {c.shortName}
-          </nav>
+          </p>
 
           <span className="badge">All sources fetched {SOURCES_FETCHED_ON}</span>
           <h1>einvoicecheck.ae vs {c.shortName}</h1>
@@ -181,7 +181,7 @@ export default async function VsPage({ params }: { params: Promise<{ slug: strin
             Free tier: {PLANS.trial.monthlyQuota} validations, no card. Sign up to get started immediately.
           </p>
         </div>
-      </section>
+      </div>
     </>
   );
 }
