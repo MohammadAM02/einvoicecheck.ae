@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-[#0B0F14] text-[#E8EEF5] antialiased min-h-screen w-full`}>
+      <body className={`${inter.className} bg-[#0B0F14] text-[#E8EEF5] antialiased`}>
         <Chrome>{children}</Chrome>
       </body>
     </html>
