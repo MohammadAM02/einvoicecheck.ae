@@ -5,8 +5,7 @@ import { SESSION_COOKIE_NAME, userFromToken } from '@/lib/auth';
 import { listKeys } from '@/lib/keys';
 import { usageSummary } from '@/lib/usage';
 import { PLANS } from '@/lib/plans';
-import { isBillingConfigured } from '@/lib/dodo';
-import { isLemonConfigured } from '@/lib/lemon';
+import { isPayPalConfigured } from '@/lib/paypal';
 import { DashboardClient } from '@/components/DashboardClient';
 
 export const metadata: Metadata = {
@@ -27,20 +26,15 @@ export default async function DashboardPage() {
     usageSummary(user._id, user.plan),
   ]);
 
-  const hasSubscription = Boolean(
-    user.dodoSubscriptionId || (user as Record<string, unknown>).lemonSubscriptionId,
-  );
-
   return (
     <DashboardClient
       email={user.email}
       plan={user.plan}
       planName={PLANS[user.plan].name}
       subscriptionStatus={user.subscriptionStatus}
-      cancelAtPeriodEnd={user.cancelAtPeriodEnd}
       currentPeriodEnd={user.currentPeriodEnd ? new Date(user.currentPeriodEnd).toISOString() : null}
-      hasSubscription={hasSubscription}
-      billingConfigured={isBillingConfigured() || isLemonConfigured()}
+      hasSubscription={Boolean(user.paypalSubscriptionId)}
+      billingConfigured={isPayPalConfigured()}
       keys={keys}
       usage={usage}
     />
