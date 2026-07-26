@@ -19,50 +19,54 @@ type Props = {
   usage: UsageSummary;
 };
 
-/* --------------------------------------------------------- usage graph */
-/** Bar chart over the Mongo UsageEvent metering series. No chart library. */
 function UsageGraph({ usage }: { usage: UsageSummary }) {
-  const max = Math.max(1, ...usage.days.map((d) => d.total));
-  const w = 720;
-  const h = 180;
+  const max = Math.max(1, ...usage.days.map((day) => day.total));
+  const width = 720;
+  const height = 180;
   const gap = 2;
-  const barW = Math.max(2, w / usage.days.length - gap);
+  const barWidth = Math.max(2, width / usage.days.length - gap);
 
   return (
     <svg
       className="usage-graph"
-      viewBox={`0 0 ${w} ${h}`}
+      viewBox={`0 0 ${width} ${height}`}
       role="img"
       aria-label={`Validation calls per day for the last ${usage.days.length} days`}
     >
-      {usage.days.map((d, i) => {
-        const x = i * (barW + gap);
-        const scale = (n: number) => (n / max) * (h - 20);
-        const invalidH = scale(d.invalid);
-        const errorH = scale(d.error);
-        const validH = scale(d.valid);
-        let y = h - 20;
-        const rects = [
-          { key: 'valid', height: validH, fill: 'var(--accent)' },
-          { key: 'invalid', height: invalidH, fill: 'var(--warn)' },
-          { key: 'error', height: errorH, fill: '#f87171' },
-        ].map((seg) => {
-          y -= seg.height;
-          return <rect key={seg.key} x={x} y={y} width={barW} height={seg.height} fill={seg.fill} />;
-        });
+      {usage.days.map((day, index) => {
+        const x = index * (barWidth + gap);
+        const scale = (value: number) => (value / max) * (height - 20);
+        const segments = [
+          { key: 'valid', height: scale(day.valid), fill: 'var(--accent)' },
+          { key: 'invalid', height: scale(day.invalid), fill: 'var(--warn)' },
+          { key: 'error', height: scale(day.error), fill: '#f87171' },
+        ];
+        let y = height - 20;
+
         return (
-          <g key={d.date}>
-            <title>{`${d.date}: ${d.total} calls (${d.valid} valid, ${d.invalid} invalid, ${d.error} error)`}</title>
-            {rects}
+          <g key={day.date}>
+            <title>{`${day.date}: ${day.total} calls (${day.valid} valid, ${day.invalid} invalid, ${day.error} error)`}</title>
+            {segments.map((segment) => {
+              y -= segment.height;
+              return (
+                <rect
+                  key={segment.key}
+                  x={x}
+                  y={y}
+                  width={barWidth}
+                  height={segment.height}
+                  fill={segment.fill}
+                />
+              );
+            })}
           </g>
         );
       })}
-      <line x1={0} y1={h - 20} x2={w} y2={h - 20} stroke="var(--border)" />
+      <line x1={0} y1={height - 20} x2={width} y2={height - 20} stroke="var(--border)" />
     </svg>
   );
 }
 
-/* ------------------------------------------------------------- component */
 export function DashboardClient(props: Props) {
   const router = useRouter();
   const [keys, setKeys] = useState<KeyView[]>(props.keys);
@@ -72,13 +76,13 @@ export function DashboardClient(props: Props) {
   const [error, setError] = useState<string | null>(null);
 
   async function post(path: string, body?: unknown) {
-    const res = await fetch(path, {
+    const response = await fetch(path, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined,
     });
-    const data = (await res.json()) as Record<string, unknown>;
-    if (!res.ok || !data.ok) throw new Error(String(data.error ?? 'Request failed.'));
+    const data = (await response.json()) as Record<string, unknown>;
+    if (!response.ok || !data.ok) throw new Error(String(data.error ?? 'Request failed.'));
     return data;
   }
 
@@ -90,8 +94,8 @@ export function DashboardClient(props: Props) {
       setFreshKey(String(data.apiKey));
       setKeys([data.key as KeyView, ...keys]);
       setKeyName('');
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setBusy(null);
     }
@@ -101,12 +105,14 @@ export function DashboardClient(props: Props) {
     setBusy(id);
     setError(null);
     try {
-      const res = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok || !data.ok) throw new Error(data.error ?? 'Could not revoke the key.');
-      setKeys(keys.map((k) => (k.id === id ? { ...k, active: false, revokedAt: new Date().toISOString() } : k)));
-    } catch (e) {
-      setError((e as Error).message);
+      const response = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
+      const data = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || !data.ok) throw new Error(data.error ?? 'Could not revoke the key.');
+      setKeys(keys.map((key) => (
+        key.id === id ? { ...key, active: false, revokedAt: new Date().toISOString() } : key
+      )));
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setBusy(null);
     }
@@ -120,11 +126,11 @@ export function DashboardClient(props: Props) {
         await post('/api/billing/change-plan', { plan, proration: 'prorated_immediately' });
         router.refresh();
       } else {
-        const data = await post('/api/billing/lemon-checkout', { plan });
+        const data = await post('/api/billing/checkout', { plan });
         window.location.href = String(data.checkoutUrl);
       }
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setBusy(null);
     }
@@ -136,8 +142,8 @@ export function DashboardClient(props: Props) {
     try {
       const data = await post('/api/billing/portal');
       window.location.href = String(data.portalUrl);
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setBusy(null);
     }
@@ -149,8 +155,8 @@ export function DashboardClient(props: Props) {
     try {
       await post('/api/billing/cancel');
       router.refresh();
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setBusy(null);
     }
@@ -163,8 +169,8 @@ export function DashboardClient(props: Props) {
       const data = await post('/api/billing/recover');
       if (data.paymentLink) window.location.href = String(data.paymentLink);
       else router.refresh();
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setBusy(null);
     }
@@ -195,7 +201,6 @@ export function DashboardClient(props: Props) {
 
         {error ? <p className="form-msg err" style={{ marginBottom: 16 }}>{error}</p> : null}
 
-        {/* Plan */}
         <div className="card" style={{ marginBottom: 20 }}>
           <h2 style={{ marginBottom: 12 }}>Plan</h2>
           <p className="muted" style={{ marginBottom: 8 }}>
@@ -213,7 +218,13 @@ export function DashboardClient(props: Props) {
               <p style={{ marginTop: 4 }}>
                 Your limits have dropped to the trial tier until a working payment method is on file.
               </p>
-              <button type="button" className="btn btn-primary" onClick={recover} disabled={busy === 'recover'} style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={recover}
+                disabled={busy === 'recover'}
+                style={{ marginTop: 8 }}
+              >
                 Update payment method
               </button>
             </div>
@@ -221,42 +232,49 @@ export function DashboardClient(props: Props) {
 
           {!props.billingConfigured ? (
             <div className="notice" style={{ marginBottom: 16 }}>
-              <strong>Billing is not configured on this deployment.</strong>
+              <strong>Paid checkout is not configured on this deployment.</strong>
               <p style={{ marginTop: 4 }}>
-                Checkout runs through Lemon Squeezy. Set{' '}
-                <code>LEMON_SQUEEZY_API_KEY</code> and <code>LEMON_SQUEEZY_STORE_ID</code> in
-                Railway to enable payments.
+                Subscriptions use Dodo Payments. Set <code>DODO_PAYMENTS_API_KEY</code> and the
+                Dodo product IDs in Railway to enable hosted checkout.
               </p>
             </div>
           ) : null}
 
           <div className="grid grid-3">
             {PLAN_IDS.map((id) => {
-              const p = PLANS[id];
+              const plan = PLANS[id];
               const current = props.plan === id;
+              const paidCheckoutUnavailable = id !== 'trial' && !props.billingConfigured && !props.hasSubscription;
               return (
                 <div key={id} className={`card${current ? ' highlight' : ''}`}>
-                  <h3 style={{ marginBottom: 8 }}>{p.name}</h3>
+                  <h3 style={{ marginBottom: 8 }}>{plan.name}</h3>
                   <div style={{ marginBottom: 8 }}>
-                    <strong style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem' }}>{p.priceLabel}</strong>{' '}
-                    <span className="muted">{p.cadence}</span>
+                    <strong style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem' }}>{plan.priceLabel}</strong>{' '}
+                    <span className="muted">{plan.cadence}</span>
                   </div>
                   <ul className="clean" style={{ marginBottom: 12 }}>
-                    <li>{p.monthlyQuota.toLocaleString()} validations / month</li>
-                    <li>{p.rateLimitPerMinute} requests / minute</li>
+                    <li>{plan.monthlyQuota.toLocaleString()} validations / month</li>
+                    <li>{plan.rateLimitPerMinute} requests / minute</li>
                   </ul>
-                  <p className="muted" style={{ marginBottom: 12 }}>{p.blurb}</p>
+                  <p className="muted" style={{ marginBottom: 12 }}>{plan.blurb}</p>
                   <button
                     type="button"
                     className="btn btn-primary"
-                    disabled={current || busy === id || (id === 'trial' && props.hasSubscription)}
+                    disabled={
+                      current ||
+                      busy === id ||
+                      (id === 'trial' && props.hasSubscription) ||
+                      paidCheckoutUnavailable
+                    }
                     onClick={() => subscribe(id)}
                   >
                     {current
                       ? 'Current plan'
-                      : props.hasSubscription && id !== 'trial'
-                        ? `Switch to ${p.name}`
-                        : `Choose ${p.name}`}
+                      : paidCheckoutUnavailable
+                        ? 'Paid checkout coming soon'
+                        : props.hasSubscription && id !== 'trial'
+                          ? `Switch to ${plan.name}`
+                          : `Choose ${plan.name}`}
                   </button>
                 </div>
               );
@@ -276,11 +294,10 @@ export function DashboardClient(props: Props) {
             </div>
           ) : null}
           <p className="muted" style={{ marginTop: 12 }}>
-            Payments are processed by Lemon Squeezy, our merchant of record.
+            Paid subscriptions are processed by Dodo Payments, our merchant of record.
           </p>
         </div>
 
-        {/* Usage */}
         <div className="card" style={{ marginBottom: 20 }}>
           <h2 style={{ marginBottom: 12 }}>Usage</h2>
           <p className="muted" style={{ marginBottom: 8 }}>
@@ -308,7 +325,6 @@ export function DashboardClient(props: Props) {
           </div>
         </div>
 
-        {/* API keys */}
         <div className="card">
           <h2 style={{ marginBottom: 12 }}>API keys</h2>
           {freshKey ? (
@@ -326,7 +342,7 @@ export function DashboardClient(props: Props) {
               aria-label="Key name"
               placeholder="Key name (e.g. CI pipeline)"
               value={keyName}
-              onChange={(e) => setKeyName(e.target.value)}
+              onChange={(event) => setKeyName(event.target.value)}
               style={{
                 padding: '10px 14px',
                 background: 'var(--bg)',
@@ -357,24 +373,24 @@ export function DashboardClient(props: Props) {
               </tr>
             </thead>
             <tbody>
-              {keys.map((k) => (
-                <tr key={k.id}>
-                  <td>{k.name}</td>
-                  <td><code>{k.prefix}…</code></td>
-                  <td>{k.createdAt.slice(0, 10)}</td>
-                  <td>{k.lastUsedAt ? k.lastUsedAt.slice(0, 10) : '—'}</td>
+              {keys.map((key) => (
+                <tr key={key.id}>
+                  <td>{key.name}</td>
+                  <td><code>{key.prefix}…</code></td>
+                  <td>{key.createdAt.slice(0, 10)}</td>
+                  <td>{key.lastUsedAt ? key.lastUsedAt.slice(0, 10) : '—'}</td>
                   <td>
-                    <span className={`pill pill-${k.active ? 'active' : 'cancelled'}`}>
-                      {k.active ? 'active' : 'revoked'}
+                    <span className={`pill pill-${key.active ? 'active' : 'cancelled'}`}>
+                      {key.active ? 'active' : 'revoked'}
                     </span>
                   </td>
                   <td>
-                    {k.active ? (
+                    {key.active ? (
                       <button
                         type="button"
                         className="btn btn-danger"
-                        onClick={() => revokeKey(k.id)}
-                        disabled={busy === k.id}
+                        onClick={() => revokeKey(key.id)}
+                        disabled={busy === key.id}
                       >
                         Revoke
                       </button>
