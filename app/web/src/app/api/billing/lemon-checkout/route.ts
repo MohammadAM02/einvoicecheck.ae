@@ -1,49 +1,47 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
-import { createLemonCheckout, LemonNotConfiguredError } from '@/lib/lemon';
+import { BillingError, createCheckout } from '@/lib/billing';
+import { BillingNotConfiguredError } from '@/lib/dodo';
+import { isPlanId } from '@/lib/plans';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Start a Lemon Squeezy hosted checkout. Returns the checkout_url to redirect to.
- * Plan must be 'starter' or 'pro' (trial is not a paid checkout).
+ * Backward-compatible checkout endpoint.
+ *
+ * The original route name referenced Lemon Squeezy, but Dodo Payments is the
+ * single active merchant-of-record integration. Keep this alias temporarily so
+ * old clients do not break; new code must call /api/billing/checkout.
  */
 export async function POST(request: Request) {
   const user = await currentUser(request);
-  if (!user) {
-    return NextResponse.json({ ok: false, error: 'Not signed in.' }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ ok: false, error: 'Not signed in.' }, { status: 401 });
 
-  let body: { plan?: string } = {};
+  let body: { plan?: unknown } = {};
   try {
     body = (await request.json()) as typeof body;
   } catch {
     /* validated below */
   }
 
-  if (body.plan !== 'starter' && body.plan !== 'pro') {
+  if (!isPlanId(body.plan) || body.plan === 'trial') {
     return NextResponse.json(
-      { ok: false, error: 'Unknown plan. Must be "starter" or "pro".' },
+      { ok: false, error: 'Unknown paid plan. Must be "starter" or "pro".' },
       { status: 400 },
     );
   }
 
   try {
-    const checkoutUrl = await createLemonCheckout(
-      body.plan,
-      user.email,
-      String(user._id),
-    );
-    return NextResponse.json({ ok: true, checkoutUrl });
+    return NextResponse.json({ ok: true, checkoutUrl: await createCheckout(user, body.plan) });
   } catch (err) {
-    if (err instanceof LemonNotConfiguredError) {
-      return NextResponse.json(
-        { ok: false, error: err.message },
-        { status: err.status },
-      );
+    if (err instanceof BillingNotConfiguredError) {
+      return NextResponse.json({ ok: false, error: err.message }, { status: err.status });
     }
-    const message = err instanceof Error ? err.message : 'Could not start checkout.';
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    const status = err instanceof BillingError ? err.status : 500;
+    return NextResponse.json(
+      { ok: false, error: err instanceof Error ? err.message : 'Could not start checkout.' },
+      { status },
+    );
   }
 }
