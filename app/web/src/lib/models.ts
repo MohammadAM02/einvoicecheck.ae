@@ -2,13 +2,6 @@ import crypto from 'node:crypto';
 import mongoose, { Schema, type Model, type Types } from 'mongoose';
 import type { PlanId, SubscriptionStatus } from './plans';
 
-/* ------------------------------------------------------------------ ApiKey */
-/**
- * Same collection (`api_keys`) and the same hashing scheme app/api uses:
- * raw key `pdk_live_<32 hex>`, persisted only as its SHA-256 hex digest.
- * A key minted in this dashboard therefore authenticates against the API
- * with no further plumbing. `userId` is additive; app/api ignores it.
- */
 export type ApiKeyDoc = {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
@@ -45,7 +38,6 @@ const apiKeySchema = new Schema<ApiKeyDoc>(
   { timestamps: true, collection: 'api_keys' },
 );
 
-/** SHA-256 hex — byte-for-byte the scheme app/api's ApiKey model uses. */
 function hashKey(raw: string): string {
   return crypto.createHash('sha256').update(raw).digest('hex');
 }
@@ -71,19 +63,16 @@ export const ApiKey =
   (mongoose.models.ApiKey as ApiKeyModel) ??
   mongoose.model<ApiKeyDoc, ApiKeyModel>('ApiKey', apiKeySchema);
 
-/* -------------------------------------------------------------------- User */
 export type UserDoc = {
   _id: Types.ObjectId;
   email: string;
   passwordHash: string;
   plan: PlanId;
   subscriptionStatus: SubscriptionStatus;
-  dodoCustomerId: string | null;
-  dodoSubscriptionId: string | null;
-  lemonCustomerId: string | null;
-  lemonSubscriptionId: string | null;
+  paypalSubscriptionId: string | null;
+  paypalPayerId: string | null;
+  paypalPlanId: string | null;
   currentPeriodEnd: Date | null;
-  cancelAtPeriodEnd: boolean;
   lastPaymentStatus: 'succeeded' | 'failed' | null;
   createdAt: Date;
   updatedAt: Date;
@@ -95,12 +84,10 @@ const userSchema = new Schema<UserDoc>(
     passwordHash: { type: String, required: true },
     plan: { type: String, default: 'trial', index: true },
     subscriptionStatus: { type: String, default: 'none', index: true },
-    dodoCustomerId: { type: String, default: null, index: true },
-    dodoSubscriptionId: { type: String, default: null, index: true },
-    lemonCustomerId: { type: String, default: null },
-    lemonSubscriptionId: { type: String, default: null },
+    paypalSubscriptionId: { type: String, default: null, index: true },
+    paypalPayerId: { type: String, default: null, index: true },
+    paypalPlanId: { type: String, default: null },
     currentPeriodEnd: { type: Date, default: null },
-    cancelAtPeriodEnd: { type: Boolean, default: false },
     lastPaymentStatus: { type: String, default: null },
   },
   { timestamps: true, collection: 'users' },
@@ -109,8 +96,6 @@ const userSchema = new Schema<UserDoc>(
 export const User =
   (mongoose.models.User as Model<UserDoc>) ?? mongoose.model<UserDoc>('User', userSchema);
 
-/* ------------------------------------------------------------- UsageEvent */
-/** Read-only mirror of the metering events app/api writes. Source of truth. */
 export type UsageEventDoc = {
   _id: Types.ObjectId;
   keyId: Types.ObjectId;
@@ -137,13 +122,6 @@ export const UsageEvent =
   (mongoose.models.UsageEvent as Model<UsageEventDoc>) ??
   mongoose.model<UsageEventDoc>('UsageEvent', usageEventSchema);
 
-/* ---------------------------------------------------------- WebhookEvent */
-/**
- * Idempotency ledger. `webhookId` is the Standard-Webhooks `webhook-id`
- * header and is the ONLY idempotency key. The unique index is what makes a
- * replay a no-op: the second insert throws E11000 and we drop the event
- * before any state change runs.
- */
 export type WebhookEventDoc = {
   _id: Types.ObjectId;
   webhookId: string;

@@ -11,15 +11,7 @@ const tiers = PLAN_IDS.map((id) => {
     'Machine-readable errors with a suggested fix',
   ];
   if (id !== 'trial') features.push('Priority email support');
-  return {
-    id,
-    name: p.name,
-    price: p.priceLabel,
-    period: p.cadence,
-    usage: `${p.monthlyQuota.toLocaleString()} validations / month`,
-    blurb: p.blurb,
-    features,
-  };
+  return { id, name: p.name, price: p.priceLabel, period: p.cadence, usage: `${p.monthlyQuota.toLocaleString()} validations / month`, blurb: p.blurb, features };
 });
 
 export function PricingClient() {
@@ -30,23 +22,15 @@ export function PricingClient() {
           <ScrollReveal>
             <div className="section-header">
               <div className="section-label">Pricing</div>
-              <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', marginBottom: 12 }}>
-                UAE e-invoice preflight checks with a price on the page
-              </h1>
-              <p className="lead" style={{ maxWidth: '100%' }}>
-                Create a free account first. When paid checkout is enabled, upgrades are handled
-                in the dashboard through Dodo Payments, our merchant of record.
-              </p>
+              <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', marginBottom: 12 }}>UAE e-invoice preflight checks with a price on the page</h1>
+              <p className="lead" style={{ maxWidth: '100%' }}>Create a free account first. Paid subscriptions are approved and processed securely through PayPal from your dashboard.</p>
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={1}>
             <div className="notice" style={{ marginBottom: 24 }}>
               <strong>Start with the free key</strong>
-              <p style={{ marginTop: 4 }}>
-                Signup provisions an API key immediately with no card required. Paid plans are
-                selected from the dashboard, so your account and usage stay attached to the subscription.
-              </p>
+              <p style={{ marginTop: 4 }}>Signup provisions an API key immediately with no card required. Your account and usage remain attached when you upgrade through PayPal.</p>
             </div>
           </ScrollReveal>
 
@@ -60,21 +44,14 @@ export function PricingClient() {
                   <div className="pricing-period">{tier.period}</div>
                   <div className="pricing-usage">{tier.usage}</div>
                   <p className="muted" style={{ marginBottom: 16 }}>{tier.blurb}</p>
-                  <ul className="pricing-features">
-                    {tier.features.map((feature) => <li key={feature}>{feature}</li>)}
-                  </ul>
-                  <Link
-                    href="/signup"
-                    className={tier.id === 'starter' ? 'btn btn-primary' : 'btn btn-secondary'}
-                    style={{ marginTop: 16 }}
-                  >
+                  <ul className="pricing-features">{tier.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
+                  <Link href="/signup" className={tier.id === 'starter' ? 'btn btn-primary' : 'btn btn-secondary'} style={{ marginTop: 16 }}>
                     {tier.id === 'trial' ? 'Get free API key →' : `Create account for ${tier.name} →`}
                   </Link>
                 </div>
               </ScrollReveal>
             ))}
           </div>
-
           <GuardrailNotice />
         </div>
       </div>
@@ -82,53 +59,24 @@ export function PricingClient() {
       <div className="section-alt">
         <div className="container">
           <ScrollReveal>
-            <div className="section-header">
-              <div className="section-label">Scope</div>
-              <h2 className="section-title">A preflight layer, not a replacement for your ASP</h2>
-            </div>
+            <div className="section-header"><div className="section-label">Scope</div><h2 className="section-title">A preflight layer, not a replacement for your ASP</h2></div>
           </ScrollReveal>
           <ScrollReveal delay={1}>
-            <p className="muted">
-              Accredited providers handle legal transmission and archival. einvoicecheck.ae checks
-              core fields, TRNs, VAT consistency and arithmetic before the file reaches them. Full
-              official XSD and Schematron conformity validation is not currently included.
-            </p>
+            <p className="muted">Accredited providers handle legal transmission and archival. einvoicecheck.ae checks core fields, TRNs, VAT consistency and arithmetic before the file reaches them. Full official XSD and Schematron conformity validation is not currently included.</p>
           </ScrollReveal>
         </div>
       </div>
 
       <div className="section">
         <div className="container">
-          <ScrollReveal>
-            <div className="section-header">
-              <div className="section-label">FAQ</div>
-              <h2 className="section-title">Pricing questions</h2>
-            </div>
-          </ScrollReveal>
+          <ScrollReveal><div className="section-header"><div className="section-label">FAQ</div><h2 className="section-title">Pricing questions</h2></div></ScrollReveal>
           {[
-            {
-              q: 'Can I get an API key without paying?',
-              a: 'Yes. Signup creates a free account and provisions the first API key immediately. No card is required.',
-            },
-            {
-              q: 'Who processes paid subscriptions?',
-              a: 'Dodo Payments is the merchant of record for paid subscriptions. Card details are handled by its hosted checkout, not by einvoicecheck.ae.',
-            },
-            {
-              q: 'Does the price include transmitting invoices to the FTA?',
-              a: 'No. einvoicecheck.ae is a preflight validator. It is not FTA-accredited, does not transmit legal e-invoices, does not replace an accredited service provider, and does not provide statutory archival.',
-            },
-            {
-              q: 'What counts as one validation?',
-              a: 'One POST to /v1/validate with one invoice document. Failed and passing validations both count because the same engine work is performed.',
-            },
+            { q: 'Can I get an API key without paying?', a: 'Yes. Signup creates a free account and provisions the first API key immediately. No card is required.' },
+            { q: 'Who processes paid subscriptions?', a: 'PayPal processes subscription payments. einvoicecheck.ae provides the service and remains responsible for its pricing, refunds and customer support.' },
+            { q: 'Does the price include transmitting invoices to the FTA?', a: 'No. einvoicecheck.ae is a preflight validator. It is not FTA-accredited, does not transmit legal e-invoices, does not replace an accredited service provider, and does not provide statutory archival.' },
+            { q: 'What counts as one validation?', a: 'One POST to /v1/validate with one invoice document. Failed and passing validations both count because the same engine work is performed.' },
           ].map((item, i) => (
-            <ScrollReveal key={item.q} delay={i}>
-              <div style={{ marginTop: 18 }}>
-                <h3 style={{ marginBottom: 4 }}>{item.q}</h3>
-                <p className="muted">{item.a}</p>
-              </div>
-            </ScrollReveal>
+            <ScrollReveal key={item.q} delay={i}><div style={{ marginTop: 18 }}><h3 style={{ marginBottom: 4 }}>{item.q}</h3><p className="muted">{item.a}</p></div></ScrollReveal>
           ))}
         </div>
       </div>

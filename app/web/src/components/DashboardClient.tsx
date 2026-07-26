@@ -11,7 +11,6 @@ type Props = {
   plan: PlanId;
   planName: string;
   subscriptionStatus: SubscriptionStatus;
-  cancelAtPeriodEnd: boolean;
   currentPeriodEnd: string | null;
   hasSubscription: boolean;
   billingConfigured: boolean;
@@ -27,12 +26,7 @@ function UsageGraph({ usage }: { usage: UsageSummary }) {
   const barWidth = Math.max(2, width / usage.days.length - gap);
 
   return (
-    <svg
-      className="usage-graph"
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label={`Validation calls per day for the last ${usage.days.length} days`}
-    >
+    <svg className="usage-graph" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Validation calls per day">
       {usage.days.map((day, index) => {
         const x = index * (barWidth + gap);
         const scale = (value: number) => (value / max) * (height - 20);
@@ -42,22 +36,12 @@ function UsageGraph({ usage }: { usage: UsageSummary }) {
           { key: 'error', height: scale(day.error), fill: '#f87171' },
         ];
         let y = height - 20;
-
         return (
           <g key={day.date}>
-            <title>{`${day.date}: ${day.total} calls (${day.valid} valid, ${day.invalid} invalid, ${day.error} error)`}</title>
+            <title>{`${day.date}: ${day.total} calls`}</title>
             {segments.map((segment) => {
               y -= segment.height;
-              return (
-                <rect
-                  key={segment.key}
-                  x={x}
-                  y={y}
-                  width={barWidth}
-                  height={segment.height}
-                  fill={segment.fill}
-                />
-              );
+              return <rect key={segment.key} x={x} y={y} width={barWidth} height={segment.height} fill={segment.fill} />;
             })}
           </g>
         );
@@ -79,7 +63,7 @@ export function DashboardClient(props: Props) {
     const response = await fetch(path, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : JSON.stringify(body),
     });
     const data = (await response.json()) as Record<string, unknown>;
     if (!response.ok || !data.ok) throw new Error(String(data.error ?? 'Request failed.'));
@@ -108,9 +92,7 @@ export function DashboardClient(props: Props) {
       const response = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
       const data = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok || !data.ok) throw new Error(data.error ?? 'Could not revoke the key.');
-      setKeys(keys.map((key) => (
-        key.id === id ? { ...key, active: false, revokedAt: new Date().toISOString() } : key
-      )));
+      setKeys(keys.map((key) => key.id === id ? { ...key, active: false, revokedAt: new Date().toISOString() } : key));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -122,9 +104,10 @@ export function DashboardClient(props: Props) {
     setBusy(plan);
     setError(null);
     try {
-      if (props.hasSubscription && plan !== 'trial') {
-        await post('/api/billing/change-plan', { plan, proration: 'prorated_immediately' });
-        router.refresh();
+      if (props.hasSubscription) {
+        const data = await post('/api/billing/change-plan', { plan });
+        if (data.approvalUrl) window.location.href = String(data.approvalUrl);
+        else router.refresh();
       } else {
         const data = await post('/api/billing/checkout', { plan });
         window.location.href = String(data.checkoutUrl);
@@ -136,39 +119,13 @@ export function DashboardClient(props: Props) {
     }
   }
 
-  async function openPortal() {
-    setBusy('portal');
-    setError(null);
-    try {
-      const data = await post('/api/billing/portal');
-      window.location.href = String(data.portalUrl);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
   async function cancel() {
+    if (!window.confirm('Cancel now? Your account will return to the free limits immediately.')) return;
     setBusy('cancel');
     setError(null);
     try {
       await post('/api/billing/cancel');
       router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function recover() {
-    setBusy('recover');
-    setError(null);
-    try {
-      const data = await post('/api/billing/recover');
-      if (data.paymentLink) window.location.href = String(data.paymentLink);
-      else router.refresh();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -183,20 +140,12 @@ export function DashboardClient(props: Props) {
     <div className="section">
       <div className="container">
         <div className="dash-head">
-          <div>
-            <h1>Dashboard</h1>
-            <p className="muted">{props.email}</p>
-          </div>
-          <button
-            className="btn btn-secondary"
-            onClick={async () => {
-              await fetch('/api/auth/logout', { method: 'POST' });
-              router.push('/login');
-              router.refresh();
-            }}
-          >
-            Sign out
-          </button>
+          <div><h1>Dashboard</h1><p className="muted">{props.email}</p></div>
+          <button className="btn btn-secondary" onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            router.push('/login');
+            router.refresh();
+          }}>Sign out</button>
         </div>
 
         {error ? <p className="form-msg err" style={{ marginBottom: 16 }}>{error}</p> : null}
@@ -206,37 +155,21 @@ export function DashboardClient(props: Props) {
           <p className="muted" style={{ marginBottom: 8 }}>
             <strong style={{ color: 'var(--ink)' }}>{props.planName}</strong> — status:{' '}
             <span className={`pill pill-${props.subscriptionStatus}`}>{props.subscriptionStatus}</span>
-            {props.cancelAtPeriodEnd ? ' (cancels at period end)' : null}
-            {props.currentPeriodEnd
-              ? ` · renews ${new Date(props.currentPeriodEnd).toISOString().slice(0, 10)}`
-              : null}
+            {props.currentPeriodEnd ? ` · next billing ${props.currentPeriodEnd.slice(0, 10)}` : null}
           </p>
 
           {props.subscriptionStatus === 'on_hold' ? (
             <div className="notice" style={{ marginBottom: 16 }}>
-              <strong>Payment failed — your subscription is on hold.</strong>
-              <p style={{ marginTop: 4 }}>
-                Your limits have dropped to the trial tier until a working payment method is on file.
-              </p>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={recover}
-                disabled={busy === 'recover'}
-                style={{ marginTop: 8 }}
-              >
-                Update payment method
-              </button>
+              <strong>PayPal suspended the subscription after a payment problem.</strong>
+              <p style={{ marginTop: 4 }}>Your API limits are back on the free tier. Update the automatic payment in PayPal, then contact support if it does not reactivate.</p>
+              <a className="btn btn-primary" href="https://www.paypal.com/myaccount/autopay/" target="_blank" rel="noreferrer" style={{ marginTop: 8 }}>Open PayPal payments</a>
             </div>
           ) : null}
 
           {!props.billingConfigured ? (
             <div className="notice" style={{ marginBottom: 16 }}>
               <strong>Paid checkout is not configured on this deployment.</strong>
-              <p style={{ marginTop: 4 }}>
-                Subscriptions use Dodo Payments. Set <code>DODO_PAYMENTS_API_KEY</code> and the
-                Dodo product IDs in Railway to enable hosted checkout.
-              </p>
+              <p style={{ marginTop: 4 }}>Set the PayPal client credentials, webhook ID and both PayPal plan IDs in Railway.</p>
             </div>
           ) : null}
 
@@ -244,7 +177,7 @@ export function DashboardClient(props: Props) {
             {PLAN_IDS.map((id) => {
               const plan = PLANS[id];
               const current = props.plan === id;
-              const paidCheckoutUnavailable = id !== 'trial' && !props.billingConfigured && !props.hasSubscription;
+              const unavailable = id !== 'trial' && !props.billingConfigured;
               return (
                 <div key={id} className={`card${current ? ' highlight' : ''}`}>
                   <h3 style={{ marginBottom: 8 }}>{plan.name}</h3>
@@ -260,21 +193,10 @@ export function DashboardClient(props: Props) {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    disabled={
-                      current ||
-                      busy === id ||
-                      (id === 'trial' && props.hasSubscription) ||
-                      paidCheckoutUnavailable
-                    }
+                    disabled={current || busy === id || id === 'trial' || unavailable}
                     onClick={() => subscribe(id)}
                   >
-                    {current
-                      ? 'Current plan'
-                      : paidCheckoutUnavailable
-                        ? 'Paid checkout coming soon'
-                        : props.hasSubscription && id !== 'trial'
-                          ? `Switch to ${plan.name}`
-                          : `Choose ${plan.name}`}
+                    {current ? 'Current plan' : unavailable ? 'Paid checkout coming soon' : props.hasSubscription ? `Switch to ${plan.name}` : `Choose ${plan.name}`}
                   </button>
                 </div>
               );
@@ -283,46 +205,25 @@ export function DashboardClient(props: Props) {
 
           {props.hasSubscription ? (
             <div className="cta-row">
-              <button type="button" className="btn" onClick={openPortal} disabled={busy === 'portal'}>
-                Billing portal + invoices
-              </button>
-              {!props.cancelAtPeriodEnd ? (
-                <button type="button" className="btn btn-danger" onClick={cancel} disabled={busy === 'cancel'}>
-                  Cancel subscription
-                </button>
-              ) : null}
+              <a className="btn" href="https://www.paypal.com/myaccount/autopay/" target="_blank" rel="noreferrer">Manage payment in PayPal</a>
+              <button type="button" className="btn btn-danger" onClick={cancel} disabled={busy === 'cancel'}>Cancel subscription now</button>
             </div>
           ) : null}
-          <p className="muted" style={{ marginTop: 12 }}>
-            Paid subscriptions are processed by Dodo Payments, our merchant of record.
-          </p>
+          <p className="muted" style={{ marginTop: 12 }}>PayPal processes paid subscriptions. einvoicecheck.ae remains the service provider and seller.</p>
         </div>
 
         <div className="card" style={{ marginBottom: 20 }}>
           <h2 style={{ marginBottom: 12 }}>Usage</h2>
           <p className="muted" style={{ marginBottom: 8 }}>
-            Metered from every API call. Last 30 days: <strong>{usage.totals.last30Days.toLocaleString()}</strong>{' '}
-            calls · today: <strong>{usage.totals.today.toLocaleString()}</strong> · all time:{' '}
-            <strong>{usage.totals.allTime.toLocaleString()}</strong>
+            Last 30 days: <strong>{usage.totals.last30Days.toLocaleString()}</strong> calls · today: <strong>{usage.totals.today.toLocaleString()}</strong> · all time: <strong>{usage.totals.allTime.toLocaleString()}</strong>
           </p>
           <UsageGraph usage={usage} />
-          <p className="muted" style={{ marginBottom: 8 }}>
-            <span className="swatch swatch-valid" /> valid{' '}
-            <span className="swatch swatch-invalid" /> invalid{' '}
-            <span className="swatch swatch-error" /> error
+          <p className="muted" style={{ marginBottom: 8 }}><span className="swatch swatch-valid" /> valid <span className="swatch swatch-invalid" /> invalid <span className="swatch swatch-error" /> error</p>
+          <div className="quota-bar"><span style={{ width: `${quotaPct}%` }} /></div>
+          <p className="muted" style={{ marginTop: 4 }}>
+            {usage.quota.used.toLocaleString()} of {usage.quota.monthlyQuota.toLocaleString()} included validations used ({quotaPct}%).
+            {usage.quota.overage > 0 ? ` ${usage.quota.overage.toLocaleString()} over plan — upgrade to stop hitting 429s.` : ` ${usage.quota.remaining.toLocaleString()} remaining.`}
           </p>
-          <div>
-            <div className="quota-bar">
-              <span style={{ width: `${quotaPct}%` }} />
-            </div>
-            <p className="muted" style={{ marginTop: 4 }}>
-              {usage.quota.used.toLocaleString()} of {usage.quota.monthlyQuota.toLocaleString()}{' '}
-              included validations used ({quotaPct}%).
-              {usage.quota.overage > 0
-                ? ` ${usage.quota.overage.toLocaleString()} over plan — upgrade to stop hitting 429s.`
-                : ` ${usage.quota.remaining.toLocaleString()} remaining.`}
-            </p>
-          </div>
         </div>
 
         <div className="card">
@@ -331,9 +232,7 @@ export function DashboardClient(props: Props) {
             <div className="notice" style={{ marginBottom: 16 }}>
               <strong>Copy this key now — it is shown exactly once.</strong>
               <pre className="keybox">{freshKey}</pre>
-              <button type="button" className="btn" onClick={() => setFreshKey(null)}>
-                I have copied it
-              </button>
+              <button type="button" className="btn" onClick={() => setFreshKey(null)}>I have copied it</button>
             </div>
           ) : null}
 
@@ -343,35 +242,13 @@ export function DashboardClient(props: Props) {
               placeholder="Key name (e.g. CI pipeline)"
               value={keyName}
               onChange={(event) => setKeyName(event.target.value)}
-              style={{
-                padding: '10px 14px',
-                background: 'var(--bg)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--ink)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                outline: 'none',
-                flex: 1,
-                minWidth: 180,
-              }}
+              style={{ padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', outline: 'none', flex: 1, minWidth: 180 }}
             />
-            <button type="button" className="btn btn-primary" onClick={createKey} disabled={busy === 'create'}>
-              Create key
-            </button>
+            <button type="button" className="btn btn-primary" onClick={createKey} disabled={busy === 'create'}>Create key</button>
           </div>
 
           <table className="keys">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Key</th>
-                <th>Created</th>
-                <th>Last used</th>
-                <th>Status</th>
-                <th />
-              </tr>
-            </thead>
+            <thead><tr><th>Name</th><th>Key</th><th>Created</th><th>Last used</th><th>Status</th><th /></tr></thead>
             <tbody>
               {keys.map((key) => (
                 <tr key={key.id}>
@@ -379,23 +256,8 @@ export function DashboardClient(props: Props) {
                   <td><code>{key.prefix}…</code></td>
                   <td>{key.createdAt.slice(0, 10)}</td>
                   <td>{key.lastUsedAt ? key.lastUsedAt.slice(0, 10) : '—'}</td>
-                  <td>
-                    <span className={`pill pill-${key.active ? 'active' : 'cancelled'}`}>
-                      {key.active ? 'active' : 'revoked'}
-                    </span>
-                  </td>
-                  <td>
-                    {key.active ? (
-                      <button
-                        type="button"
-                        className="btn btn-danger"
-                        onClick={() => revokeKey(key.id)}
-                        disabled={busy === key.id}
-                      >
-                        Revoke
-                      </button>
-                    ) : null}
-                  </td>
+                  <td><span className={`pill pill-${key.active ? 'active' : 'cancelled'}`}>{key.active ? 'active' : 'revoked'}</span></td>
+                  <td>{key.active ? <button type="button" className="btn btn-danger" onClick={() => revokeKey(key.id)} disabled={busy === key.id}>Revoke</button> : null}</td>
                 </tr>
               ))}
             </tbody>
