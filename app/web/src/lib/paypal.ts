@@ -193,7 +193,6 @@ export async function createPayPalSubscription(input: {
         locale: 'en-US',
         shipping_preference: 'NO_SHIPPING',
         user_action: 'SUBSCRIBE_NOW',
-        payment_method: { payee_preferred: 'IMMEDIATE_PAYMENT_REQUIRED' },
         return_url: paypalReturnUrl(),
         cancel_url: paypalCancelUrl(),
       },
