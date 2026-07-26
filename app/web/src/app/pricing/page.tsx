@@ -1,18 +1,18 @@
-import { breadcrumbSchema, faqSchema, jsonLd, pageMetadata } from '@/lib/seo';
+import { breadcrumbSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { SITE_URL } from '@/lib/site';
 import { PricingClient } from './PricingClient';
 
 export const metadata = pageMetadata({
-  title: 'Pricing — UAE e-invoicing software without the sales call',
+  title: 'Pricing — UAE e-invoice preflight validation',
   description:
-    'Public pricing for UAE e-invoice validation: free trial, $29/mo and $99/mo. Most UAE e-invoicing software is quote-only. Pay via Dodo Payments or Lemon Squeezy.',
+    'Public pricing for UAE e-invoice preflight validation: free trial, $29/month and $99/month. Paid subscriptions are processed by Dodo Payments.',
   path: '/pricing',
 });
 
 const tiers = [
-  { name: 'Free trial', price: 0, priceLabel: '$0', cadence: 'for 14 days' },
-  { name: 'Starter', price: 29, priceLabel: '$29', cadence: 'per month' },
-  { name: 'Growth', price: 99, priceLabel: '$99', cadence: 'per month' },
+  { name: 'Free trial', price: 0 },
+  { name: 'Starter', price: 29 },
+  { name: 'Pro', price: 99 },
 ];
 
 const offerSchema = {
@@ -23,20 +23,18 @@ const offerSchema = {
   operatingSystem: 'Any (HTTP API)',
   url: `${SITE_URL}/pricing`,
   description:
-    'UAE e-invoice preflight validation API with public pricing. Preflight validation only — not FTA-accredited and not a transmission channel.',
+    'UAE e-invoice semantic preflight validation API. Not FTA-accredited, not a transmission channel, and not full XSD or Schematron conformity validation.',
   offers: {
     '@type': 'AggregateOffer',
     priceCurrency: 'USD',
     lowPrice: '0',
     highPrice: '99',
     offerCount: 3,
-    availability: 'https://schema.org/PreOrder',
-    offers: tiers.map((t) => ({
+    offers: tiers.map((tier) => ({
       '@type': 'Offer',
-      name: t.name,
-      price: String(t.price),
+      name: tier.name,
+      price: String(tier.price),
       priceCurrency: 'USD',
-      availability: 'https://schema.org/PreOrder',
       url: `${SITE_URL}/signup`,
     })),
   },
