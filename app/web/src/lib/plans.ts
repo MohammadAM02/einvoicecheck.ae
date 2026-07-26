@@ -1,14 +1,4 @@
-/**
- * SHARED PLAN / RATE-LIMIT CONFIG (mirror of app/api/src/config/plans.js).
- * Keep the two in sync — the services share Redis + Mongo, not a bundle.
- *
- * Redis contract:
- *   app/web  WRITES `plan:limits:<apiKeyId>` = {plan, rateLimitPerMinute, monthlyQuota}
- *   app/api  READS  it in its rate limiter, so an over-plan call gets a 429.
- *
- * Product IDs are NEVER hardcoded — they come from env at call time.
- */
-
+/* Shared plan / rate-limit config. Keep in sync with app/api/src/config/plans.js. */
 export const PLAN_IDS = ['trial', 'starter', 'pro'] as const;
 export type PlanId = (typeof PLAN_IDS)[number];
 
@@ -20,12 +10,8 @@ export type Plan = {
   cadence: string;
   rateLimitPerMinute: number;
   monthlyQuota: number;
-  /** Env var holding the Dodo Payments product_id for this tier. */
-  productIdEnv: string;
-  /** Env var holding the Lemon Squeezy variant_id for this tier. */
-  lemonVariantIdEnv: string;
+  paypalPlanIdEnv?: string;
   blurb: string;
-  trialPeriodDays?: number;
 };
 
 export const PLANS: Record<PlanId, Plan> = {
@@ -34,13 +20,10 @@ export const PLANS: Record<PlanId, Plan> = {
     name: 'Free trial',
     priceUsd: 0,
     priceLabel: '$0',
-    cadence: 'for 14 days',
+    cadence: 'no card required',
     rateLimitPerMinute: 10,
     monthlyQuota: 100,
-    productIdEnv: 'DODO_PRODUCT_ID_TRIAL',
-    lemonVariantIdEnv: 'LEMON_VARIANT_ID_TRIAL',
     blurb: 'Enough to wire the API into one CI pipeline and see your real error list.',
-    trialPeriodDays: 14,
   },
   starter: {
     id: 'starter',
@@ -50,8 +33,7 @@ export const PLANS: Record<PlanId, Plan> = {
     cadence: 'per month',
     rateLimitPerMinute: 60,
     monthlyQuota: 2000,
-    productIdEnv: 'DODO_PRODUCT_ID_STARTER',
-    lemonVariantIdEnv: 'LEMON_VARIANT_ID_STARTER',
+    paypalPlanIdEnv: 'PAYPAL_PLAN_ID_STARTER',
     blurb: 'For one finance system or ERP export you keep clean before it reaches your ASP.',
   },
   pro: {
@@ -62,8 +44,7 @@ export const PLANS: Record<PlanId, Plan> = {
     cadence: 'per month',
     rateLimitPerMinute: 300,
     monthlyQuota: 15000,
-    productIdEnv: 'DODO_PRODUCT_ID_PRO',
-    lemonVariantIdEnv: 'LEMON_VARIANT_ID_PRO',
+    paypalPlanIdEnv: 'PAYPAL_PLAN_ID_PRO',
     blurb: 'For teams validating every invoice in CI across several entities or clients.',
   },
 };
@@ -72,26 +53,23 @@ export function isPlanId(value: unknown): value is PlanId {
   return typeof value === 'string' && (PLAN_IDS as readonly string[]).includes(value);
 }
 
-/**
- * Resolve the Dodo product_id for a plan from env. Throws (rather than
- * guessing) if it is unset — a wrong product id is worse than a clear 500.
- */
-export function productIdFor(plan: PlanId): string {
-  const envName = PLANS[plan].productIdEnv;
+export function paypalPlanIdFor(plan: PlanId): string {
+  const envName = PLANS[plan].paypalPlanIdEnv;
+  if (!envName) throw new Error(`The ${PLANS[plan].name} tier does not use PayPal checkout.`);
   const value = process.env[envName];
   if (!value) {
     throw new Error(
-      `Missing ${envName}. Create the "${PLANS[plan].name}" product in the Dodo Payments dashboard and set ${envName} in Railway.`,
+      `Missing ${envName}. Create the "${PLANS[plan].name}" billing plan in PayPal and set ${envName} in Railway.`,
     );
   }
   return value;
 }
 
-/** Map a Dodo product_id back to our plan id. Returns null if unknown. */
-export function planForProductId(productId: string | null | undefined): PlanId | null {
-  if (!productId) return null;
+export function planForPaypalPlanId(planId: string | null | undefined): PlanId | null {
+  if (!planId) return null;
   for (const id of PLAN_IDS) {
-    if (process.env[PLANS[id].productIdEnv] === productId) return id;
+    const envName = PLANS[id].paypalPlanIdEnv;
+    if (envName && process.env[envName] === planId) return id;
   }
   return null;
 }
@@ -100,12 +78,5 @@ export function planLimitRedisKey(apiKeyId: string): string {
   return `plan:limits:${apiKeyId}`;
 }
 
-/** Subscription lifecycle, driven exclusively by verified webhooks. */
-export const SUBSCRIPTION_STATUSES = [
-  'none',
-  'active',
-  'on_hold',
-  'failed',
-  'cancelled',
-] as const;
+export const SUBSCRIPTION_STATUSES = ['none', 'active', 'on_hold', 'failed', 'cancelled'] as const;
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
