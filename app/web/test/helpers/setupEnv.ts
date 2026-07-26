@@ -1,16 +1,11 @@
-/**
- * Test env. These are FAKE values — no real Dodo Payments credentials exist in
- * this repo or in CI. Everything Dodo-facing is exercised against a mocked SDK
- * (see test/helpers/dodoMock.ts). A real test-mode E2E is still outstanding and
- * must be run by the operator once credentials exist.
- */
 process.env.NODE_ENV = 'test';
 process.env.AUTH_SECRET = 'test-auth-secret';
-process.env.DODO_PAYMENTS_API_KEY = 'fake_test_mode_key_not_a_real_credential';
-// Standard Webhooks secrets are base64 after the `whsec_` prefix.
-process.env.DODO_PAYMENTS_WEBHOOK_KEY = `whsec_${Buffer.from('test-webhook-signing-secret').toString('base64')}`;
-process.env.DODO_PRODUCT_ID_TRIAL = 'pdt_trial_fake';
-process.env.DODO_PRODUCT_ID_STARTER = 'pdt_starter_fake';
-process.env.DODO_PRODUCT_ID_PRO = 'pdt_pro_fake';
-process.env.DODO_RETURN_URL = 'https://einvoicecheck.ae/dashboard?checkout=success';
+process.env.PAYPAL_ENV = 'sandbox';
+process.env.PAYPAL_CLIENT_ID = 'fake_paypal_client_id';
+process.env.PAYPAL_CLIENT_SECRET = 'fake_paypal_client_secret';
+process.env.PAYPAL_WEBHOOK_ID = 'WH-TEST-WEBHOOK';
+process.env.PAYPAL_PLAN_ID_STARTER = 'P-STARTER-FAKE';
+process.env.PAYPAL_PLAN_ID_PRO = 'P-PRO-FAKE';
+process.env.PAYPAL_RETURN_URL = 'https://einvoicecheck.ae/dashboard?checkout=success';
+process.env.PAYPAL_CANCEL_URL = 'https://einvoicecheck.ae/dashboard?checkout=cancelled';
 process.env.NEXT_PUBLIC_SITE_URL = 'https://einvoicecheck.ae';
