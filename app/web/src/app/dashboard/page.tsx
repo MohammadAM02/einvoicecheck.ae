@@ -26,6 +26,11 @@ export default async function DashboardPage() {
     usageSummary(user._id, user.plan),
   ]);
 
+  const hasActivePayPalSubscription = Boolean(
+    user.paypalSubscriptionId &&
+      (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'on_hold'),
+  );
+
   return (
     <DashboardClient
       email={user.email}
@@ -33,7 +38,7 @@ export default async function DashboardPage() {
       planName={PLANS[user.plan].name}
       subscriptionStatus={user.subscriptionStatus}
       currentPeriodEnd={user.currentPeriodEnd ? new Date(user.currentPeriodEnd).toISOString() : null}
-      hasSubscription={Boolean(user.paypalSubscriptionId)}
+      hasSubscription={hasActivePayPalSubscription}
       billingConfigured={isPayPalConfigured()}
       keys={keys}
       usage={usage}
