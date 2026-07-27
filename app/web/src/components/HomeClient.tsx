@@ -1,6 +1,6 @@
 'use client';
 
-import { createElement as h, useState } from 'react';
+import { createElement as h } from 'react';
 import { GUARDRAIL } from '@/lib/site';
 import { ValidatorWorkspace } from './validation/ValidatorWorkspace';
 import { ValidationIssue } from './validation/ValidationIssue';
@@ -27,10 +27,6 @@ const FAQS = [
 ] as const;
 
 export default function HomeClient() {
-  var _useState = useState(null),
-    openIdx = _useState[0],
-    setOpenIdx = _useState[1];
-  var toggle = function (i: number) { return function () { return setOpenIdx(openIdx === i ? null : i); }; };
   return h('main', { className: 'main-content' },
     h('section', { className: 'compliance-hero', id: 'validate' },
       h('div', { className: 'container' },
@@ -43,39 +39,22 @@ export default function HomeClient() {
     h(TrustStrip),
     h('section', { id: 'audience', className: 'container' },
       h('div', { className: 'section-header' }, h('h2', { className: 'section-title' }, 'Built for UAE invoice handoff')),
-      h('div', { className: 'grid grid-3' }, AUDIENCES.map(function (_a) { var title = _a[0], description = _a[1]; return h('article', { key: title, className: 'card' }, h('h3', null, title), h('p', { className: 'muted' }, description)); })),
+      h('div', { className: 'grid grid-3' }, AUDIENCES.map(([title, description]) =>
+        h('article', { key: title, className: 'card' }, h('h3', null, title), h('p', { className: 'muted' }, description)))),
     ),
     h('section', { id: 'example', className: 'container' },
       h('div', { className: 'section-header' },
         h('h2', { className: 'section-title' }, 'See what needs fixing before handoff.'),
         h('p', { className: 'muted' }, 'Example only \u2014 not a live result.'),
       ),
-      h('div', { className: 'validation-issue-list' }, EXAMPLE_ISSUES.map(function (issue) { return h(ValidationIssue, { key: issue.rule, issue: issue }); })),
+      h('div', { className: 'validation-issue-list' }, EXAMPLE_ISSUES.map((issue) => h(ValidationIssue, { key: issue.rule, issue }))),
     ),
     h(FreeVsApi),
     h(ScopePanel),
     h('section', { id: 'faq', className: 'container' },
       h('div', { className: 'section-header' }, h('h2', { className: 'section-title' }, 'Frequently asked questions')),
-      h('div', { className: 'faq-list' }, FAQS.map(function (faq, i) {
-        var isOpen = openIdx === i;
-        return h('div', { key: faq[0], className: 'faq-item' + (isOpen ? ' open' : '') },
-          h('button', {
-            className: 'faq-question',
-            onClick: toggle(i),
-            'aria-expanded': isOpen,
-            style: { animationDelay: (i * 0.06) + 's' },
-          },
-            h('span', null, faq[0]),
-            h('span', { className: 'faq-icon', 'aria-hidden': 'true' },
-              h('span', { className: 'icon-bar' }),
-              h('span', { className: 'icon-bar icon-bar--v' }),
-            ),
-          ),
-          h('div', { className: 'faq-answer' },
-            h('div', { className: 'faq-answer-inner' }, faq[1]),
-          ),
-        );
-      })),
+      h('div', { className: 'faq-list' }, FAQS.map(([question, answer]) =>
+        h('details', { key: question, className: 'faq-item' }, h('summary', null, question), h('p', null, answer)))),
     ),
     h('footer', { id: 'footer', className: 'container' }, h('p', { className: 'muted' }, GUARDRAIL)),
   );
