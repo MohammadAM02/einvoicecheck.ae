@@ -2,6 +2,7 @@
   "name": "einvoicecheck-web",
   "version": "1.0.0",
   "private": true,
+  "license": "UNLICENSED",
   "description": "Marketing site for einvoicecheck.ae - UAE e-invoice preflight validation API",
   "scripts": {
     "dev": "next dev",
@@ -12,7 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "fast-xml-parser": "^4.5.7",
+    "fast-xml-parser": "^5.10.1",
     "framer-motion": "^12.42.2",
     "ioredis": "^5.11.1",
     "lucide-react": "^1.26.0",

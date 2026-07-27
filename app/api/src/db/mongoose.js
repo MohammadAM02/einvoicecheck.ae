@@ -8,7 +8,6 @@ import { config } from '../config/env.js';
  */
 export async function connectMongo(uri = config.mongoUri) {
   if (mongoose.connection.readyState === 1) return mongoose.connection;
-  mongoose.set('strictQuery', true);
   await mongoose.connect(uri, {
     serverSelectionTimeoutMS: 5_000,
   });
