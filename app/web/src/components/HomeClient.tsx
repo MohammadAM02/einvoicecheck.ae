@@ -30,7 +30,7 @@ export default function HomeClient() {
   var _useState = useState(null),
     openIdx = _useState[0],
     setOpenIdx = _useState[1];
-  var toggle = function (i) { return function () { return setOpenIdx(openIdx === i ? null : i); }; };
+  var toggle = function (i: number) { return function () { return setOpenIdx(openIdx === i ? null : i); }; };
   return h('main', { className: 'main-content' },
     h('section', { className: 'compliance-hero', id: 'validate' },
       h('div', { className: 'container' },
