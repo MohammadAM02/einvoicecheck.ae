@@ -1,9 +1,6 @@
 import crypto from 'node:crypto';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MockDodoPayments } from './helpers/dodoMock';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { resetData, startStack, stopStack } from './helpers/stack';
-
-vi.mock('dodopayments', () => ({ default: MockDodoPayments }));
 
 const { signup, login, createSessionToken, sessionCookieHeader } = await import('@/lib/auth');
 const { ApiKey, User } = await import('@/lib/models');

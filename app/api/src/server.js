@@ -10,7 +10,8 @@ async function main() {
   try {
     await redis.connect();
   } catch (e) {
-    // Non-fatal: /health will report redis down and the limiter fails open.
+    // Startup continues so /health can report Redis down. Request handling then
+    // follows RATE_LIMIT_REQUIRE_REDIS: fail closed in production, open locally.
     // eslint-disable-next-line no-console
     console.warn('Redis connect failed at startup:', e.message);
   }

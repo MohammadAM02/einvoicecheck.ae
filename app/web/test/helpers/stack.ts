@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import RedisMock from 'ioredis-mock';
 import { setRedisForTests } from '@/lib/redis';
-import { resetDodoClient } from '@/lib/dodo';
+import { resetPayPalTokenCache } from '@/lib/paypal';
 
 /**
  * In-memory stack: mongodb-memory-server + ioredis-mock. Mirrors how app/api
@@ -16,7 +16,7 @@ export async function startStack() {
   await mongoose.connect(mongo.getUri());
   redis = new RedisMock();
   setRedisForTests(redis as never);
-  resetDodoClient();
+  resetPayPalTokenCache();
   return { redis: redis as never as { get(k: string): Promise<string | null> } };
 }
 
