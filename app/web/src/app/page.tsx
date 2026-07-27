@@ -3,8 +3,8 @@ import HomeClient from '@/components/HomeClient';
 import { GuardrailNotice } from '@/components/Chrome';
 
 export const metadata: Metadata = {
-  title: 'E-Invoice Validation API | Enterprise Ready',
-  description: 'Fast, secure, and compliant E-Invoice validation for the UAE market.',
+  title: 'Free UAE E-Invoice Validator | einvoicecheck.ae',
+  description: 'Upload UAE e-invoice XML or JSON and find semantic, VAT and arithmetic issues before handoff to your accredited service provider.',
 };
 
 export default function Page() {
@@ -18,8 +18,8 @@ export default function Page() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "E-Invoice Validator",
-            "applicationCategory": "DeveloperTool"
+            "name": "einvoicecheck.ae UAE E-Invoice Preflight Validator",
+            "applicationCategory": "BusinessApplication"
           }),
         }}
       />

@@ -1,0 +1,36 @@
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+const source = (...parts: string[]) => readFileSync(path.join(process.cwd(), 'src', ...parts), 'utf8');
+
+describe('dedicated validator page boundaries', () => {
+  it('uses the shared single-document workspace and keeps batch isolated', () => {
+    const invoiceValidator = source('components', 'InvoiceValidator.tsx');
+    const batchValidator = source('components', 'BatchValidator.tsx');
+
+    expect(invoiceValidator).toContain('ValidatorWorkspace context="tool"');
+    expect(invoiceValidator).not.toContain('fetch(');
+    expect(batchValidator).toContain('/api/tools/validate/batch');
+    expect(batchValidator).not.toMatch(/['\"]\/api\/tools\/validate['\"]/);
+    expect(batchValidator).toContain('Paste 2–50 invoices separated by a line containing ---.');
+    expect(batchValidator).toContain('Batch results — ${results.length} invoices');
+    expect(batchValidator).toContain('${passCount} pass preflight · ${failCount} fail preflight');
+    expect(batchValidator).not.toMatch(/[\u00e2\u00c2\u00c3\ufffd]/);
+  });
+
+  it('uses approved scope and API quota language without rejection or launch copy', () => {
+    const route = source('app', 'tools', '[slug]', 'page.tsx');
+
+    expect(route).toContain('plan-based monthly quotas and per-minute rate limits');
+    expect(route).toContain('<ScopePanel />');
+    expect(route).not.toContain('would get it rejected');
+    expect(route).not.toContain('Would be rejected');
+    expect(route).not.toContain('no 20-per-hour browser cap');
+    expect(route).not.toContain('Want the error list emailed, plus launch access?');
+  });
+
+  it('removes the retired homepage hero validator', () => {
+    expect(existsSync(path.join(process.cwd(), 'src', 'components', 'HeroValidator.tsx'))).toBe(false);
+  });
+});

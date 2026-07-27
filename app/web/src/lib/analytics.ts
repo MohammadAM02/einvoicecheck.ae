@@ -1,7 +1,8 @@
 type EventName =
-  | 'validator_run'
+  | 'validator_input_selected'
   | 'validator_success'
   | 'validator_error'
+  | 'api_cta_clicked'
   | 'curl_copied'
   | 'auth_modal_opened'
   | 'plan_selected';
