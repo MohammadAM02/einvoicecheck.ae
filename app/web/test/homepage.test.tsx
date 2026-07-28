@@ -5,7 +5,7 @@ import { createElement as h } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const workspace = vi.hoisted(() => vi.fn(({ context }: { context?: string }) =>
-  h('div', { 'data-testid': 'validator-workspace', 'data-context': context }, 'Validate a file — free'),
+  h('div', { 'data-testid': 'validator-workspace', 'data-context': context }, 'Validate an invoice'),
 ));
 
 vi.mock('@/components/validation/ValidatorWorkspace', () => ({ ValidatorWorkspace: workspace }));
@@ -22,13 +22,13 @@ function renderHomepage() {
 }
 
 describe('Homepage', () => {
-  it('leads with free UAE preflight validation and mounts the homepage workspace', () => {
+  it('leads with ERP preflight positioning and mounts the homepage workspace', () => {
     renderHomepage();
 
-    expect(screen.getByText('Independent UAE e-invoice preflight')).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 1, name: 'Check your UAE e-invoice before it reaches your ASP.' })).toBeTruthy();
-    expect(screen.getByText('Upload XML or JSON and get a clear list of semantic, VAT, and arithmetic issues. Free, no signup, and invoice payloads are not stored.')).toBeTruthy();
-    expect(screen.getByText('Validate a file — free')).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Check your UAE e-invoice before your ASP does' })).toBeTruthy();
+    expect(screen.getByText('Your ERP creates the invoice. We check whether it will pass.')).toBeTruthy();
+    expect(screen.getByText('Upload a PINT-AE XML file and find validation, mapping and data errors before they cause a rejection.')).toBeTruthy();
+    expect(screen.getByText('Validate an invoice')).toBeTruthy();
     expect(screen.getByTestId('validator-workspace').getAttribute('data-context')).toBe('homepage');
   });
 
@@ -55,10 +55,10 @@ describe('Homepage', () => {
     renderHomepage();
 
     for (const item of [
-      'UAE-focused semantic preflight',
-      'XML and JSON accepted',
-      'Invoice payloads not stored',
-      'Independent tool — not an accredited ASP',
+      'PINT-AE XML + canonical JSON',
+      'No signup required',
+      'Invoice content not persisted by the app',
+      'Independent preflight, not an ASP',
     ]) expect(screen.getByText(item)).toBeTruthy();
     expect(screen.queryByText(/99\.7%|Sub-50ms|SHA-256 Key Security/)).toBeNull();
   });
@@ -66,16 +66,14 @@ describe('Homepage', () => {
   it('shows its audiences, representative repair list, conversion paths, and scope', () => {
     renderHomepage();
 
-    for (const [title, description] of [
-      ['Finance teams', 'Find invoice data and totals problems before handoff.'],
-      ['ERP and software vendors', 'Test UAE invoice exports during development and CI.'],
-      ['Integrators and consultants', 'Give clients a consistent, machine-readable repair list.'],
-    ]) {
-      expect(screen.getByRole('heading', { name: title })).toBeTruthy();
-      expect(screen.getByText(description)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'When an ERP-generated invoice fails' })).toBeTruthy();
+    expect(screen.getByText('Built for ERP vendors, implementation partners, finance teams, developers and consultants.')).toBeTruthy();
+    for (const item of ['ERP export', 'Preflight validation', 'ASP submission']) expect(screen.getByText(item)).toBeTruthy();
+    for (const problem of ['Rejected files', 'Broken XML mappings', 'Incorrect invoice data', 'ERP configuration problems', 'Unclear validation errors']) {
+      expect(screen.getByRole('heading', { name: problem })).toBeTruthy();
     }
 
-    expect(screen.getByText('Example only — not a live result.')).toBeTruthy();
+    expect(screen.getByText('Example result from an ERP-generated invoice.')).toBeTruthy();
     expect(screen.getByText('Buyer TRN is not a valid 15-digit UAE TRN.')).toBeTruthy();
     expect(screen.getByText('Fix: Use exactly 15 numeric digits.')).toBeTruthy();
     expect(screen.getByText('Amount due does not reconcile with the tax-inclusive total.')).toBeTruthy();
@@ -89,19 +87,22 @@ describe('Homepage', () => {
     expect(screen.getByRole('heading', { name: 'Free validator' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Validation API' })).toBeTruthy();
     for (const feature of [
-      'no account',
-      'manual upload/paste',
-      '20 validations/hour/IP',
-      'same engine/error format',
-      'API key',
-      'ERP/CI/automated flows',
-      'plan-based quotas and per-minute limits',
-      'machine-readable results',
+      'Test or troubleshoot one file',
+      'No account required',
+      'Manual upload or paste',
+      'Same validation engine and error format',
+      'Check ERP exports automatically',
+      'Use inside ERP, testing and implementation workflows',
+      'Validate invoices at scale',
+      'Machine-readable results',
     ]) expect(screen.getByText(feature)).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Automate with the API' }).getAttribute('href')).toBe('/signup');
+    expect(screen.getByRole('heading', { name: 'Need validation inside your ERP or workflow?' })).toBeTruthy();
+    expect(screen.getByText('Use the API to check invoices automatically before submission.')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Automate validation with the API' }).getAttribute('href')).toBe('/signup');
     expect(screen.getByRole('link', { name: 'View pricing' }).getAttribute('href')).toBe('/pricing');
     expect(screen.getByText('Currently included')).toBeTruthy();
-    expect(screen.getByText('Not currently included')).toBeTruthy();
+    expect(screen.getByText('Current limitations')).toBeTruthy();
+    expect(screen.queryByText('Not currently included')).toBeNull();
     for (const item of [
       'Invoice type/required terms',
       'Supplier/buyer UAE TRN format',
@@ -115,6 +116,13 @@ describe('Homepage', () => {
       'Guaranteed ASP/authority acceptance',
     ]) expect(screen.getByText(item)).toBeTruthy();
     expect(screen.getByText('Preflight only. Your accredited provider still handles legal transmission.')).toBeTruthy();
+    for (const [name, href] of [
+      ['Privacy', '/legal/privacy'],
+      ['Terms', '/legal/terms'],
+      ['Refunds', '/legal/refunds'],
+      ['Contact', '/contact'],
+      ['Documentation', '/docs'],
+    ]) expect(screen.getByRole('link', { name }).getAttribute('href')).toBe(href);
   });
 
   it('answers the approved FAQ and removes the retired signup and pricing claims', () => {

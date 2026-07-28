@@ -3,8 +3,8 @@ import HomeClient from '@/components/HomeClient';
 import { GuardrailNotice } from '@/components/Chrome';
 
 export const metadata: Metadata = {
-  title: 'Free UAE E-Invoice Validator | einvoicecheck.ae',
-  description: 'Upload UAE e-invoice XML or JSON and find semantic, VAT and arithmetic issues before handoff to your accredited service provider.',
+  title: 'UAE E-Invoice Preflight Validator | einvoicecheck.ae',
+  description: 'Test ERP-generated PINT-AE XML and find validation, mapping and invoice data errors before submission to your ASP.',
 };
 
 export default function Page() {

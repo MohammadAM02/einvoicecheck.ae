@@ -1,10 +1,10 @@
 import { createElement as h } from 'react';
 
 const TRUST_FACTS = [
-  'UAE-focused semantic preflight',
-  'XML and JSON accepted',
-  'Invoice payloads not stored',
-  'Independent tool \u2014 not an accredited ASP',
+  'PINT-AE XML + canonical JSON',
+  'No signup required',
+  'Invoice content not persisted by the app',
+  'Independent preflight, not an ASP',
 ];
 
 export function TrustStrip() {

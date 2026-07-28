@@ -14,7 +14,7 @@ vi.mock('next/navigation', () => ({
 import { Chrome } from '@/components/Chrome';
 
 const REQUIRED_LINKS = [
-  ['Validate free', '/#validate'],
+  ['Validate an invoice', '/#validate'],
   ['API', '/docs'],
   ['Pricing', '/pricing'],
   ['Documentation', '/docs'],
@@ -152,7 +152,7 @@ describe('UAE Compliance Desk visual system source', () => {
       'upload-zone.is-dragging', 'validation-summary', 'validation-summary__actions',
       'validation-issue', 'validation-issue--error', 'validation-issue--warning',
       'validation-issue__heading', 'validation-fix', 'trust-strip', 'trust-strip__item',
-      'audience-grid', 'example-result', 'comparison-grid', 'comparison-card',
+      'problem-section', 'preflight-path', 'failure-list', 'example-result', 'api-heading', 'comparison-grid', 'comparison-card',
       'scope-panel', 'scope-grid', 'batch-panel', 'mobile-menu-button', 'mobile-menu',
     ]) expect(css).toContain(`.${className}`);
   });

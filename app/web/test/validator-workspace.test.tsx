@@ -47,12 +47,13 @@ function renderWorkspace() {
 }
 
 describe('ValidatorWorkspace', () => {
-  it('leads with free file validation copy without a signup requirement', () => {
+  it('frames the uploader as implementation and troubleshooting preflight without a signup requirement', () => {
     renderWorkspace();
 
-    expect(screen.getByText('Validate a file — free')).toBeTruthy();
-    expect(screen.getByText('XML or JSON · maximum 256 KB')).toBeTruthy();
-    expect(screen.getByText('Processed in memory and not stored.')).toBeTruthy();
+    expect(screen.getByText('Validate an invoice')).toBeTruthy();
+    expect(screen.getByText('PINT-AE XML or canonical JSON, maximum 256 KB')).toBeTruthy();
+    expect(screen.getByText('Built for testing, implementation and troubleshooting. Not another invoicing system.')).toBeTruthy();
+    expect(screen.getByText('Validated in memory; not persisted by this application.')).toBeTruthy();
     expect(screen.queryByText(/sign up|required|signup/i)).toBeNull();
   });
 
@@ -219,7 +220,7 @@ describe('ValidatorWorkspace', () => {
 
     expect(await screen.findByRole('heading', { name: 'Preflight passed' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: 'Validate another file' }));
-    expect(screen.getByText('Validate a file — free')).toBeTruthy();
+    expect(screen.getByText('Validate an invoice')).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Preflight passed' })).toBeNull();
   });
 

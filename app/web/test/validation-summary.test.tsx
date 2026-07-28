@@ -83,10 +83,14 @@ describe('ValidationSummary', () => {
     expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy();
   });
 
-  it('shows API conversion after the result and rate-limit information', () => {
-    render(h(ValidationSummary, { result: failedResult, rateLimit: { ...rateLimit, degraded: true }, onReset: vi.fn() }));
+  it('keeps the API conversion close to long results and preserves rate-limit information', () => {
+    const { container } = render(h(ValidationSummary, { result: failedResult, rateLimit: { ...rateLimit, degraded: true }, onReset: vi.fn() }));
 
-    expect(screen.getByRole('link', { name: 'Automate with the API' }).getAttribute('href')).toBe('/signup');
+    const apiLink = screen.getByRole('link', { name: 'Use the validation API' });
+    const issueList = container.querySelector('.validation-issue-list');
+    expect(apiLink.getAttribute('href')).toBe('/signup');
+    expect(screen.getByText('Need this check inside your ERP or workflow?')).toBeTruthy();
+    expect(apiLink.compareDocumentPosition(issueList!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText('7 of 10 free checks left this hour.')).toBeTruthy();
     expect(screen.getByText('Rate-limit protection is temporarily degraded.')).toBeTruthy();
     expect(screen.queryByText('Would be rejected')).toBeNull();

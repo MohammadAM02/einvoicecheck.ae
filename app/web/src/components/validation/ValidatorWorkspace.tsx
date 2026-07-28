@@ -131,9 +131,10 @@ export function ValidatorWorkspace({ context = 'tool' }: {
   }
 
   return h('section', { className: 'validator-workspace', 'aria-label': 'Invoice validation workspace' },
-    h('h2', null, 'Validate a file — free'),
-    h('p', null, 'XML or JSON · maximum 256 KB'),
-    h('p', null, 'Processed in memory and not stored.'),
+    h('h2', null, 'Validate an invoice'),
+    h('p', { className: 'validator-formats' }, 'PINT-AE XML or canonical JSON, maximum 256 KB'),
+    h('p', { className: 'validator-purpose' }, 'Built for testing, implementation and troubleshooting. Not another invoicing system.'),
+    h('p', null, 'Validated in memory; not persisted by this application.'),
     h('div', {
       className: `invoice-drop-zone${dragActive ? ' is-dragging' : ''}`,
       'data-testid': 'invoice-drop-zone',

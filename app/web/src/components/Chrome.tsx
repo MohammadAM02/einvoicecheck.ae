@@ -30,7 +30,7 @@ type NavigationLink = {
 };
 
 const NAV_LINKS: readonly NavigationLink[] = [
-  { href: '/#validate', label: 'Validate free', primary: true },
+  { href: '/#validate', label: 'Validate an invoice', primary: true },
   { href: '/docs', label: 'API' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/docs', label: 'Documentation' },
@@ -84,7 +84,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
           onClick: () => setMobileOpen((open) => !open),
         },
         h('span', { 'aria-hidden': true, className: 'mobile-menu-button__icon' }, mobileOpen ? '×' : '☰'),
-        h('span', null, buttonLabel)),
+        h('span', { className: 'mobile-menu-button__label' }, buttonLabel)),
         mobileOpen ? h('div', { id: 'mobile-navigation', className: 'mobile-menu' },
           ...NAV_LINKS.map((link) => renderLink(link, true)),
         ) : null,

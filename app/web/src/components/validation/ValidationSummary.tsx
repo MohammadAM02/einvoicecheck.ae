@@ -35,6 +35,11 @@ export function ValidationSummary(props: {
     h('p', null, `Detected invoice type: ${result.invoiceType ?? 'Not identified'}`),
     h('p', null, `Validation profile: ${result.schemaVersion}`),
     result.valid ? h('p', null, 'No blocking issues were found by the checks currently included in this preflight engine.') : null,
+    !result.valid ? h('p', { className: 'validation-summary__guidance' }, 'Use the fix list below to trace the mapping or invoice data problem.') : null,
+    h('aside', { className: 'validation-summary__api', 'aria-label': 'Automated validation' },
+      h('strong', null, 'Need this check inside your ERP or workflow?'),
+      h('a', { href: '/signup' }, 'Use the validation API'),
+    ),
     h(ValidationIssueList, { issues: result.errors }),
     h('p', null, `${rateLimit.remaining} of ${rateLimit.limit} free checks left this hour.`),
     rateLimit.degraded ? h('p', null, 'Rate-limit protection is temporarily degraded.') : null,
@@ -42,6 +47,5 @@ export function ValidationSummary(props: {
       h('button', { type: 'button', onClick: onReset }, 'Validate another file'),
       canCopy ? h('button', { type: 'button', onClick: copyReport }, copied ? 'Copied' : 'Copy report') : null,
     ),
-    h('a', { href: '/signup' }, 'Automate with the API'),
   );
 }
