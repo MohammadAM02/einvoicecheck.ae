@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import './visual-compression.css';
 import { Chrome } from '@/components/Chrome';
 
 const inter = Inter({
@@ -21,7 +22,10 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'einvoicecheck.ae — UAE E-Invoice Preflight',
-  description: 'Independent semantic, VAT and arithmetic preflight checks for UAE e-invoice XML and JSON.',
+  description: 'Independent preflight checks for UAE PINT-AE XML and canonical invoice JSON.',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({

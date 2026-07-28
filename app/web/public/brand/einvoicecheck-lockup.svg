@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 472 96" role="img" aria-labelledby="title desc">
+  <title id="title">einvoicecheck.ae</title>
+  <desc id="desc">The einvoicecheck.ae document check mark and wordmark.</desc>
+  <g transform="translate(12 16)">
+    <path d="M38 8H18C12.477 8 8 12.477 8 18V46C8 51.523 12.477 56 18 56H38" fill="none" stroke="#0A2540" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M38 8V18C38 21.314 40.686 24 44 24H54L38 8Z" fill="none" stroke="#0A2540" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M28 40L37 49L56 29" fill="none" stroke="#00D4AA" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="102" y="65" font-family="Manrope, DM Sans, system-ui, sans-serif" font-size="44" font-weight="600" letter-spacing="-0.75" fill="#0A2540">einvoicecheck<tspan fill="#6B7280">.ae</tspan></text>
+</svg>

@@ -39,9 +39,11 @@ function openMobileNavigation() {
 }
 
 describe('Chrome navigation', () => {
-  it('renders an accessible closed mobile navigation button', () => {
+  it('renders the approved logo and an accessible closed mobile navigation button', () => {
     renderChrome();
 
+    const brand = screen.getByRole('link', { name: 'einvoicecheck.ae home' });
+    expect(brand.querySelector('img')?.getAttribute('src')).toBe('/brand/einvoicecheck-lockup.svg');
     const button = screen.getByRole('button', { name: 'Open navigation' });
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(button.getAttribute('aria-controls')).toBe('mobile-navigation');
@@ -114,13 +116,15 @@ describe('Chrome navigation', () => {
 });
 
 describe('UAE Compliance Desk visual system source', () => {
-  it('uses the approved light metadata and root tokens', () => {
+  it('uses the approved light metadata, favicon and layered styles', () => {
     const layout = source('app', 'layout.tsx');
     const css = source('app', 'globals.css');
 
     expect(layout).not.toMatch(/<html[^>]*className=["']dark["']/);
     expect(layout).toContain("title: 'einvoicecheck.ae — UAE E-Invoice Preflight'");
-    expect(layout).toContain("description: 'Independent semantic, VAT and arithmetic preflight checks for UAE e-invoice XML and JSON.'");
+    expect(layout).toContain("description: 'Independent preflight checks for UAE PINT-AE XML and canonical invoice JSON.'");
+    expect(layout).toContain("import './visual-compression.css';");
+    expect(layout).toContain("icon: '/icon.svg'");
     for (const token of [
       '--accent: #087f6b;',
       '--accent-hover: #066b5a;',
@@ -136,6 +140,7 @@ describe('UAE Compliance Desk visual system source', () => {
 
   it('contains responsive, interaction, and reduced-motion safeguards', () => {
     const css = source('app', 'globals.css');
+    const compressionCss = source('app', 'visual-compression.css');
 
     expect(css).toMatch(/@media\s*\(max-width:\s*767px\)/);
     expect(css).toMatch(/min-height:\s*44px/);
@@ -143,6 +148,10 @@ describe('UAE Compliance Desk visual system source', () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('animation-duration: 0.01ms !important;');
     expect(css).toContain('transition-duration: 0.01ms !important;');
+    expect(compressionCss).toContain('.process-flow');
+    expect(compressionCss).toContain('.failure-cards');
+    expect(compressionCss).toContain('.disclosure-list');
+    expect(compressionCss).toContain('.api-spotlight');
   });
 
   it('defines every focused compliance desk class', () => {
@@ -157,11 +166,12 @@ describe('UAE Compliance Desk visual system source', () => {
     ]) expect(css).toContain(`.${className}`);
   });
 
-  it('contains no mojibake markers in Task 7 files', () => {
+  it('contains no mojibake markers in visual system files', () => {
     const mojibake = new RegExp(['\\u00c3\\u00a2', '\\u00c3\\u201a', '\\u00c3\\u0192', '\\ufffd'].join('|'), 'u');
     const files = [
       source('components', 'Chrome.tsx'),
       source('app', 'globals.css'),
+      source('app', 'visual-compression.css'),
       source('app', 'layout.tsx'),
       readFileSync(path.join(process.cwd(), 'test', 'navigation.test.tsx'), 'utf8'),
     ];

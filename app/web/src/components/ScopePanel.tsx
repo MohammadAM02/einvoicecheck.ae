@@ -1,31 +1,43 @@
-import { createElement as h } from 'react';
-
 const INCLUDED = [
-  'Invoice type/required terms',
-  'Supplier/buyer UAE TRN format',
-  'Currency/code-list membership',
-  'VAT category/rate consistency',
-  'Line arithmetic/tax breakdown/totals/payable reconciliation',
-];
-const EXCLUDED = [
-  'Complete official XSD/Schematron conformity',
-  'FTA registration lookup',
-  'Legal transmission/filing',
-  'Statutory archival',
-  'Guaranteed ASP/authority acceptance',
+  'Invoice type and required terms',
+  'Supplier and buyer UAE TRN format',
+  'Currency and code-list membership',
+  'VAT category and rate consistency',
+  'Line arithmetic, tax breakdown and totals',
 ];
 
-function ScopeGroup({ title, items, className }: { title: string; items: string[]; className: string }) {
-  return h('div', { className }, h('h3', null, title), h('ul', null, items.map((item) => h('li', { key: item }, item))));
+const EXCLUDED = [
+  'Complete official XSD or Schematron conformity',
+  'FTA registration lookup',
+  'Legal transmission, filing or archival',
+  'Guaranteed ASP or authority acceptance',
+];
+
+function DisclosureList({ items }: { items: string[] }) {
+  return <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul>;
 }
 
 export function ScopePanel() {
-  return h('section', { id: 'scope', className: 'container scope-panel' },
-    h('h2', { className: 'section-title' }, 'What this preflight checks'),
-    h('div', { className: 'grid grid-2' },
-      h(ScopeGroup, { title: 'Currently included', items: INCLUDED, className: 'scope-group scope-group--included' }),
-      h(ScopeGroup, { title: 'Current limitations', items: EXCLUDED, className: 'scope-group scope-group--limitations' }),
-    ),
-    h('p', { className: 'muted' }, 'Preflight only. Your accredited provider still handles legal transmission.'),
+  return (
+    <section id="scope" className="container disclosure-section">
+      <header className="section-header">
+        <h2 className="section-title">Details, when you need them.</h2>
+      </header>
+      <div className="disclosure-list">
+        <details className="disclosure-item">
+          <summary>What we check</summary>
+          <DisclosureList items={INCLUDED} />
+        </details>
+        <details className="disclosure-item">
+          <summary>Current limitations</summary>
+          <DisclosureList items={EXCLUDED} />
+          <p>Preflight only. Your accredited provider still handles legal transmission.</p>
+        </details>
+        <details className="disclosure-item">
+          <summary>Privacy and data handling</summary>
+          <p>Submitted content is validated in memory and is not persisted by the application, database or rate-limit store.</p>
+        </details>
+      </div>
+    </section>
   );
 }
