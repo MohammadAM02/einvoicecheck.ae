@@ -76,6 +76,11 @@ export function Chrome({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [mobileOpen]);
 
+  // This component lives in the root layout, so it never remounts during
+  // client-side navigation — a mount-once fetch would leave the nav's
+  // auth state stale after login/logout. Re-fetch the session on every
+  // route change (login -> /dashboard, logout -> /login) so the 5th nav
+  // link flips between "Dashboard" and "Sign in" without a hard reload.
   useEffect(() => {
     let cancelled = false;
 
@@ -91,7 +96,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname]);
 
   function renderLink(link: NavigationLink, mobile = false) {
     return (
