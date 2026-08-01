@@ -1,6 +1,6 @@
 # EINVOICECHECK — Production Status Report
 
-> Generated: July 2026  
+> Generated: August 2026  
 > Repo: `motivatedc-creator/https-einvoicecheck.ae`  
 > Railway Project: `1fb98838-2449-4322-bbd9-40381dd48e3c`  
 > Environment: `889e02e6-702f-40d3-aa7c-ff72b544c159`
@@ -115,14 +115,14 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 
 | # | Finding | Severity | Status |
 |---|---------|----------|--------|
-| 1 | Arithmetic bypass via non-numeric totals | 🔴 High | Open — `isNumber()` check skips reconciliation |
+| 1 | Arithmetic bypass via non-numeric totals | 🔴 High | ✅ Fixed — `ENG-NUM-01` numeric guard (`9e2b3ef`) |
 | 2 | `/usage` endpoint has no rate limit | 🟡 Medium | Open — DOS via any valid key |
 | 3 | Expensive XML parsing before structural rejection | 🟡 Medium | Open — CPU waste on garbage documents |
 | 4 | `UsageEvent` collection grows unbounded | 🟡 Medium | Open — no TTL index on timestamp |
 | 5 | VAT rate uses strict equality for floats | 🟡 Low | Open — false positives on FP noise |
 | 6 | Rate limiter TOCTOU race | 🟢 Low | Open — sub-millisecond window |
 | 7 | API key extraction ambiguity | 🟢 Low | Open — edge case |
-| 8 | Parse-error messages leak internals | 🔴 High | Open — engine.js:42 interpolates `e.message` |
+| 8 | Parse-error messages leak internals | 🔴 High | ✅ Fixed — crash detail logged server-side only (`9e2b3ef`) |
 
 ---
 
@@ -158,8 +158,9 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 
 - [ ] **IBR-073**: Add date format validation (`YYYY-MM-DD`) to `requiredFields.js`
 - [ ] **IBR-CO-11**: Add prepaid ≤ payable check to `documentTotals.js`
-- [ ] **Fault #1**: Guard against non-numeric total fields causing silent arithmetic bypass
-- [ ] **Fault #8**: Sanitize parse-error messages to not leak internal details
+- [x] **Fault #1**: Guard against non-numeric total fields causing silent arithmetic bypass — `ENG-NUM-01` numeric guard added (`9e2b3ef`)
+- [x] **Fault #8**: Sanitize parse-error messages to not leak internal details — crash detail logged server-side only (`9e2b3ef`)
+- [ ] **API models missing from repo**: `app/api/src/models/` is not tracked in git (`security.js` imports `../models/ApiKey.js`); `validate`/`planLimit`/`usage`/`rateLimit`/`health` test suites fail to load. Restore the models from the deployed environment or add them to the repo.
 
 ### P1 — This Quarter
 
