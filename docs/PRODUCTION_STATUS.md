@@ -160,7 +160,7 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 - [ ] **IBR-CO-11**: Add prepaid ≤ payable check to `documentTotals.js`
 - [x] **Fault #1**: Guard against non-numeric total fields causing silent arithmetic bypass — `ENG-NUM-01` numeric guard added (`9e2b3ef`)
 - [x] **Fault #8**: Sanitize parse-error messages to not leak internal details — crash detail logged server-side only (`9e2b3ef`)
-- [ ] **API models missing from repo**: `app/api/src/models/` is not tracked in git (`security.js` imports `../models/ApiKey.js`); `validate`/`planLimit`/`usage`/`rateLimit`/`health` test suites fail to load. Restore the models from the deployed environment or add them to the repo.
+- [x] **API models missing from repo**: Restored `app/api/src/models/ApiKey.js` and `UsageEvent.js` (`4291e8c`). Safe-registration pattern (`mongoose.models.X ||`) prevents test-environment re-compile errors. 19/19 tests green, all 6 suites pass.
 
 ### P1 — This Quarter
 
