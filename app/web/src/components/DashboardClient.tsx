@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { KeyView } from '@/lib/keys';
 import type { UsageSummary } from '@/lib/usage';
 import { PLANS, PLAN_IDS, type PlanId, type SubscriptionStatus } from '@/lib/plans';
@@ -55,6 +55,8 @@ export function DashboardClient(props: Props) {
   const router = useRouter();
   const [keys, setKeys] = useState<KeyView[]>(props.keys);
   const [freshKey, setFreshKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<number | null>(null);
   const [keyName, setKeyName] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +70,41 @@ export function DashboardClient(props: Props) {
     const data = (await response.json()) as Record<string, unknown>;
     if (!response.ok || !data.ok) throw new Error(String(data.error ?? 'Request failed.'));
     return data;
+  }
+
+  async function copyToClipboard(text: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      // Clipboard API unavailable or rejected — fall back to execCommand below.
+    }
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
+  function flashCopied() {
+    setCopied(true);
+    if (copyTimer.current !== null) window.clearTimeout(copyTimer.current);
+    copyTimer.current = window.setTimeout(() => setCopied(false), 1600);
+  }
+
+  async function copyKey(key: string) {
+    if (await copyToClipboard(key)) flashCopied();
   }
 
   async function createKey() {
@@ -231,8 +268,16 @@ export function DashboardClient(props: Props) {
           {freshKey ? (
             <div className="notice" style={{ marginBottom: 16 }}>
               <strong>Copy this key now — it is shown exactly once.</strong>
-              <pre className="keybox">{freshKey}</pre>
-              <button type="button" className="btn" onClick={() => setFreshKey(null)}>I have copied it</button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <pre className="keybox" style={{ flex: 1, margin: 0, minWidth: 0 }}>{freshKey}</pre>
+                <button type="button" className="btn" style={{ padding: '6px 12px', whiteSpace: 'nowrap' }} onClick={() => copyKey(freshKey)}>
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              <button type="button" className="btn" onClick={async () => {
+                await copyToClipboard(freshKey);
+                setFreshKey(null);
+              }}>I have copied it</button>
             </div>
           ) : null}
 
