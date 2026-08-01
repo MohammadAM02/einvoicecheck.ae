@@ -56,6 +56,7 @@ function MenuIcon({ open }: { open: boolean }) {
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -75,6 +76,23 @@ export function Chrome({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [mobileOpen]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : Promise.resolve({ signedIn: false })))
+      .then((data: { signedIn?: boolean }) => {
+        if (!cancelled) setSignedIn(Boolean(data?.signedIn));
+      })
+      .catch(() => {
+        if (!cancelled) setSignedIn(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function renderLink(link: NavigationLink, mobile = false) {
     return (
       <Link
@@ -87,6 +105,10 @@ export function Chrome({ children }: { children: React.ReactNode }) {
       </Link>
     );
   }
+
+  const navigationLinks: readonly NavigationLink[] = signedIn
+    ? [...NAV_LINKS.slice(0, -1), { href: '/dashboard', label: 'Dashboard' }]
+    : NAV_LINKS;
 
   const buttonLabel = mobileOpen ? 'Close navigation' : 'Open navigation';
 
@@ -102,7 +124,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
               height="48"
             />
           </Link>
-          <div className="nav-links">{NAV_LINKS.map((link) => renderLink(link))}</div>
+          <div className="nav-links">{navigationLinks.map((link) => renderLink(link))}</div>
           <button
             ref={menuButtonRef}
             type="button"
@@ -119,7 +141,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
           </button>
           {mobileOpen ? (
             <div id="mobile-navigation" className="mobile-menu">
-              {NAV_LINKS.map((link) => renderLink(link, true))}
+              {navigationLinks.map((link) => renderLink(link, true))}
             </div>
           ) : null}
         </nav>
