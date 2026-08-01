@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full converter — einvoicecheck spike demo</title>
+<link rel="stylesheet" href="/demo.css">
+</head>
+<body>
+<header class="site">
+  <div class="brand">
+    <span class="mark">einvoicecheck<em>·spike</em></span>
+    <span class="tag">UAE e-invoice converter — guardrailed pipeline demo</span>
+  </div>
+  <nav class="tabs">
+    <a href="/format-only.html">Format-only converter</a>
+    <a href="/full-converter.html" class="active">Full converter</a>
+  </nav>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Full converter</h1>
+    <p>The complete guardrailed pipeline: <strong>format repair + data-semantic
+    classifier + refusal + audit trail + hashes</strong>. Same repairers as the
+    format-only page, but any data error (TRN, arithmetic, VAT rate, totals)
+    refuses the conversion outright — no partial output, no fabricated document.
+    Unrepairable structure is refused too; a valid document passes through.</p>
+  </div>
+
+  <div id="server-error"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Input — any UBL XML</h2>
+      <label class="field" for="sample">Try a sample</label>
+      <select class="sample" id="sample">
+        <option value="01-format-only.xml" selected>01 — format defects only → CONVERTED</option>
+        <option value="05-missing-ns.xml">05 — missing xmlns:cac → CONVERTED</option>
+        <option value="00-valid.xml">00 — already valid → NOOP</option>
+        <option value="02-data-semantic.xml">02 — data errors (TRN, line arithmetic, VAT, totals) → REFUSED</option>
+        <option value="03-mixed.xml">03 — format defects AND data error → REFUSED (no partial output)</option>
+        <option value="04-unrepairable.xml">04 — unclosed root tag → REFUSED (structure not guessed)</option>
+      </select>
+      <label class="field" for="xml">XML document</label>
+      <textarea id="xml" spellcheck="false" placeholder="Paste any UBL 2.1 / PINT AE invoice XML…"></textarea>
+      <div class="row-actions">
+        <button class="primary" id="run">Convert</button>
+        <span class="hint">Runs the real convert() pipeline, mode=full. Payload stays in memory.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Result</h2>
+      <div id="out"><div class="empty">Pick a sample or paste XML, then run the converter.</div></div>
+    </div>
+  </div>
+
+  <p class="foot-note">This is the converter as designed in the guardrails decision: it fixes
+  format, never data; it refuses instead of fabricating; every change is audited (rule, path,
+  old → new, reason) with SHA-256 input/output hashes. Converted output is a draft for the
+  issuer to review — never a guarantee of ASP/FTA acceptance.</p>
+</main>
+
+<script src="/demo.js"></script>
+<script>
+'use strict';
+
+const $ = (id) => document.getElementById(id);
+
+async function init() {
+  try {
+    $('sample').value = '01-format-only.xml';
+    $('xml').value = await loadSample($('sample'));
+  } catch (e) {
+    $('server-error').innerHTML = serverDownHtml(e);
+  }
+}
+
+async function run() {
+  const btn = $('run');
+  const xml = $('xml').value;
+  if (!xml.trim()) { $('out').innerHTML = '<div class="banner warn"><div class="t">Nothing to convert</div><div class="d">Paste an XML invoice first.</div></div>'; return; }
+  btn.disabled = true;
+  $('out').innerHTML = '<div class="empty">Converting…</div>';
+  try {
+    const r = await callConvert(xml, 'full');
+    let html = pipelineHtml(r) + bannerHtml(r);
+
+    if (r.status === 'REFUSED' && r.reason === 'DATA_SEMANTIC') {
+      html += '<h2 style="font-size:14px;text-transform:uppercase;letter-spacing:0.06em;color:#44506a;margin:18px 0 8px">Blocked — converter refuses to fix these</h2>';
+      html += blockedTableHtml(r.blocked);
+      if (r.wouldFix && r.wouldFix.length) {
+        html += '<div class="pipeline">' + r.wouldFix.map((c) => `<span class="chip">would fix: ${escapeHtml(c)}</span>`).join('') + '</div>';
+      }
+    }
+
+    if (r.audit && r.audit.length) {
+      html += '<h2 style="font-size:14px;text-transform:uppercase;letter-spacing:0.06em;color:#44506a;margin:18px 0 8px">Audit trail</h2>';
+      html += auditTableHtml(r.audit);
+    }
+
+    html += hashesHtml(r);
+
+    if (r.output) {
+      html += '<h2 style="font-size:14px;text-transform:uppercase;letter-spacing:0.06em;color:#44506a;margin:18px 0 8px">Converted draft</h2>';
+      html += `<pre class="xml">${escapeHtml(r.output)}</pre>`;
+    }
+    $('out').innerHTML = html;
+  } catch (e) {
+    $('out').innerHTML = serverDownHtml(e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+$('run').addEventListener('click', run);
+$('sample').addEventListener('change', async () => {
+  try { $('xml').value = await loadSample($('sample')); }
+  catch (e) { $('server-error').innerHTML = serverDownHtml(e); }
+});
+init();
+</script>
+</body>
+</html>

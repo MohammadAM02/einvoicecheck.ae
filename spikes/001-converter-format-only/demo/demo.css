@@ -1,0 +1,177 @@
+/* einvoicecheck spike-001 demo — UAE Compliance Desk palette */
+:root {
+  --bg: #faf9f6;
+  --panel: #ffffff;
+  --ink: #12203a;
+  --ink-soft: #44506a;
+  --line: #e5e1d8;
+  --line-strong: #d3cdc0;
+  --emerald: #0e7c66;
+  --emerald-soft: #e6f2ee;
+  --amber: #b45309;
+  --amber-soft: #fdf3e3;
+  --red: #b91c1c;
+  --red-soft: #fdecec;
+  --neutral-soft: #eef0f4;
+  --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, Menlo, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+header.site {
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand .mark { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+.brand .mark em { color: var(--emerald); font-style: normal; }
+.brand .tag { color: var(--ink-soft); font-size: 12.5px; }
+nav.tabs { display: flex; gap: 6px; }
+nav.tabs a {
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+nav.tabs a.active { color: var(--emerald); border-color: var(--emerald); background: var(--emerald-soft); }
+
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+.page-head h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: -0.015em; }
+.page-head p { color: var(--ink-soft); margin: 0 0 20px; max-width: 72ch; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(18, 32, 58, 0.04);
+}
+.card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin: 0 0 12px; }
+
+label.field { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+select, textarea, button { font-family: inherit; }
+select.sample {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+textarea {
+  width: 100%;
+  min-height: 340px;
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  resize: vertical;
+  background: #fffdfa;
+  color: var(--ink);
+  tab-size: 4;
+}
+.row-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+button.primary {
+  background: var(--emerald);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.primary:hover { background: #0b6a57; }
+button.primary:disabled { opacity: 0.55; cursor: wait; }
+.hint { color: var(--ink-soft); font-size: 12.5px; }
+
+/* status banners */
+.banner { border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; border: 1px solid transparent; }
+.banner .t { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+.banner .d { font-size: 13.5px; color: var(--ink-soft); }
+.banner.ok { background: var(--emerald-soft); border-color: #bfe0d6; }
+.banner.ok .t { color: var(--emerald); }
+.banner.neutral { background: var(--neutral-soft); border-color: #d9dde6; }
+.banner.neutral .t { color: var(--ink); }
+.banner.warn { background: var(--amber-soft); border-color: #f0d9b5; }
+.banner.warn .t { color: var(--amber); }
+.banner.err { background: var(--red-soft); border-color: #f2c4c4; }
+.banner.err .t { color: var(--red); }
+
+/* pipeline chips */
+.pipeline { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink-soft);
+}
+.chip .st { margin-left: 6px; }
+.chip.ok .st { color: var(--emerald); }
+.chip.bad .st { color: var(--red); }
+.chip.warn .st { color: var(--amber); }
+
+/* tables */
+.tblwrap { overflow-x: auto; margin-bottom: 14px; }
+table.audit { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.audit th, table.audit td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.audit th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); }
+table.audit code { font-family: var(--mono); font-size: 11.5px; }
+table.audit .rule { color: var(--emerald); font-weight: 700; white-space: nowrap; }
+table.audit .oldv, table.audit .newv { font-family: var(--mono); font-size: 11.5px; word-break: break-all; }
+table.audit .oldv { color: var(--red); }
+table.audit .newv { color: var(--emerald); }
+
+table.blocked { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.blocked th, table.blocked td { text-align: left; padding: 8px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.blocked th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); }
+table.blocked code { font-family: var(--mono); font-size: 11.5px; }
+table.blocked .rule { color: var(--red); font-weight: 700; white-space: nowrap; }
+
+/* hashes + pre */
+.hashes { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 14px; font-size: 12px; color: var(--ink-soft); }
+.hashes code { font-family: var(--mono); font-size: 11px; color: var(--ink); word-break: break-all; }
+pre.xml {
+  background: #12182a;
+  color: #d9e2f0;
+  padding: 14px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.55;
+  overflow-x: auto;
+  max-height: 480px;
+  overflow-y: auto;
+  margin: 0;
+  white-space: pre;
+}
+.foot-note { color: var(--ink-soft); font-size: 12.5px; border-top: 1px solid var(--line); margin-top: 20px; padding-top: 14px; }
+.empty { color: var(--ink-soft); font-size: 13.5px; padding: 20px 4px; }

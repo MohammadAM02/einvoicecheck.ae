@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Format-only converter — einvoicecheck spike demo</title>
+<link rel="stylesheet" href="/demo.css">
+</head>
+<body>
+<header class="site">
+  <div class="brand">
+    <span class="mark">einvoicecheck<em>·spike</em></span>
+    <span class="tag">UAE e-invoice converter — format-only repair demo</span>
+  </div>
+  <nav class="tabs">
+    <a href="/format-only.html" class="active">Format-only converter</a>
+    <a href="/full-converter.html">Full converter</a>
+  </nav>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Format-only converter</h1>
+    <p>Repairs <em>structure only</em>: illegal characters, prefix case, namespace URIs,
+    missing namespace declarations, encoding declaration. It never invents or alters
+    invoice data — TRNs, amounts, dates and identities are read-only. Data problems are
+    reported, never fixed.</p>
+  </div>
+
+  <div id="server-error"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Input — invalid UBL XML</h2>
+      <label class="field" for="sample">Try a sample</label>
+      <select class="sample" id="sample">
+        <option value="01-format-only.xml" selected>01 — format defects only (bad namespace URI, Cbc: prefix, control char, encoding)</option>
+        <option value="05-missing-ns.xml">05 — missing xmlns:cac declaration</option>
+        <option value="00-valid.xml">00 — already valid (no changes)</option>
+        <option value="03-mixed.xml">03 — format defects AND a data error (TRN)</option>
+      </select>
+      <label class="field" for="xml">XML document</label>
+      <textarea id="xml" spellcheck="false" placeholder="Paste an invalid UBL 2.1 / PINT AE invoice XML…"></textarea>
+      <div class="row-actions">
+        <button class="primary" id="run">Repair format</button>
+        <span class="hint">Runs the real convert() pipeline, mode=format. Payload stays in memory.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Result</h2>
+      <div id="out"><div class="empty">Pick a sample or paste XML, then run the converter.</div></div>
+    </div>
+  </div>
+
+  <p class="foot-note">Format-only demo: output is a <strong>draft for review</strong> — it is never
+  a statement that the invoice will be accepted by an ASP or the FTA. If data issues exist, the
+  full converter (next tab) refuses to convert at all.</p>
+</main>
+
+<script src="/demo.js"></script>
+<script>
+'use strict';
+
+const $ = (id) => document.getElementById(id);
+
+async function init() {
+  try {
+    $('sample').value = '01-format-only.xml';
+    $('xml').value = await loadSample($('sample'));
+  } catch (e) {
+    $('server-error').innerHTML = serverDownHtml(e);
+  }
+}
+
+async function run() {
+  const btn = $('run');
+  const xml = $('xml').value;
+  if (!xml.trim()) { $('out').innerHTML = '<div class="banner warn"><div class="t">Nothing to convert</div><div class="d">Paste an XML invoice first.</div></div>'; return; }
+  btn.disabled = true;
+  $('out').innerHTML = '<div class="empty">Converting…</div>';
+  try {
+    const r = await callConvert(xml, 'format');
+    let html = pipelineHtml(r) + bannerHtml(r);
+
+    if (r.dataIssues && r.dataIssues.length) {
+      html += `<div class="banner warn"><div class="t">Data issues detected — not fixed</div>
+        <div class="d">Format repair ran, but these data errors remain. The full converter would refuse this document.</div></div>`;
+      html += blockedTableHtml(r.dataIssues);
+    }
+
+    if (r.audit && r.audit.length) {
+      html += '<h2 style="font-size:14px;text-transform:uppercase;letter-spacing:0.06em;color:#44506a;margin:18px 0 8px">Audit trail</h2>';
+      html += auditTableHtml(r.audit);
+    }
+
+    html += hashesHtml(r);
+
+    if (r.output) {
+      html += '<h2 style="font-size:14px;text-transform:uppercase;letter-spacing:0.06em;color:#44506a;margin:18px 0 8px">Repaired draft</h2>';
+      html += `<pre class="xml">${escapeHtml(r.output)}</pre>`;
+    }
+    $('out').innerHTML = html;
+  } catch (e) {
+    $('out').innerHTML = serverDownHtml(e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+$('run').addEventListener('click', run);
+$('sample').addEventListener('change', async () => {
+  try { $('xml').value = await loadSample($('sample')); }
+  catch (e) { $('server-error').innerHTML = serverDownHtml(e); }
+});
+init();
+</script>
+</body>
+</html>
