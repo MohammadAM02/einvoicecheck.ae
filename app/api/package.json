@@ -16,7 +16,9 @@
     "openapi": "node scripts/generateOpenapi.js"
   },
   "dependencies": {
+    "@einvoicecheck/rules": "file:../../packages/rules",
     "@fastify/swagger": "^9.4.2",
+    "@xmldom/xmldom": "^0.9.10",
     "dotenv": "^16.4.7",
     "fast-xml-parser": "^5.10.1",
     "fastify": "^5.2.1",
