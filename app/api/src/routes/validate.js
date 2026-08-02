@@ -1,4 +1,4 @@
-import { validateInvoice } from '../rules/engine.js';
+import { validateInvoice } from '@einvoicecheck/rules';
 import { authenticate, makeRateLimiter } from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
 

@@ -18,6 +18,7 @@
   "dependencies": {
     "@fastify/swagger": "^9.4.2",
     "dotenv": "^16.4.7",
+    "@einvoicecheck/rules": "file:../../packages/rules",
     "fast-xml-parser": "^5.10.1",
     "fastify": "^5.2.1",
     "ioredis": "^5.4.2",

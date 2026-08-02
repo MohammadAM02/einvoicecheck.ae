@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateInvoice } from '../src/rules/engine.js';
+import { validateInvoice } from '@einvoicecheck/rules';
 import { validInvoice, brokenInvoice, validUblXml } from './helpers/fixtures.js';
 
 describe('rule engine (unit, no I/O)', () => {

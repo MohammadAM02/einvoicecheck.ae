@@ -1,0 +1,29 @@
+{
+  "name": "@einvoicecheck/rules",
+  "version": "1.0.0",
+  "description": "Shared validation rules for einvoicecheck.ae — UAE e-invoice PINT AE / UBL 2.1 deterministic rule engine",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./engine": "./src/engine.js",
+    "./registry": "./src/registry.js",
+    "./normalize": "./src/normalize.js",
+    "./xml": "./src/xml.js",
+    "./error": "./src/error.js",
+    "./money": "./src/money.js",
+    "./codelists": "./src/codelists.js",
+    "./checks/*": "./src/checks/*.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.10.1"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
+  },
+  "license": "UNLICENSED"
+}

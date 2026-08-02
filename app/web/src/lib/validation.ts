@@ -1,5 +1,5 @@
 // engine.js is the rule engine vendored verbatim from app/api (plain JS, untyped).
-import { validateInvoice as runEngine } from './rules/engine.js';
+import { validateInvoice as runEngine } from '@einvoicecheck/rules';
 
 /**
  * Typed wrapper around the REAL rule engine.
