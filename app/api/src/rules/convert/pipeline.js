@@ -82,10 +82,11 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
 
   // 3. Well-formedness gate (namespace-unaware: wrong-case/unbound prefixes
   //    pass here — they are the repairers' job).
-  if (XMLValidator.validate(prepared) !== true) {
+  const gate = XMLValidator.validate(prepared);
+  if (gate !== true) {
     return refuse('UNREPAIRABLE_FORMAT',
       'Document is not well-formed. Structural repair would require inventing content.',
-      { inputHash, preAudit });
+      { inputHash, preAudit, parseHint: gate?.err?.msg ?? 'Unknown XML validation error' });
   }
 
   // 4. Classify with the REAL engine. fast-xml-parser is namespace-oblivious,

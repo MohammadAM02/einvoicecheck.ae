@@ -84,7 +84,7 @@ function statusColor(status: string): string {
 
 function reasonText(reason?: string): string {
   switch (reason) {
-    case 'UNREPAIRABLE_FORMAT': return 'The XML structure is broken in a way the converter cannot repair.';
+    case 'UNREPAIRABLE_FORMAT': return 'The XML is not well-formed (for example, a broken declaration, an unclosed tag, or missing quotes). The converter refuses to guess at the structure. Check the exact error below.';
     case 'DATA_SEMANTIC': return 'The invoice has data errors (TRN, amounts, VAT) that a converter must not fix.';
     case 'DATA_CHANGED': return 'An internal guard caught a repairer altering data — this is a converter defect.';
     default: return '';
