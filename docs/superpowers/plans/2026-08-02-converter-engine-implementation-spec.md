@@ -1,9 +1,10 @@
 # Converter Engine — Implementation Spec for Coding Agent
 
 > **Target:** Task 3 of `docs/superpowers/plans/2026-08-01-converter-engine-proposal.md`
-> **Prerequisite:** Task 1 complete (`@einvoicecheck/rules` shared package at `packages/rules/`)
+> **Prerequisite:** Task 1 complete — `@einvoicecheck/rules` shared package at `packages/rules/` (verified on main, v1.0.0, exports `validateInvoice`/`parseUblInvoice`/`normalizeInput`). Wiring required by this task: add `"@einvoicecheck/rules": "file:../../packages/rules"` to `app/api/package.json` + `npm install` — the API has not yet been repointed (routes still import `../rules/engine.js`).
 > **Reference spike:** `spikes/001-converter-format-only/convert.js` — pipeline shape validated
-> **Architecture:** Separate route `POST /v1/convert` (not a `?convert=format` flag on `/validate`)
+> **Architecture:** Separate route `POST /v1/convert` (not a `?convert=format` flag on `/validate`). This task ships the pure converter module; route wiring + auth/rate-limit/usage-metering is Task 4 — see the "Route contract (Task 4)" section below.
+> **Review:** amended 2026-08-02 per code review (F1–F17) — classifier semantics, fingerprint model, NOOP invariant, test fixes.
 
 ## What stays from the spike
 
@@ -54,45 +55,35 @@ The pipeline serializes the DOM back to XML with `XMLSerializer` after all repai
 
 ### 3. Classifier from shared rules, not hand-maintained
 
-The spike's `classifyDataSemantic()` reimplements `ENG-REQ-*`, `ENG-TRN-*`, `ENG-LINE-01`, `ENG-TAX-09`, `ENG-TOT-15`, `ENG-NUM-01`. This will drift from the real engine.
-
-Replace with: call `validateInvoice()` from `@einvoicecheck/rules` and classify which errors are data-semantic:
+The spike's `classifyDataSemantic()` reimplements `ENG-REQ-*`, `ENG-TRN-*`, `ENG-LINE-01`, `ENG-TAX-09`, `ENG-TOT-15`, `ENG-NUM-01`. That drifts from the real engine. The production classifier does not reimplement rules — it **is** the engine:
 
 ```js
 import { validateInvoice } from '@einvoicecheck/rules';
 
-function classify(invoice, errors) {
-  const blocked = [];
-  const formatOnly = [];
-  for (const e of errors) {
-    // Format-only rules: missing namespace decls, encoding, prefix case
-    // → the converter CAN fix these
-    if (e.rule.startsWith('FMT-')) {
-      formatOnly.push(e);
-    } else {
-      // Everything else: data-semantic → converter MUST refuse
-      blocked.push(e);
-    }
-  }
-  return { blocked, formatOnly };
+/**
+ * classifyDataSemantic(xml) → { blocked, repairable }
+ *
+ * Key fact: fast-xml-parser (the engine's parser) is namespace-oblivious —
+ * wrong prefix case, bad/missing xmlns URIs, and unbound prefixes NEVER
+ * produce engine errors. Format defects are therefore invisible to the
+ * engine, and any error the engine DOES report is data-semantic → REFUSE.
+ *
+ * repairable ⟺ zero errors. A post-gate ENG-PARSE-01 (wrong root element,
+ * validator/parser disagreement) is beyond the repairers' scope — the
+ * pipeline maps it to UNREPAIRABLE_FORMAT.
+ */
+export function classifyDataSemantic(xml) {
+  const validation = validateInvoice(xml, 'application/xml');
+  const blocked = validation.errors.filter((e) => e.severity === 'error');
+  return { blocked, repairable: blocked.length === 0 };
 }
 ```
 
-Wait — the engine doesn't produce `FMT-*` errors. It produces `ENG-*` errors. The classifier needs to distinguish:
-
-- **Data-semantic (REFUSE):** any error the engine would report — TRN, amounts, VAT, totals, required fields
-- **Format-only (OK to repair):** errors the engine CAN'T see because the XML won't parse (bad prefixes, missing NS decls, illegal chars, wrong encoding)
-
-So the classifier logic is simpler than I thought:
-
-```js
-// If validateInvoice() produces ANY ENG-* error → data-semantic → REFUSE
-// The format repairers fix things the engine never sees (well-formedness issues)
-```
-
-The classifier calls `normalizeInput()` (which calls `parseUblInvoice()`). If parsing fails with a structural error, that's format-only — the repairers can fix it. If parsing succeeds but validation produces errors, those are data-semantic.
-
-**Revised approach:** The classifier IS the engine's parser. If the engine can parse the invoice, classification runs and any engine error → REFUSE. If the engine can't parse, format repairers attempt to fix structure, then re-parse.
+Semantics:
+- **Zero engine errors** → proceed to DOM format repair. The engine never sees the format defects, so they cannot trigger a refusal.
+- **Any `ENG-*` error** → data-semantic → `REFUSED(DATA_SEMANTIC)` in full mode; reported as `dataIssues` warnings in format mode.
+- **`ENG-PARSE-01` alone** → `REFUSED(UNREPAIRABLE_FORMAT)` — nothing to repair (wrong root element or structural defect the gate missed).
+- **No hand-maintained rule logic, ever.**
 
 ### Repairer list (same 5, DOM-based)
 
@@ -102,7 +93,7 @@ The classifier calls `normalizeInput()` (which calls `parseUblInvoice()`). If pa
 | Prefix case | `FMT-PREFIX-01` | `Cbc:` → `cbc:`, `CAC:` → `cac:` | Rename elements/attributes in DOM (node.localName/node.prefix) |
 | Namespace URI | `FMT-NS-01` | Wrong `xmlns:cbc="..."` URI | Set `xmlns` attributes on root element |
 | Missing NS decl | `FMT-NS-02` | Add `xmlns:cac="..."` when used but not declared | SetAttribute on documentElement |
-| Encoding decl | `FMT-DECL-01` | `encoding="ISO-8859-1"` → `encoding="utf-8"` | Runs on raw string before parse OR on XMLSerializer output |
+| Encoding decl | `FMT-DECL-01` | `encoding="ISO-8859-1"` → `encoding="utf-8"` | Runs on raw string BEFORE parse; after serialize, ensure the `utf-8` declaration survived (re-apply if the serializer drops the prolog) |
 
 **Sanitize and encoding MUST run on raw strings** (illegal chars break DOM parsing; encoding is in the XML prolog which DOM doesn't expose well). Prefix case, NS URI, and missing NS run on the DOM.
 
@@ -110,16 +101,21 @@ The classifier calls `normalizeInput()` (which calls `parseUblInvoice()`). If pa
 
 ```
 app/api/src/rules/convert/
-├── index.js          # Public API: convert(xml, opts) — main pipeline
-├── repairers.js      # 5 repairer functions (2 string-level, 3 DOM-level)
-├── classifier.js     # classifyDataSemantic(invoice) using validateInvoice()
-├── audit.js          # AuditEntry model + helpers
-├── fingerprint.js    # dataFingerprint(invoice) → SHA-256-able string
-└── pipeline.js       # Pipeline orchestrator (sanitize→gate→classify→repair→verify→fingerprint→audit)
+├── index.js          # Public API: convert(xml, opts) — main pipeline + ENGINE_VERSION constant
+├── repairers.js      # 5 repairers (2 string-level: sanitizeChars, fixEncodingDecl; 3 DOM) + dryRun(xml)
+├── classifier.js     # classifyDataSemantic(xml) using shared validateInvoice()
+├── audit.js          # AuditEntry model + helpers (control chars JSON-escaped on output)
+├── fingerprint.js    # dataFingerprint(canonicalInvoice) → SHA-256 of sorted-key JSON
+└── pipeline.js       # Pipeline orchestrator (sanitize→decl→gate→classify→repair→verify→fingerprint→audit)
 
 app/api/test/
-└── convert.test.js   # Full test suite (see test cases below)
+├── convert.test.js   # Full test suite (see test cases below)
+└── fixtures/convert/ # Sample XML files copied from the spike + 06-unbound-prefix.xml (test 12)
 ```
+
+## Route contract (Task 4 — wiring is NOT this task)
+
+`POST /v1/convert` — request: `{ xml: string, mode?: 'format' | 'full' }` (or raw XML body with `Content-Type: application/xml`); response: `ConvertResult` JSON. Must mirror the existing route's security posture (`app/api/src/routes/validate.js`): API-key auth, rate limiting, usage metering, no payload persistence. Task 4 wires the route + web UI; this task only ships the module. NOTE: the proposal's `?convert=format` flag on `/validate` is superseded by this architecture — amend Task 4's description accordingly.
 
 ## Interfaces
 
@@ -144,9 +140,13 @@ interface ConvertResult {
   dataIssues: BlockedIssue[];// Warnings in format mode (draft for review)
 
   output?: string;           // Repaired XML (CONVERTED/NOOP only)
-  engineVersion: string;
+  engineVersion: string;     // converter-local ENGINE_VERSION constant
   convertedAt: string;       // ISO 8601
 }
+
+// NOOP invariant: status === 'NOOP' ⟺ output === input, outputHash === inputHash,
+// audit === []. The original bytes are returned unchanged — the DOM is never
+// serialized when nothing changed.
 
 interface AuditEntry {
   rule: string;     // e.g. 'FMT-PREFIX-01'
@@ -167,79 +167,112 @@ interface BlockedIssue {
 ## Pipeline Pseudocode
 
 ```js
+import { validateInvoice, parseUblInvoice } from '@einvoicecheck/rules';
+import { XMLValidator } from 'fast-xml-parser';
+import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
+import { classifyDataSemantic } from './classifier.js';
+import { fingerprint } from './fingerprint.js';
+import * as repairers from './repairers.js';
+
+// refuse()/error() are small helpers building the ConvertResult:
+// { status, reason?, detail?, ...extra, audit: [...], blocked: [], output: undefined }
 export function convert(xml, opts = {}) {
   const mode = opts.mode === 'format' ? 'format' : 'full';
   const inputHash = sha256(xml);
 
-  // 1. Sanitize illegal XML chars (string-level — must run before DOM parse)
+  // 1. String-level repair — illegal chars and the encoding decl cannot be
+  //    handled via DOM; both must run before any parse
   const sanitizeAudit = [];
-  const sanitized = repairers.sanitizeChars(xml, sanitizeAudit);
+  const sanitized = repairers.sanitizeChars(xml, sanitizeAudit);     // FMT-CHARS-01
+  const declAudit = [];
+  const declared = repairers.fixEncodingDecl(sanitized, declAudit);  // FMT-DECL-01
 
-  // 2. Well-formedness gate
-  const v0 = XMLValidator.validate(sanitized);
-  if (v0 !== true) {
-    return REFUSED('UNREPAIRABLE_FORMAT', 'Document is not well-formed. Structural repair would require inventing content.', { inputHash });
+  // 2. Well-formedness gate (namespace-unaware: wrong-case/unbound prefixes
+  //    pass here — they are the DOM repairers' job)
+  if (XMLValidator.validate(declared) !== true) {
+    return refuse('UNREPAIRABLE_FORMAT',
+      'Document is not well-formed. Structural repair would require inventing content.',
+      { inputHash, sanitizeAudit, declAudit });
   }
 
-  // 3. Parse + classify
-  let inv;
-  try { inv = PARSER.parse(sanitized).Invoice; } catch (e) {
-    return REFUSED('UNREPAIRABLE_FORMAT', 'Document could not be parsed.', { inputHash, parseHint: e.message });
+  // 3. Classify with the REAL engine. fast-xml-parser is namespace-oblivious,
+  //    so format defects produce ZERO engine errors — any error here is
+  //    data-semantic → REFUSE. A post-gate ENG-PARSE-01 (e.g. wrong root
+  //    element) is beyond the repairers' scope → UNREPAIRABLE.
+  const { blocked, repairable } = classifyDataSemantic(declared);
+  if (!repairable) {
+    const parseOnly = blocked.length === 1 && blocked[0].rule === 'ENG-PARSE-01';
+    if (parseOnly) {
+      return refuse('UNREPAIRABLE_FORMAT', 'Document could not be parsed.',
+        { inputHash, sanitizeAudit, declAudit, parseHint: blocked[0].message });
+    }
+    if (mode === 'full') {
+      return refuse('DATA_SEMANTIC', 'Invoice has data errors that a converter must not fix.', {
+        inputHash, sanitizeAudit, declAudit, blocked,
+        wouldFix: repairers.dryRun(declared), // throwaway parse: what WOULD change
+      });
+    }
+    // format mode: continue — data issues become warnings (dataIssues below)
   }
 
-  // 3a. Data-semantic classification: run the REAL engine
-  const validation = validateInvoice(sanitized, 'application/xml');
-  const blocked = validation.errors.filter(e => e.severity === 'error');
+  // 4. Fingerprint BEFORE repair — over the canonical invoice model (data
+  //    values only; whitespace/attribute-order drift cannot false-positive)
+  const invoiceBefore = parseUblInvoice(declared); // cannot throw here (step 3 passed)
+  const fpBefore = fingerprint(invoiceBefore);
 
-  if (blocked.length > 0 && mode === 'full') {
-    return REFUSED('DATA_SEMANTIC', 'Invoice has data errors that a converter must not fix.', {
-      inputHash, blocked,
-      wouldFix: repairers.listFormatFixes(sanitized), // dry-run: what WOULD change
-    });
+  // 5. DOM-based format repair. Parse is guarded: @xmldom's namespace
+  //    strictness on unbound prefixes is unverified — never crash the pipeline
+  let doc;
+  try {
+    doc = new DOMParser().parseFromString(declared, 'text/xml');
+  } catch (e) {
+    return refuse('UNREPAIRABLE_FORMAT', 'Repairers could not parse the document structure.',
+      { inputHash, sanitizeAudit, declAudit, parseHint: e.message });
   }
-
-  // 4. DOM-based format repair
-  const domParser = new DOMParser();
-  const doc = domParser.parseFromString(sanitized, 'text/xml');
-  const fpBefore = fingerprint(doc);
 
   const repairAudit = [];
-  let anyChange = false;
-  for (const repairer of DOM_REPAIRERS) {
-    const { changed, audit } = repairer(doc);
-    if (changed) anyChange = true;
+  for (const repairer of DOM_REPAIRERS) { // order: rPrefix → rNsUri → rAddNsDecl
+    const { audit } = repairer(doc);
     repairAudit.push(...audit);
   }
 
-  // 5. Serialize + re-validate
-  const serializer = new XMLSerializer();
-  const output = serializer.serializeToString(doc);
-  const v1 = XMLValidator.validate(output);
-  if (v1 !== true) {
-    return REFUSED('UNREPAIRABLE_FORMAT', 'Repairers could not produce a well-formed document.', { inputHash, audit: repairAudit });
+  // 6. Serialize + re-validate. ensureDeclaration re-applies the XML
+  //    declaration if the serializer dropped it (FMT-DECL-01 must be
+  //    observable in the output).
+  const output = ensureDeclaration(
+    new XMLSerializer().serializeToString(doc), hadDeclaration(declared));
+  if (XMLValidator.validate(output) !== true) {
+    return refuse('UNREPAIRABLE_FORMAT', 'Repairers could not produce a well-formed document.',
+      { inputHash, sanitizeAudit, declAudit, audit: repairAudit });
   }
 
-  // 6. Fingerprint guard: re-parse output and compare fingerprints
-  let outDoc;
-  try { outDoc = PARSER.parse(output).Invoice; } catch (e) {
-    return ERROR('DATA_CHANGED', 'Repaired document could not be parsed.', { inputHash, audit: repairAudit });
+  // 7. Fingerprint guard: same canonical model, must be identical
+  let invoiceAfter;
+  try {
+    invoiceAfter = parseUblInvoice(output);
+  } catch (e) {
+    return error('DATA_CHANGED', 'Repaired document could not be parsed.',
+      { inputHash, sanitizeAudit, declAudit, audit: repairAudit });
   }
-  if (fingerprint(outDoc) !== fpBefore) {
-    return ERROR('DATA_CHANGED', 'A repairer altered data values. Aborting.', { inputHash, audit: repairAudit });
+  if (fingerprint(invoiceAfter) !== fpBefore) {
+    return error('DATA_CHANGED', 'A repairer altered data values. Aborting.',
+      { inputHash, sanitizeAudit, declAudit, audit: repairAudit });
   }
 
-  // 7. Success
-  const outputHash = sha256(output);
-  const audit = [...sanitizeAudit, ...repairAudit];
+  // 8. Success — NOOP invariant: nothing changed ⇒ original bytes come back.
+  //    anyChange counts ALL audits (string-level included), not just DOM
+  //    repairers — an input with stripped illegal chars is CONVERTED, not NOOP.
+  const anyChange = sanitizeAudit.length + declAudit.length + repairAudit.length > 0;
+  const outputHash = anyChange ? sha256(output) : inputHash;
 
   return {
     status: anyChange ? 'CONVERTED' : 'NOOP',
     inputHash, outputHash,
-    audit,
+    audit: [...sanitizeAudit, ...declAudit, ...repairAudit],
     blocked: [],
     dataIssues: mode === 'format' ? blocked : [],
-    output,
-    engineVersion: ENGINE_VERSION,
+    output: anyChange ? output : declared,
+    engineVersion: ENGINE_VERSION, // converter-local constant — see Deliverables
     convertedAt: new Date().toISOString(),
   };
 }
@@ -249,12 +282,13 @@ export function convert(xml, opts = {}) {
 
 ### 1. Valid XML passes through unchanged
 - Input: `samples/00-valid.xml` (valid PINT AE invoice)
-- Expected: `status: NOOP`, `output` identical to input, 0 audit entries
+- Expected: `status: NOOP`, `output` identical to input (short-circuit — original bytes returned, DOM never serialized), `outputHash === inputHash`, 0 audit entries
 
 ### 2. Format-only defects repaired
 - Input: `samples/01-format-only.xml` (illegal chars, `Cbc:`, wrong NS URI, ISO-8859-1)
-- Expected: `status: CONVERTED`, all 5 repairers fire, re-parsed output validates
+- Expected: `status: CONVERTED`, 4 repairer rules fire — FMT-CHARS-01, FMT-DECL-01, FMT-PREFIX-01, FMT-NS-01 — re-parsed output validates, `utf-8` declaration preserved in output
 - Assert: fingerprint before == fingerprint after (data unchanged)
+- Note: FMT-NS-02 cannot fire on this fixture (both `xmlns:` are declared) — it is covered by test 6
 
 ### 3. Data-semantic errors refused
 - Input: `samples/02-data-semantic.xml` (bad TRN, bad totals, bad VAT)
@@ -263,7 +297,7 @@ export function convert(xml, opts = {}) {
 
 ### 4. Mixed: refuse, no partial repair
 - Input: `samples/03-mixed.xml` (format defects + data errors)
-- Expected: `status: REFUSED`, `wouldFix` lists format repairs, no output
+- Expected: `status: REFUSED`, `wouldFix` lists format repairs (from `repairers.dryRun()`), no output
 - Assert: format was NOT applied (original preserved)
 
 ### 5. Unrepairable: refuse, never guess
@@ -296,6 +330,15 @@ export function convert(xml, opts = {}) {
 - Assert: `textOf()` correctly unwraps `{ '#text': '500.00', '@_currencyID': 'AED' }` → `'500.00'`
 - Assert: `numOf()` correctly parses to `500`
 - Assert: `numOf(null)` → `null` (blocking, never silent skip)
+
+### 11. Format mode: repair, don't refuse
+- Input: `samples/02-data-semantic.xml` with `mode: 'format'`
+- Expected: `status: CONVERTED` (or `NOOP` if the sample has no format defects), `dataIssues` populated with the blocked `ENG-*` errors (`blocked.length >= 4`), audit present
+- Assert: data issues reported as warnings, never `REFUSED(DATA_SEMANTIC)` in format mode
+
+### 12. Unbound wrong-case prefix (adversarial, namespace edge)
+- Input: `fixtures/convert/06-unbound-prefix.xml` — a valid invoice using `Cbc:` with NO `xmlns:Cbc` declared
+- Expected: either `status: CONVERTED` (FMT-PREFIX-01 + FMT-NS-02 audits) or `status: REFUSED, reason: UNREPAIRABLE_FORMAT` if `@xmldom/xmldom` rejects the unbound prefix at parse/serialize — NEVER `ERROR`, NEVER a thrown exception (step-5 try/catch). Pin the actual outcome at spike time.
 
 ## DOM Repairer Implementation Notes
 
@@ -401,36 +444,42 @@ function rAddNsDecl(doc, audit) {
 
 ```json
 // app/api/package.json — add to dependencies:
+"@einvoicecheck/rules": "file:../../packages/rules",
 "@xmldom/xmldom": "^0.9.x"
-// or
-"@xmldom/xmldom": "^0.8.x"  // check latest stable for XPath support
+// or "@xmldom/xmldom": "^0.8.x"
 ```
+Then run `npm install` in `app/api`. The `file:` reference is the proposal's sanctioned Task-1 wiring — the API has not been repointed yet, so the converter's imports will not resolve without it.
+
+No XPath support in `@xmldom/xmldom` (neither 0.8.x nor 0.9.x) — `evaluate()` will NOT exist; use recursive traversal or `getElementsByTagName` per pitfall 6.
 
 ## Files NOT to touch
 
-- `packages/rules/src/*` — shared rules package (Task 1, immutable for this task)
+- `packages/rules/*` — shared rules package (Task 1, immutable for this task; only `app/api/package.json` gains the `file:` dependency)
 - `app/api/src/routes/validate.js` — existing validate endpoint
-- `app/api/src/rules/engine.js` — still exists; converter imports from shared package
+- `app/api/src/rules/engine.js` — untouched; converter imports from `@einvoicecheck/rules`. No `convert` export is wired into engine.js (the proposal's original idea is superseded — `ENGINE_VERSION` is converter-local)
 - `app/web/*` — UI wiring is Task 4, not Task 3
 
 ## Spike Samples
 
 The spike's sample files are at `spikes/001-converter-format-only/samples/`.
-Copy them to `app/api/test/fixtures/convert/` for the test suite.
+Copy them to `app/api/test/fixtures/convert/` for the test suite. Create one
+additional fixture: `06-unbound-prefix.xml` — a valid invoice using `Cbc:` with
+NO `xmlns:Cbc` declared (drives test 12).
 
 ## Deliverables Checklist (coding agent must produce all of these)
 
-- [ ] `app/api/src/rules/convert/index.js` — `convert(xml, opts)` public API
-- [ ] `app/api/src/rules/convert/pipeline.js` — orchestrator
-- [ ] `app/api/src/rules/convert/repairers.js` — 5 repairers (2 string, 3 DOM)
-- [ ] `app/api/src/rules/convert/classifier.js` — `classifyDataSemantic(invoice)` using shared rules
+- [ ] `app/api/src/rules/convert/index.js` — `convert(xml, opts)` public API + `ENGINE_VERSION` constant
+- [ ] `app/api/src/rules/convert/pipeline.js` — orchestrator (NOOP short-circuit; audits on every refusal)
+- [ ] `app/api/src/rules/convert/repairers.js` — 5 repairers (2 string, 3 DOM) + `dryRun(xml)`
+- [ ] `app/api/src/rules/convert/classifier.js` — `classifyDataSemantic(xml)` using shared `validateInvoice()`
 - [ ] `app/api/src/rules/convert/audit.js` — AuditEntry helpers
-- [ ] `app/api/src/rules/convert/fingerprint.js` — `dataFingerprint(doc)` pre/post hash
-- [ ] `app/api/test/convert.test.js` — 10 test cases (write FIRST, red-green)
-- [ ] `app/api/test/fixtures/convert/` — sample XML files copied from spike
-- [ ] `app/api/package.json` — add `@xmldom/xmldom` dependency
-- [ ] `npm test` passes all 10 new convert tests + existing 19 API tests
+- [ ] `app/api/src/rules/convert/fingerprint.js` — `dataFingerprint(canonicalInvoice)` → SHA-256
+- [ ] `app/api/test/convert.test.js` — 12 test cases (write FIRST, red-green)
+- [ ] `app/api/test/fixtures/convert/` — sample XML files copied from spike + `06-unbound-prefix.xml`
+- [ ] `app/api/package.json` — add `@einvoicecheck/rules` (`file:../../packages/rules`) + `@xmldom/xmldom`; run `npm install`
+- [ ] `npm test` passes all 12 new convert tests + existing 19 API tests
 - [ ] Adversarial test: verify fingerprint guard catches a rogue repairer
+- [ ] Route contract (this doc's "Route contract" section) reviewed by a human before Task 4 starts
 
 ## Pitfalls (from the spike README)
 
@@ -444,14 +493,21 @@ Copy them to `app/api/test/fixtures/convert/` for the test suite.
 
 5. **DOM repairers are per-node**: Unlike regex (which can batch 63 renames into 1 audit row), DOM repairers produce 1 audit entry per affected node. This is correct behaviour — the spike said regex audit was "best-effort."
 
-6. **`@xmldom/xmldom` XPath support**: Check if `evaluate()` is available. If not, use recursive traversal or `getElementsByTagName` with namespace awareness.
+6. **`@xmldom/xmldom` XPath support**: `evaluate()` is NOT available (neither 0.8.x nor 0.9.x). Use recursive traversal or `getElementsByTagName` with namespace awareness.
+
+7. **`@xmldom/xmldom` namespace strictness**: behavior on unbound prefixes (`Cbc:` without `xmlns:Cbc`) is unverified — it may tolerate, mangle, or reject at parse/serialize time. Step-5 parse is wrapped in try/catch → `REFUSED(UNREPAIRABLE_FORMAT)`; test 12 pins the outcome. If the serializer drops the XML declaration, re-apply it (`ensureDeclaration`) — FMT-DECL-01 must be observable in output.
+
+8. **fast-xml-parser is namespace-oblivious**: wrong prefix case, bad/missing `xmlns:` URIs, and unbound prefixes NEVER produce engine errors. That is why the classifier's repairable test is "zero `ENG-*` errors" — NOT "parse failed → repair". A post-gate parse failure (`ENG-PARSE-01`, e.g. wrong root element) is beyond the repairers' scope → `UNREPAIRABLE_FORMAT`.
 
 ## Self-Check Before Shipping
 
-- [ ] All 10 test cases pass
+- [ ] All 12 test cases pass
 - [ ] Existing 19 API tests still pass (no regression)
 - [ ] `node spikes/001-converter-format-only/convert.js --all` still produces the same table
 - [ ] Adversarial test PASSES (rogue repairer caught by fingerprint guard)
 - [ ] Fingerprint guard tested with valid → repair → re-parse cycle
+- [ ] NOOP invariant verified: valid input → `output === input`, `outputHash === inputHash`, empty audit
+- [ ] Format-mode test passes (`dataIssues` populated, `CONVERTED`/`NOOP`, never `REFUSED`)
+- [ ] `@einvoicecheck/rules` import resolves (`npm install` with the `file:` dependency)
 - [ ] No `require()` anywhere — all ESM
 - [ ] No hand-maintained rule logic in classifier — imports from `@einvoicecheck/rules`
