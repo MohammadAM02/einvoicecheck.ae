@@ -35,6 +35,7 @@ type NavigationLink = {
 
 const NAV_LINKS: readonly NavigationLink[] = [
   { href: '/#validate', label: 'Validate an invoice', primary: true },
+  { href: '/tools/xml-converter', label: 'XML Converter' },
   { href: '/docs', label: 'API' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/docs', label: 'Documentation' },
