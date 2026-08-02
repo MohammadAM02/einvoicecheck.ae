@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { XMLValidator } from 'fast-xml-parser';
 import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
-import { parseUblInvoice, validateInvoice } from '@einvoicecheck/rules';
+import { parseUblInvoice } from '../src/rules/xml.js';
+import { validateInvoice } from '../src/rules/engine.js';
 import { convert, ENGINE_VERSION } from '../src/rules/convert/index.js';
 import { convertWithRepairers } from '../src/rules/convert/pipeline.js';
 import { fingerprint } from '../src/rules/convert/fingerprint.js';

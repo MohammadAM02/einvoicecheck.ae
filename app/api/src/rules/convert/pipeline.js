@@ -1,5 +1,5 @@
 ﻿import { createHash } from 'node:crypto';
-import { parseUblInvoice } from '@einvoicecheck/rules';
+import { parseUblInvoice } from '../xml.js';
 import { XMLValidator } from 'fast-xml-parser';
 import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
 import { classifyDataSemantic } from './classifier.js';

@@ -1,4 +1,4 @@
-﻿import { validateInvoice } from '@einvoicecheck/rules';
+﻿import { validateInvoice } from '../engine.js';
 
 /**
  * classifyDataSemantic(xml) → { blocked, repairable }
