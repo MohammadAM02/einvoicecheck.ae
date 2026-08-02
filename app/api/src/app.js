@@ -1,7 +1,8 @@
-import Fastify from 'fastify';
+﻿import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import { config } from './config/env.js';
 import { validateRoutes } from './routes/validate.js';
+import { convertRoutes } from './routes/convert.js';
 import { healthRoutes } from './routes/health.js';
 import { usageRoutes } from './routes/usage.js';
 
@@ -20,7 +21,7 @@ export async function buildApp({ redis, logger = false } = {}) {
   const app = Fastify({
     logger,
     ajv: { customOptions: { allowUnionTypes: true } },
-    bodyLimit: 5 * 1024 * 1024, // 5 MB — UBL invoices can be sizeable
+    bodyLimit: 5 * 1024 * 1024, // 5 MB â€” UBL invoices can be sizeable
   });
 
   app.decorate('redis', redis);
@@ -109,7 +110,7 @@ export async function buildApp({ redis, logger = false } = {}) {
           'Deterministic preflight validation for UAE PINT AE / UBL 2.1 invoices: TRN, required tax fields, ' +
           'line-item and document total arithmetic, VAT category/rate consistency, currency/code-list membership, ' +
           'and invoice-type detection.\n\n' +
-          '**Positioning guardrail — preflight validation only.** This API is NOT FTA-accredited, does NOT transmit ' +
+          '**Positioning guardrail â€” preflight validation only.** This API is NOT FTA-accredited, does NOT transmit ' +
           'legal e-invoices, does NOT replace an accredited ASP, and does NOT provide statutory archival.',
       },
       components: {
@@ -120,6 +121,7 @@ export async function buildApp({ redis, logger = false } = {}) {
       },
       tags: [
         { name: 'validation', description: 'Invoice preflight validation' },
+        { name: 'convert', description: 'Format-only converter: repair + audit + refusal guardrails' },
         { name: 'usage', description: 'Per-key usage metering' },
         { name: 'ops', description: 'Operational probes' },
       ],
@@ -128,6 +130,7 @@ export async function buildApp({ redis, logger = false } = {}) {
 
   await app.register(healthRoutes);
   await app.register(validateRoutes);
+  await app.register(convertRoutes);
   await app.register(usageRoutes);
 
   await app.ready();
@@ -135,3 +138,4 @@ export async function buildApp({ redis, logger = false } = {}) {
 }
 
 export { config };
+

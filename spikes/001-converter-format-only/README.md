@@ -1,4 +1,4 @@
-# Spike 001 — Converter: format-only repair + audit-trail guardrails
+﻿# Spike 001 — Converter: format-only repair + audit-trail guardrails
 
 **Date:** 2026-08-01 · **Engine:** `spike-001` (Node 22, fast-xml-parser 5.10.1 from `app/api/node_modules`)
 
@@ -85,8 +85,7 @@ the api↔web duplication); (3) refuse semantics, fingerprint guard, and
 STE error text exactly as prototyped. Converter stays format-only, always.
 
 **Build as: `app/api/src/rules/convert/` (repairers) + `app/api/src/rules/audit.js`
-(audit model), wired behind the existing `/validate` route as an opt-in
-`?convert=format` flag.**
+(audit model), shipped as a separate `POST /v1/convert` route (supersedes the earlier `?convert=format` flag idea).**
 
 ## Interactive demo
 
@@ -106,3 +105,4 @@ node demo/server.js          # http://localhost:7357
 mode repairs but reports data issues as `dataIssues` instead of refusing. CLI
 unchanged. Server routes: `GET /format-only.html`, `/full-converter.html`,
 `/samples/<file>`, `POST /api/convert {"xml","mode"}` (256 KB cap).
+

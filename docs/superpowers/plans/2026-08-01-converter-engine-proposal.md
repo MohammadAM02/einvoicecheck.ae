@@ -1,4 +1,4 @@
-# Converter Engine Proposal — Implementation Plan
+﻿# Converter Engine Proposal — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -76,23 +76,33 @@
 
 ## Task 4: Wire into API + web validator
 
-**Files:**
-- Modify: `app/api/src/routes/validate.js` (accept `?convert=format`), `app/web/src/lib/validation-client.ts` (pass flag), `app/web/src/app/api/tools/validate/route.ts`
+**Architecture (amended 2026-08-02):** the converter ships as a SEPARATE
+`POST /v1/convert` route — NOT a `?convert=format` flag on `/validate`. The
+flag idea is superseded (implementation-spec amendment). The API route is done
+in `app/api/src/routes/convert.js`; the remaining work below is the web UI.
+
+**Files (API — done):**
+- Add: `app/api/src/routes/convert.js` — `POST /v1/convert`; mirrors `/v1/validate` security posture (API-key auth, rate limiting, usage metering, no payload persistence). Request `{ xml, mode?: 'format' | 'full' }` or raw XML (`Content-Type: application/xml`); response `ConvertResult` JSON.
+- Modify: `app/api/src/app.js` — register route + OpenAPI `convert` tag
+- Test: `app/api/test/convert-route.test.js`
+
+**Files (web — remaining):**
+- Modify: `app/web/src/lib/validation-client.ts` (call `/v1/convert`), `app/web/src/app/api/tools/validate/route.ts` (proxy)
 - Modify: `app/web/src/components/validation/ValidatorWorkspace.tsx` (opt-in toggle + audit panel)
 - Modify: `docs/PRODUCTION_STATUS.md` §4 gap table + ScopePanel copy (`app/web/src/components/ScopePanel.tsx`)
-- Test: `app/api/test/validate.test.js`, `app/web/test/validator-workspace.test.tsx`
+- Test: `app/web/test/validator-workspace.test.tsx`
 
 **Interfaces:**
 - Consumes: `convert(xml, { mode })` from Task 3.
-- Produces: `POST /validate?convert=format` response including `converted`, `audit`, `hashes` alongside the existing result; UI "Convert draft" action with audit panel; ScopePanel updated: Schematron moves from "not included" to "included; still not a filing service, not the FTA, no guarantee".
+- Produces: `POST /v1/convert` — `ConvertResult` with status (`CONVERTED`/`NOOP`/`REFUSED`/`ERROR`), `audit`, `blocked`, `dataIssues`, `wouldFix`, SHA-256 `inputHash`/`outputHash`, `engineVersion`, `convertedAt`. UI "Convert draft" action with audit panel; ScopePanel updated: Schematron moves from "not included" to "included; still not a filing service, not the FTA, no guarantee".
 
-- [ ] **Step 1: Write failing API test** for `?convert=format` response shape.
-- [ ] **Step 2: Implement route flag + client plumbing.**
+- [x] **Step 1: API route test** — `app/api/test/convert-route.test.js` (10 cases).
+- [x] **Step 2: API route** — `routes/convert.js` + registration + OpenAPI.
 - [ ] **Step 3: Write failing UI test** for audit panel rendering.
 - [ ] **Step 4: Implement ValidatorWorkspace toggle + audit panel (compliance-desk styling).**
 - [ ] **Step 5: Update ScopePanel + PRODUCTION_STATUS.**
 - [ ] **Step 6: Full suites + production build (`cd app/web && npm run build`).**
-- [ ] **Step 7: Commit** — `feat(api): converter behind ?convert=format + audit panel`.
+- [ ] **Step 7: Commit** — `feat(api): converter route + audit panel`.
 
 ## Task 5: Review cadence + docs
 
@@ -114,3 +124,4 @@
 ## Legal-risk summary (for external claims)
 
 Validation is not enforcement: the FTA/ASP keeps rejection/penalty/audit authority; running the same rules does not make einvoicecheck a regulator. Real liability exposure comes from fabricating compliance (auto-writing data), overclaiming acceptance (FTA-approved/guaranteed language), and acting as a filing/transmission service (accreditation). Issuer remains responsible for invoice accuracy (Tax Procedures Decree-Law No. 28/2022; VAT Decree-Law No. 8/2017). Four guardrails make the converter safe: (1) format-only repair, (2) refuse on data-semantic errors, (3) audit trail + hashes, (4) draft-not-certification language. Confirm specifics with a UAE tax advisor before external publication.
+
