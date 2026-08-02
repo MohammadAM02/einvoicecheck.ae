@@ -15,8 +15,21 @@ export const dynamic = 'force-dynamic';
  * Nothing about the submitted XML is persisted here.
  */
 const TOOL = 'uae-e-invoice-converter';
-const API_CONVERT_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.einvoicecheck.ae'}/v1/convert`;
 const MAX_BYTES = 256 * 1024;
+
+/**
+ * Resolve the API base URL and normalize it to an absolute http(s) URL.
+ * NEXT_PUBLIC_API_BASE_URL may be stored without a scheme (e.g.
+ * "api-production-09ce.up.railway.app") — fetch() rejects scheme-less
+ * URLs with a TypeError, which surfaces as a confusing "could not reach"
+ * 502 instead of the real error.
+ */
+function apiBaseUrl(): string {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.einvoicecheck.ae';
+  if (/^https?:\/\//i.test(base)) return base;
+  return `https://${base}`;
+}
+const API_CONVERT_URL = `${apiBaseUrl()}/v1/convert`;
 
 /**
  * Server-side API key used by the free tool to call the paid converter API.
