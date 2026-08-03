@@ -1,6 +1,4 @@
 .worktrees/
-.claude/worktrees/
-.hermes/
 *-scan.json
 *-licenses.json
 upgrades-*.json

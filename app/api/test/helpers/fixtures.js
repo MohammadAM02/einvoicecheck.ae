@@ -2,8 +2,6 @@
  * Test fixtures — a fully valid UAE tax invoice and deliberately broken
  * variants. All amounts are AED, standard-rated at 5%.
  */
-import fs from 'node:fs';
-import path from 'node:path';
 
 // Valid: 2 lines, standard rate 5%, totals reconcile exactly.
 export function validInvoice() {
@@ -108,22 +106,4 @@ export function validUblXml() {
     <cac:Price><cbc:PriceAmount currencyID="AED">50.00</cbc:PriceAmount></cac:Price>
   </cac:InvoiceLine>
 </Invoice>`;
-}
-
-// Vendored official PINT AE example, patched to satisfy all 301 interpreter
-// asserts. Every vendored example carries one recurring defect — a line-price
-// AllowanceCharge with BaseAmount but no MultiplierFactorNumeric and no reason
-// (see schematron.test.js baseline) — so the fixture adds both to the price
-// allowance of the standard tax invoice example and nothing else. Runs the
-// interpreter to zero errors; do not edit the example file itself, the parity
-// test pins its exact baseline failures.
-export function validPintXml() {
-  const xml = fs.readFileSync(
-    path.join(import.meta.dirname, '..', '..', 'schematron', 'examples', 'Standard tax invoice.xml'),
-    'utf8'
-  );
-  return xml.replace(
-    '<cbc:Amount currencyID="AED">0.1</cbc:Amount>',
-    '<cbc:Amount currencyID="AED">0.1</cbc:Amount>\n\t\t\t<cbc:AllowanceChargeReason>Price discount</cbc:AllowanceChargeReason>\n\t\t\t<cbc:MultiplierFactorNumeric>2</cbc:MultiplierFactorNumeric>'
-  );
 }

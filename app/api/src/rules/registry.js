@@ -6,19 +6,13 @@ import { vatCategoryRule } from './checks/vatCategory.js';
 import { lineArithmeticRule } from './checks/lineArithmetic.js';
 import { documentTotalsRule } from './checks/documentTotals.js';
 import { taxBreakdownRule } from './checks/taxBreakdown.js';
-import { schematronRule } from './schematron.js';
-import { structureRule } from './structure.js';
 
 /**
- * Ordered rule registry. Order is fixed for deterministic output. The
- * Schematron + structural (XSD-lite) layers (PINT AE rule IDs) run ahead of
- * the semantic rules; when the official UBL/PINT AE XSD + Schematron ruleset
- * is vendored with a runner (see TODO(pint-ae-xsd) in xml.js), its adapter
- * registers here too.
+ * Ordered rule registry. Order is fixed for deterministic output. To add the
+ * official UBL/PINT AE XSD + Schematron layer, register it here ahead of the
+ * semantic rules (see TODO(pint-ae-xsd) in xml.js).
  */
 export const RULES = [
-  schematronRule,
-  structureRule,
   invoiceTypeRule,
   requiredFieldsRule,
   trnRule,

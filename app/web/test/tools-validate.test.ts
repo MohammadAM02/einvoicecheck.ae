@@ -63,14 +63,14 @@ function validInvoice() {
 
 describe('free tool runs the REAL rule engine', () => {
   it('the vendored engine is byte-identical to app/api/src/rules', async () => {
-    async function hashTree(dir: string, skipDirs: Set<string> = new Set(), skipFiles: Set<string> = new Set()) {
+    async function hashTree(dir: string, skipDirs: Set<string> = new Set()) {
       const out: Record<string, string> = {};
       for (const entry of await readdir(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
           if (skipDirs.has(entry.name)) continue;
-          for (const [k, v] of Object.entries(await hashTree(full, skipDirs, skipFiles))) out[`${entry.name}/${k}`] = v;
-        } else if (entry.name.endsWith('.js') && !skipFiles.has(entry.name)) {
+          for (const [k, v] of Object.entries(await hashTree(full, skipDirs))) out[`${entry.name}/${k}`] = v;
+        } else if (entry.name.endsWith('.js')) {
           out[entry.name] = createHash('sha256').update(await readFile(full)).digest('hex');
         }
       }
@@ -78,12 +78,8 @@ describe('free tool runs the REAL rule engine', () => {
     }
     // If this fails, re-copy app/api/src/rules -> app/web/src/lib/rules. The free
     // tool must never diverge from the paid API's engine.
-    // API-only, not vendored rule logic: the 'convert' directory (pipeline code)
-    // and schematron-interpreter.js (the full PINT AE runner — jsdom/fontoxpath
-    // are server-side; the web tool gets the deterministic adapter instead).
-    expect(await hashTree(WEB_RULES)).toEqual(
-      await hashTree(API_RULES, new Set(['convert']), new Set(['schematron-interpreter.js']))
-    );
+    // The 'convert' directory is API-only pipeline code — not vendored rule logic.
+    expect(await hashTree(WEB_RULES)).toEqual(await hashTree(API_RULES, new Set(['convert'])));
   });
 
   it('accepts a valid canonical JSON invoice with no errors', async () => {

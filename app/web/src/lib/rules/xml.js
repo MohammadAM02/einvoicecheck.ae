@@ -93,23 +93,13 @@ export function parseUblInvoice(xmlString) {
     const item = toArray(ln.Item)[0] || {};
     const cat = toArray(item.ClassifiedTaxCategory)[0] || {};
     const price = toArray(ln.Price)[0] || {};
-    // Sum line-level AllowanceCharge amounts (ChargeIndicator=true → charge).
-    // Without this the line net (qty x price - allowance + charge) cannot
-    // reconcile for invoices carrying line adjustments.
-    let allowance = 0;
-    let charge = 0;
-    for (const ac of toArray(ln.AllowanceCharge)) {
-      const amt = num(amount(ac.Amount)) || 0;
-      if (text(ac.ChargeIndicator) === 'true') charge += amt;
-      else allowance += amt;
-    }
     return {
       id: text(ln.ID) ?? String(i + 1),
       quantity: num(amount(ln[qtyKey])),
       unitPrice: num(amount(price.PriceAmount)),
       lineExtensionAmount: num(amount(ln.LineExtensionAmount)),
-      allowance,
-      charge,
+      allowance: 0,
+      charge: 0,
       taxCategory: { code: text(cat.ID), rate: num(text(cat.Percent)) },
       itemName: text(item.Name),
     };

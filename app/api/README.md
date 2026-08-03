@@ -20,7 +20,6 @@ per-key Redis rate limiting, usage-metering events written to Mongo.
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | `POST` | `/v1/validate` | API key | Preflight-validate a UAE invoice (JSON or UBL 2.1 / PINT AE XML) |
-| `POST` | `/v1/validate/pint` | API key | Full PINT AE Schematron conformance report (XML only) |
 | `GET`  | `/usage` | API key | Per-key usage metering (all-time / 30d / today + outcome breakdown) |
 | `GET`  | `/health` | none | Liveness + readiness (checks Mongo + Redis) |
 
@@ -85,22 +84,8 @@ the exact PINT-AE schematron IDs should be confirmed against the official
 package — see `TODO(pint-ae-xsd)`.
 
 ### What is intentionally NOT implemented (V1 preflight scope)
-- **PINT AE rule layer IS implemented** as deterministic JS: `ENG-SCH-01`
-  (IBR-073 date format, EN 16931 BR-CO-11 prepaid ≤ payable — no PINT AE
-  assert covers it, the vendored `ibr-co-11` is the allowance-sum rule) and
-  `ENG-XSD-01` structural XSD-lite (IBR-001 CustomizationID URN value,
-  BR-CO-18 line-id uniqueness, BT-1 invoice-number length). This is a
-  rule-driven layer, not the official engine — see the next bullet.
-- Full PINT AE **Schematron runner IS implemented**: the vendored `.sch`
-  ruleset (`app/api/schematron/*.sch`) is executed in-process by
-  `validateSchematron` (`schematron-interpreter.js`, fontoxpath over jsdom,
-  301 asserts) and exposed as `POST /v1/validate/pint` (XML-only). The
-  response keeps the two rule vocabularies apart: interpreter failures
-  (`ibr-*`/`aligned-*`) in `errors`, engine failures (`ENG-*`) in `semantic`,
-  plus `evaluated`/`totalAsserts` coverage diagnostics. `/v1/validate` stays
-  semantic-only. The official UBL 2.1 **XSD** structural pass is not
-  implemented — anchored via `TODO(pint-ae-xsd)` in `xml.js`;
-  `schematron.js` is the adapter point.
+- Full UBL/PINT AE **XSD** structural validation and the complete **Schematron**
+  rule set (anchored via `TODO(pint-ae-xsd)`).
 - XML **digital signature**, **AS4** transmission, and the Peppol participant
   lookup — these belong to an accredited ASP, not a preflight linter.
 - The complete ISO 4217 currency table (shape-checked; AED is the material case).
