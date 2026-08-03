@@ -19,7 +19,7 @@ import { err } from './error.js';
  */
 export const structureRule = {
   id: 'ENG-XSD-01',
-  spec: 'IBR-001 (CustomizationID URN), BR-CO-18, BT-1 (PINT AE structural / XSD-lite)',
+  spec: 'IBR-001 (IBT-024 CustomizationID URN), BR-CO-18 (IBT-126), BT-1 (PINT AE structural / XSD-lite)',
   description: 'Structural conformance: CustomizationID URN, line-id uniqueness, invoice number length.',
   evaluate(inv) {
     const out = [];
