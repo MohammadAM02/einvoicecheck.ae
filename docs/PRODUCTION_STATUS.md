@@ -108,8 +108,8 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 | IBR-CO-15 tax-inclusive | `documentTotals.js` — `ENG-TOT-15` | IBR-CO-15 | ✅ |
 | IBR-CO-16 payable | `documentTotals.js` — `ENG-TOT-16` | IBR-CO-16 | ✅ |
 | IBR-CO-17 allowance/charge total | (covered by CO-13) | IBR-CO-17 | ✅ (redundant) |
-| IBR-CO-11 prepaid ≤ payable | ❌ **Missing** | IBR-CO-11 | 🔴 Gap |
-| IBR-073 date format YYYY-MM-DD | ❌ **Missing** | IBR-073 | 🔴 Gap |
+| IBR-CO-11 prepaid ≤ payable | `schematron.js` — `ENG-SCH-01/IBR-CO-11` | IBR-CO-11 | ✅ |
+| IBR-073 date format YYYY-MM-DD | `schematron.js` — `ENG-SCH-01/IBR-073` | IBR-073 | ✅ |
 
 ### Fault Injection Findings (Adversarial Review)
 
@@ -156,8 +156,9 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 
 ### P0 — Before Next Release
 
-- [ ] **IBR-073**: Add date format validation (`YYYY-MM-DD`) to `requiredFields.js`
-- [ ] **IBR-CO-11**: Add prepaid ≤ payable check to `documentTotals.js`
+- [x] **IBR-073**: Add date format validation (`YYYY-MM-DD`) to the Schematron layer — `ENG-SCH-01/IBR-073` in `app/api/src/rules/schematron.js`
+- [x] **IBR-CO-11**: Add prepaid ≤ payable check to the Schematron layer — `ENG-SCH-01/IBR-CO-11` in `app/api/src/rules/schematron.js`
+- [ ] **Full official XSD + Schematron runner**: vendor the PINT AE ruleset + pick a runner (Java subprocess / WASM / Node) — `TODO(pint-ae-xsd)` in `app/api/src/rules/xml.js`; `schematron.js` is the adapter point
 - [x] **Fault #1**: Guard against non-numeric total fields causing silent arithmetic bypass — `ENG-NUM-01` numeric guard added (`9e2b3ef`)
 - [x] **Fault #8**: Sanitize parse-error messages to not leak internal details — crash detail logged server-side only (`9e2b3ef`)
 - [x] **API models missing from repo**: Restored `app/api/src/models/ApiKey.js` and `UsageEvent.js` (`4291e8c`). Safe-registration pattern (`mongoose.models.X ||`) prevents test-environment re-compile errors. 19/19 tests green, all 6 suites pass.
