@@ -110,7 +110,7 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 | IBR-CO-17 allowance/charge total | (covered by CO-13) | IBR-CO-17 | ✅ (redundant) |
 | Prepaid ≤ payable (EN 16931 BR-CO-11; no PINT AE assert exists — the vendored `ibr-co-11` is the allowance-sum rule) | `schematron.js` — `ENG-SCH-01/IBT-113-LE-IBT-115` | EN 16931 BR-CO-11 | ✅ |
 | IBR-073 date format YYYY-MM-DD | `schematron.js` — `ENG-SCH-01/IBR-073` (JSON path); interpreter `ibr-073` (XML path) | IBR-073 | ✅ |
-| Full PINT AE Schematron interpreter | `schematron-interpreter.js` — `validateSchematron` (301 asserts, vendored `.sch`, fontoxpath) wired into `/v1/validate` for XML input | all IBR-*/ibrp-* | ✅ |
+| Full PINT AE Schematron interpreter | `schematron-interpreter.js` — `validateSchematron` (301 asserts, vendored `.sch`, fontoxpath) on `POST /v1/validate/pint` (XML-only; interpreter failures in `errors`, engine failures in `semantic`) | all IBR-*/ibrp-* | ✅ |
 | IBR-001 CustomizationID present + PINT URN value | `structure.js` — `ENG-XSD-01/IBT-024` | IBR-001 (ibt-024) | ✅ |
 | BR-CO-18 line-id uniqueness | `structure.js` — `ENG-XSD-01/BR-CO-18 (BT-126)` | IBR-CO-18 | ✅ |
 | BT-1 invoice number ≤ 16 chars | `structure.js` — `ENG-XSD-01/BT-1` | BT-1 | ✅ |
@@ -162,7 +162,7 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 
 - [x] **IBR-073**: Add date format validation (`YYYY-MM-DD`) to the Schematron layer — `ENG-SCH-01/IBR-073` in `app/api/src/rules/schematron.js`
 - [x] **IBR-CO-11**: Add prepaid ≤ payable check to the Schematron layer — `ENG-SCH-01/IBR-CO-11` in `app/api/src/rules/schematron.js`
-- [x] **Full PINT AE Schematron runner**: vendored the official `.sch` ruleset (`app/api/schematron/*.sch`) + Node interpreter (`validateSchematron`, fontoxpath over jsdom) — wired into `/v1/validate` for XML input; converter pipeline deliberately keeps the deterministic engine only (its classifier treats every engine error as data-semantic → REFUSE). Remaining XSD gap: official UBL 2.1 XSD structural pass — `TODO(pint-ae-xsd)` in `app/api/src/rules/xml.js`; `schematron.js` is the adapter point
+- [x] **Full PINT AE Schematron runner**: vendored the official `.sch` ruleset (`app/api/schematron/*.sch`) + Node interpreter (`validateSchematron`, fontoxpath over jsdom) — exposed as `POST /v1/validate/pint` (XML-only); `/v1/validate` stays semantic-only, and the converter pipeline deliberately keeps the deterministic engine only (its classifier treats every engine error as data-semantic → REFUSE). Remaining XSD gap: official UBL 2.1 XSD structural pass — `TODO(pint-ae-xsd)` in `app/api/src/rules/xml.js`; `schematron.js` is the adapter point
 - [x] **Fault #1**: Guard against non-numeric total fields causing silent arithmetic bypass — `ENG-NUM-01` numeric guard added (`9e2b3ef`)
 - [x] **Fault #8**: Sanitize parse-error messages to not leak internal details — crash detail logged server-side only (`9e2b3ef`)
 - [x] **API models missing from repo**: Restored `app/api/src/models/ApiKey.js` and `UsageEvent.js` (`4291e8c`). Safe-registration pattern (`mongoose.models.X ||`) prevents test-environment re-compile errors. 19/19 tests green, all 6 suites pass.

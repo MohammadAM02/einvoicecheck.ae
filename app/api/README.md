@@ -20,6 +20,7 @@ per-key Redis rate limiting, usage-metering events written to Mongo.
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | `POST` | `/v1/validate` | API key | Preflight-validate a UAE invoice (JSON or UBL 2.1 / PINT AE XML) |
+| `POST` | `/v1/validate/pint` | API key | Full PINT AE Schematron conformance report (XML only) |
 | `GET`  | `/usage` | API key | Per-key usage metering (all-time / 30d / today + outcome breakdown) |
 | `GET`  | `/health` | none | Liveness + readiness (checks Mongo + Redis) |
 
@@ -93,9 +94,13 @@ package — see `TODO(pint-ae-xsd)`.
 - Full PINT AE **Schematron runner IS implemented**: the vendored `.sch`
   ruleset (`app/api/schematron/*.sch`) is executed in-process by
   `validateSchematron` (`schematron-interpreter.js`, fontoxpath over jsdom,
-  301 asserts) and runs on XML input to `/v1/validate`. The official UBL 2.1
-  **XSD** structural pass is not implemented — anchored via
-  `TODO(pint-ae-xsd)` in `xml.js`; `schematron.js` is the adapter point.
+  301 asserts) and exposed as `POST /v1/validate/pint` (XML-only). The
+  response keeps the two rule vocabularies apart: interpreter failures
+  (`ibr-*`/`aligned-*`) in `errors`, engine failures (`ENG-*`) in `semantic`,
+  plus `evaluated`/`totalAsserts` coverage diagnostics. `/v1/validate` stays
+  semantic-only. The official UBL 2.1 **XSD** structural pass is not
+  implemented — anchored via `TODO(pint-ae-xsd)` in `xml.js`;
+  `schematron.js` is the adapter point.
 - XML **digital signature**, **AS4** transmission, and the Peppol participant
   lookup — these belong to an accredited ASP, not a preflight linter.
 - The complete ISO 4217 currency table (shape-checked; AED is the material case).
