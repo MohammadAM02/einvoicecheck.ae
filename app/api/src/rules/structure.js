@@ -6,8 +6,9 @@ import { err } from './error.js';
  * rules. This is the "B" path: hand-written structural checks instead of the
  * official UBL 2.1 XSD + Schematron runner.
  *
- * Covered here (PINT AE refs):
- *   IBR-024    ibt-024 (CustomizationID) shall be the PINT AE URN
+ * Covered here (PINT AE refs — term IDs are IBT-*, rule IDs are IBR-*):
+ *   IBR-001    ibt-024 (CustomizationID / Specification identifier) present,
+ *              and its value shall be the PINT AE specification URN
  *   BR-CO-18   each invoice line (ibg-25) shall have a unique id (ibt-126)
  *   BT-1       invoice number shall be max 16 characters
  *
@@ -18,15 +19,15 @@ import { err } from './error.js';
  */
 export const structureRule = {
   id: 'ENG-XSD-01',
-  spec: 'IBR-024, BR-CO-18, BT-1 (PINT AE structural / XSD-lite)',
-  description: 'Structural conformance: CustomizationID, line-id uniqueness, invoice number length.',
+  spec: 'IBR-001 (CustomizationID URN), BR-CO-18, BT-1 (PINT AE structural / XSD-lite)',
+  description: 'Structural conformance: CustomizationID URN, line-id uniqueness, invoice number length.',
   evaluate(inv) {
     const out = [];
 
-    // IBR-024 — CustomizationID shall be the PINT AE specification URN
+    // IBR-001 (ibt-024) — Specification identifier present and equal to the PINT AE URN
     const sv = inv.schemaVersion;
     if (sv && !/^urn:peppol:pint:billing-\d+@ae-\d+$/.test(String(sv))) {
-      out.push(err('/schemaVersion', 'ENG-XSD-01/IBR-024',
+      out.push(err('/schemaVersion', 'ENG-XSD-01/IBT-024',
         `CustomizationID (BT-24) "${sv}" is not a PINT AE specification URN.`,
         'Set schemaVersion to urn:peppol:pint:billing-1@ae-1.'));
     }

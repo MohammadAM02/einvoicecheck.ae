@@ -86,9 +86,9 @@ package — see `TODO(pint-ae-xsd)`.
 ### What is intentionally NOT implemented (V1 preflight scope)
 - **PINT AE rule layer IS implemented** as deterministic JS: `ENG-SCH-01`
   (IBR-073 date format, IBR-CO-11 prepaid ≤ payable) and `ENG-XSD-01`
-  structural XSD-lite (IBR-024 CustomizationID, BR-CO-18 line-id uniqueness,
-  BT-1 invoice-number length). This is a rule-driven layer, not the official
-  engine — see the next bullet.
+  structural XSD-lite (IBR-001 CustomizationID URN value, BR-CO-18 line-id
+  uniqueness, BT-1 invoice-number length). This is a rule-driven layer, not the
+  official engine — see the next bullet.
 - Full official UBL/PINT AE **XSD** + complete **Schematron runner** (vendored
   `.sch` executed via a Java/WASM runner) — not implemented; anchored via
   `TODO(pint-ae-xsd)` in `xml.js`. `schematron.js` is the adapter point.

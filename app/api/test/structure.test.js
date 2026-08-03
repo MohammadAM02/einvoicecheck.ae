@@ -25,12 +25,12 @@ describe('XSD-lite structural layer (PINT AE)', () => {
     expect(r.errors.filter((e) => e.severity === 'error')).toHaveLength(0);
   });
 
-  it('flags a non-PINT CustomizationID (IBR-024)', () => {
+  it('flags a non-PINT CustomizationID (IBT-024 value / IBR-001)', () => {
     const inv = validInvoice();
     inv.schemaVersion = 'urn:custom:not-pint';
     const r = validateInvoice(inv);
     expect(r.valid).toBe(false);
-    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-024'))).toBe(true);
+    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBT-024'))).toBe(true);
   });
 
   it('accepts the default PINT AE schema version when absent', () => {
