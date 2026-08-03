@@ -4,10 +4,11 @@ const INCLUDED = [
   'Currency and code-list membership',
   'VAT category and rate consistency',
   'Line arithmetic, tax breakdown and totals',
+  'PINT AE Schematron and structural rules (IBR-073, IBR-CO-11, IBR-024, BR-CO-18)',
 ];
 
 const EXCLUDED = [
-  'Complete official XSD or Schematron conformity',
+  'Byte-for-byte official XSD or Schematron runner (we run PINT AE rules as a rule layer)',
   'FTA registration lookup',
   'Legal transmission, filing or archival',
   'Guaranteed ASP or authority acceptance',

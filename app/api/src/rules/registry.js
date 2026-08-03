@@ -7,15 +7,18 @@ import { lineArithmeticRule } from './checks/lineArithmetic.js';
 import { documentTotalsRule } from './checks/documentTotals.js';
 import { taxBreakdownRule } from './checks/taxBreakdown.js';
 import { schematronRule } from './schematron.js';
+import { structureRule } from './structure.js';
 
 /**
  * Ordered rule registry. Order is fixed for deterministic output. The
- * Schematron layer (PINT AE rule IDs) runs ahead of the semantic rules; when
- * the official UBL/PINT AE XSD + Schematron ruleset is vendored with a runner
- * (see TODO(pint-ae-xsd) in xml.js), its adapter registers here too.
+ * Schematron + structural (XSD-lite) layers (PINT AE rule IDs) run ahead of
+ * the semantic rules; when the official UBL/PINT AE XSD + Schematron ruleset
+ * is vendored with a runner (see TODO(pint-ae-xsd) in xml.js), its adapter
+ * registers here too.
  */
 export const RULES = [
   schematronRule,
+  structureRule,
   invoiceTypeRule,
   requiredFieldsRule,
   trnRule,

@@ -110,6 +110,9 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 | IBR-CO-17 allowance/charge total | (covered by CO-13) | IBR-CO-17 | ✅ (redundant) |
 | IBR-CO-11 prepaid ≤ payable | `schematron.js` — `ENG-SCH-01/IBR-CO-11` | IBR-CO-11 | ✅ |
 | IBR-073 date format YYYY-MM-DD | `schematron.js` — `ENG-SCH-01/IBR-073` | IBR-073 | ✅ |
+| IBR-024 CustomizationID URN | `structure.js` — `ENG-XSD-01/IBR-024` | IBR-024 | ✅ |
+| BR-CO-18 line-id uniqueness | `structure.js` — `ENG-XSD-01/BR-CO-18 (BT-126)` | IBR-CO-18 | ✅ |
+| BT-1 invoice number ≤ 16 chars | `structure.js` — `ENG-XSD-01/BT-1` | BT-1 | ✅ |
 
 ### Fault Injection Findings (Adversarial Review)
 
