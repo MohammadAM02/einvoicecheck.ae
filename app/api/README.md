@@ -85,13 +85,17 @@ package — see `TODO(pint-ae-xsd)`.
 
 ### What is intentionally NOT implemented (V1 preflight scope)
 - **PINT AE rule layer IS implemented** as deterministic JS: `ENG-SCH-01`
-  (IBR-073 date format, IBR-CO-11 prepaid ≤ payable) and `ENG-XSD-01`
-  structural XSD-lite (IBR-001 CustomizationID URN value, BR-CO-18 line-id
-  uniqueness, BT-1 invoice-number length). This is a rule-driven layer, not the
-  official engine — see the next bullet.
-- Full official UBL/PINT AE **XSD** + complete **Schematron runner** (vendored
-  `.sch` executed via a Java/WASM runner) — not implemented; anchored via
-  `TODO(pint-ae-xsd)` in `xml.js`. `schematron.js` is the adapter point.
+  (IBR-073 date format, EN 16931 BR-CO-11 prepaid ≤ payable — no PINT AE
+  assert covers it, the vendored `ibr-co-11` is the allowance-sum rule) and
+  `ENG-XSD-01` structural XSD-lite (IBR-001 CustomizationID URN value,
+  BR-CO-18 line-id uniqueness, BT-1 invoice-number length). This is a
+  rule-driven layer, not the official engine — see the next bullet.
+- Full PINT AE **Schematron runner IS implemented**: the vendored `.sch`
+  ruleset (`app/api/schematron/*.sch`) is executed in-process by
+  `validateSchematron` (`schematron-interpreter.js`, fontoxpath over jsdom,
+  301 asserts) and runs on XML input to `/v1/validate`. The official UBL 2.1
+  **XSD** structural pass is not implemented — anchored via
+  `TODO(pint-ae-xsd)` in `xml.js`; `schematron.js` is the adapter point.
 - XML **digital signature**, **AS4** transmission, and the Peppol participant
   lookup — these belong to an accredited ASP, not a preflight linter.
 - The complete ISO 4217 currency table (shape-checked; AED is the material case).

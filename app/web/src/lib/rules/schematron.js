@@ -8,17 +8,24 @@ import { isNumber } from './money.js';
  * pint-ae/trn-invoice/businessrule/):
  *
  *   IBR-073    ibt-002 (Issue date) shall be in the format YYYY-MM-DD
- *   IBR-CO-11  ibt-113 (Prepaid amount) shall not exceed ibt-115 (Payable amount)
+ *   EN 16931 BR-CO-11  ibt-113 (Prepaid amount) shall not exceed ibt-115
+ *
+ * Note on the prepaid check: the vendored PINT AE .sch does not carry a
+ * prepaid-vs-payable assert — its ibr-co-11 is the allowance-sum rule (BR-CO-11
+ * per docs.peppol.eu). The check below is the EN 16931 BR-CO-11 equivalent, so
+ * it keeps the engine-specific ID ENG-SCH-01/IBT-113-LE-IBT-115 rather than
+ * colliding with the interpreter's real ibr-co-11.
  *
  * ponytail: these are JS implementations of the two PINT rules the semantic
- * engine does not cover. When the official PINT AE XSD + Schematron ruleset is
- * vendored with a runner (xml.js TODO(pint-ae-xsd)), this module becomes the
- * adapter that maps runner output into the same {path, rule, message, fix}
- * error shape — the rule IDs must not change.
+ * engine does not cover. The full interpreter over the raw XML (all 301
+ * asserts, jsdom/fontoxpath) lives in schematron-interpreter.js — API-only,
+ * wired by the route layer; this module is vendored to the web app
+ * byte-identical and must not import server-only modules. Rule IDs must not
+ * change.
  */
 export const schematronRule = {
   id: 'ENG-SCH-01',
-  spec: 'IBR-073, IBR-CO-11 (PINT AE Schematron)',
+  spec: 'IBR-073, EN 16931 BR-CO-11 prepaid <= payable (ibt-113 <= ibt-115)',
   description: 'PINT AE Schematron-layer checks: issue date format and prepaid-vs-payable.',
   evaluate(inv) {
     const out = [];
@@ -35,11 +42,12 @@ export const schematronRule = {
       }
     }
 
-    // IBR-CO-11 — prepaid amount shall not exceed payable amount (ibt-113 <= ibt-115)
+    // Prepaid amount shall not exceed payable amount (ibt-113 <= ibt-115).
+    // No PINT AE assert covers this — see the module comment.
     const prepaid = inv.prepaidAmount;
     const payable = inv.totals && inv.totals.payableAmount;
     if (isNumber(prepaid) && isNumber(payable) && Number(prepaid) > Number(payable)) {
-      out.push(err('/prepaidAmount', 'ENG-SCH-01/IBR-CO-11',
+      out.push(err('/prepaidAmount', 'ENG-SCH-01/IBT-113-LE-IBT-115',
         `Prepaid amount (BT-113) ${prepaid} exceeds payable amount (BT-115) ${payable}.`,
         `Set prepaidAmount to at most ${payable}.`));
     }

@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { validateSchematron } from '../src/rules/schematron.js';
+import { validateSchematron } from '../src/rules/schematron-interpreter.js';
 import { validateInvoice } from '../src/rules/engine.js';
 
 const EXAMPLES = path.join(import.meta.dirname, '..', 'schematron', 'examples');
@@ -127,11 +127,11 @@ describe('Schematron engine rule adapter (ENG-SCH-01)', () => {
     expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-073'))).toBe(true);
   });
 
-  it('flags IBR-CO-11 when prepaid exceeds payable', () => {
+  it('flags prepaid > payable via ENG-SCH-01/IBT-113-LE-IBT-115', () => {
     const inv = validInvoice();
     inv.prepaidAmount = 500;
     const r = validateInvoice(inv);
     expect(r.valid).toBe(false);
-    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-CO-11'))).toBe(true);
+    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBT-113-LE-IBT-115'))).toBe(true);
   });
 });
