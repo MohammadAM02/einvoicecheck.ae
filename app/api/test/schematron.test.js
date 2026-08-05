@@ -1,5 +1,5 @@
 /**
- * Parity test for the Schematron interpreter (app/api/src/rules/schematron.js).
+ * Parity test for the Schematron interpreter (app/api/src/schematron-interpreter.js).
  *
  * Mirrors the official TDD pattern from ph-schematron's
  * PeppolUAETDDValidatorTest: good documents must produce zero unexpected
@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { validateSchematron } from '../src/rules/schematron.js';
+import { validateSchematron } from '../src/schematron-interpreter.js';
 import { validateInvoice } from '../src/rules/engine.js';
 import { validUblXml } from './helpers/fixtures.js';
 

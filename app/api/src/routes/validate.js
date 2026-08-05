@@ -1,5 +1,5 @@
 import { validateInvoice } from '../rules/engine.js';
-import { validateSchematron } from '../rules/schematron.js';
+import { validateSchematron } from '../schematron-interpreter.js';
 import { looksLikeXml } from '../rules/xml.js';
 import { authenticate, makeRateLimiter } from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';

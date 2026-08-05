@@ -1,20 +1,32 @@
-import { err } from './error.js';
-import { isNumber } from './money.js';
-
 /**
- * Schematron layer — PINT AE business rules implemented as deterministic
- * checks, registered ahead of the semantic rules (registry.js). Rule IDs carry
- * the official PINT AE references (https://docs.peppol.eu/poac/ae/v1.0.1/
+ * Schematron layer — browser-safe adapter, vendored byte-identical to the
+ * web tool (app/web/src/lib/rules/). The full PINT AE interpreter
+ * (validateSchematron) is node-only and lives OUTSIDE this tree at
+ * ../schematron-interpreter.js; it is wired by the route layer.
+ *
+ * PINT AE business rules implemented as deterministic checks, registered
+ * ahead of the semantic rules (registry.js). Rule IDs carry the official
+ * PINT AE references (https://docs.peppol.eu/poac/ae/v1.0.1/
  * pint-ae/trn-invoice/businessrule/):
  *
  *   IBR-073    ibt-002 (Issue date) shall be in the format YYYY-MM-DD
  *   IBR-CO-11  ibt-113 (Prepaid amount) shall not exceed ibt-115 (Payable amount)
+ */
+import { err } from './error.js';
+import { isNumber } from './money.js';
+
+/**
+ * Engine rule adapter — registered in registry.js ahead of the semantic rules.
+ * Keeps the two deterministic PINT checks the engine covers (IBR-073 date
+ * format, IBR-CO-11 prepaid <= payable) so the canonical JSON path and rule
+ * IDs stay stable. The full interpreter (validateSchematron) runs over raw
+ * XML and is wired by the route layer; rule IDs must not change.
  *
- * ponytail: these are JS implementations of the two PINT rules the semantic
- * engine does not cover. When the official PINT AE XSD + Schematron ruleset is
- * vendored with a runner (xml.js TODO(pint-ae-xsd)), this module becomes the
- * adapter that maps runner output into the same {path, rule, message, fix}
- * error shape — the rule IDs must not change.
+ * XML yield: the interpreter's ibr-073 assert covers the same defect as the
+ * date check below, so for ubl-xml input this rule yields the date check to
+ * avoid reporting one defect twice with different rule IDs. IBR-CO-11 has no
+ * .sch equivalent (the .sch only has the stronger ibr-co-16 equality), so it
+ * runs on both paths.
  */
 export const schematronRule = {
   id: 'ENG-SCH-01',
@@ -23,9 +35,10 @@ export const schematronRule = {
   evaluate(inv) {
     const out = [];
 
-    // IBR-073 — issue date format YYYY-MM-DD (ibt-002)
+    // IBR-073 — issue date format YYYY-MM-DD (ibt-002); yields to the
+    // interpreter's ibr-073 assert for XML input (see adapter comment)
     const d = inv.issueDate;
-    if (d !== undefined && d !== '') {
+    if (inv.format !== 'ubl-xml' && d !== undefined && d !== '') {
       const iso = typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
       const real = iso && !Number.isNaN(Date.parse(`${d}T00:00:00Z`));
       if (!real) {
