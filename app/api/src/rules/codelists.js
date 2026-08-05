@@ -7,7 +7,7 @@
  *  - UAE Electronic Invoice mandatory fields v1.0 (MoF, 23 Feb 2026)
  *
  * The AE VAT category set below is GENERATED from the official genericode file
- * vendored in docs/pint-ae-resources (source of truth), NOT hand-maintained
+ * vendored in pint-ae-resources (source of truth), NOT hand-maintained
  * here. Regenerate with: node scripts/generate-codelists.mjs (see
  * app/api/scripts/generate-codelists.mjs). This module is browser-safe: it
  * has no node: imports, so the identical copy in app/web/src/lib/rules runs

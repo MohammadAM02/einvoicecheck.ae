@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import libxmljs from 'libxmljs2';
 
-const UBL_DIR = path.resolve(import.meta.dirname, '..', '..', '..', '..', '..', 'docs', 'pint-ae-resources', 'ubl-2.1', 'xsd');
+const UBL_DIR = path.resolve(import.meta.dirname, '..', '..', '..', 'pint-ae-resources', 'ubl-2.1', 'xsd');
 const MAIN_DOC = path.join(UBL_DIR, 'maindoc', 'UBL-Invoice-2.1.xsd');
 
 // Load + compile once at module load. Failure here must fail the deploy loudly —

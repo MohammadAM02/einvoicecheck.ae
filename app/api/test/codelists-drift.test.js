@@ -5,7 +5,7 @@ import { VAT_CATEGORY_CODES } from '../src/rules/codelists.js';
 
 const GC_PATH = path.resolve(
   import.meta.dirname,
-  '../../../docs/pint-ae-resources/trn-invoice/codelist/Aligned-TaxCategoryCodes.gc'
+  '../pint-ae-resources/trn-invoice/codelist/Aligned-TaxCategoryCodes.gc'
 );
 
 // Mirrors scripts/generate-codelists.mjs — if the .gc changes without

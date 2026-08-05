@@ -5,10 +5,10 @@ import path from 'node:path';
 const WORKING = path.resolve(import.meta.dirname, '..', 'schematron');
 const VENDORED = path.resolve(
   import.meta.dirname,
-  '../../../docs/pint-ae-resources/trn-invoice/schematron'
+  '../pint-ae-resources/trn-invoice/schematron'
 );
 
-// The vendored v1.0.4 tree (docs/pint-ae-resources) is the source of truth; the
+// The vendored v1.0.4 tree (app/api/pint-ae-resources) is the source of truth; the
 // interpreter's working copies in app/api/schematron must stay a synced mirror.
 // If either .sch drifts (new rule, message change, context change), this fails
 // and the sync must be done deliberately — same contract as

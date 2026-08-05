@@ -11,7 +11,7 @@ import path from 'node:path';
 
 const GC_PATH = path.resolve(
   import.meta.dirname,
-  '../../../docs/pint-ae-resources/trn-invoice/codelist/Aligned-TaxCategoryCodes.gc'
+  '../pint-ae-resources/trn-invoice/codelist/Aligned-TaxCategoryCodes.gc'
 );
 const TARGETS = [
   path.resolve(import.meta.dirname, '../src/rules/codelists.js'),
