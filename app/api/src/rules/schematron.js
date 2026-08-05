@@ -222,7 +222,18 @@ export function validateSchematron(xml) {
       try {
         ok = fp.evaluateXPathToBoolean(a.test, node, null, null, { namespaceResolver: nsResolver });
       } catch (e) {
+        // Fail-closed: an assert that cannot be evaluated must not silently
+        // pass. Surface it as an error (invalidating the document) so a rule
+        // that can't run is visible, not a free pass. Kept in evalErrors too
+        // for the route's diagnostic log.
         evalErrors.push({ rule: a.id, message: a.message, error: e.message });
+        errors.push({
+          path: xpathOf(node),
+          rule: a.id,
+          severity: a.flag === 'warning' ? 'warning' : 'error',
+          message: `${a.message} (assert could not be evaluated: ${e.message})`,
+          fix: '',
+        });
         continue;
       }
       if (!ok) {
