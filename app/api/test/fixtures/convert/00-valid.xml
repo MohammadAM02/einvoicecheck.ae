@@ -26,25 +26,6 @@
         <cac:PartyLegalEntity><cbc:RegistrationName>Customer Co LLC</cbc:RegistrationName></cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingCustomerParty>
-    <cac:InvoiceLine>
-        <cbc:ID>1</cbc:ID>
-        <cbc:InvoicedQuantity unitCode="C62">1</cbc:InvoicedQuantity>
-        <cbc:LineExtensionAmount currencyID="AED">100.00</cbc:LineExtensionAmount>
-        <cac:Item><cbc:Name>Consulting</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>5</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item>
-        <cac:Price><cbc:PriceAmount currencyID="AED">100.00</cbc:PriceAmount></cac:Price>
-        <cac:TaxTotal>
-            <cbc:TaxAmount currencyID="AED">5.00</cbc:TaxAmount>
-            <cac:TaxSubtotal>
-                <cbc:TaxableAmount currencyID="AED">100.00</cbc:TaxableAmount>
-                <cbc:TaxAmount currencyID="AED">5.00</cbc:TaxAmount>
-                <cac:TaxCategory>
-                    <cbc:ID>S</cbc:ID>
-                    <cbc:Percent>5</cbc:Percent>
-                    <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
-                </cac:TaxCategory>
-            </cac:TaxSubtotal>
-        </cac:TaxTotal>
-    </cac:InvoiceLine>
     <cac:TaxTotal>
         <cbc:TaxAmount currencyID="AED">5.00</cbc:TaxAmount>
         <cac:TaxSubtotal>
@@ -63,4 +44,23 @@
         <cbc:TaxInclusiveAmount currencyID="AED">105.00</cbc:TaxInclusiveAmount>
         <cbc:PayableAmount currencyID="AED">105.00</cbc:PayableAmount>
     </cac:LegalMonetaryTotal>
+    <cac:InvoiceLine>
+        <cbc:ID>1</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="C62">1</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="AED">100.00</cbc:LineExtensionAmount>
+        <cac:TaxTotal>
+            <cbc:TaxAmount currencyID="AED">5.00</cbc:TaxAmount>
+            <cac:TaxSubtotal>
+                <cbc:TaxableAmount currencyID="AED">100.00</cbc:TaxableAmount>
+                <cbc:TaxAmount currencyID="AED">5.00</cbc:TaxAmount>
+                <cac:TaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>5</cbc:Percent>
+                    <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+                </cac:TaxCategory>
+            </cac:TaxSubtotal>
+        </cac:TaxTotal>
+        <cac:Item><cbc:Name>Consulting</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>5</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item>
+        <cac:Price><cbc:PriceAmount currencyID="AED">100.00</cbc:PriceAmount></cac:Price>
+    </cac:InvoiceLine>
 </Invoice>

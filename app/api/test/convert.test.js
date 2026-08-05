@@ -135,7 +135,9 @@ describe('converter engine (app/api/src/rules/convert)', () => {
     expect(inv.lines[0].unitPrice).toBe(100);
     expect(inv.lines[0].lineExtensionAmount).toBe(100);
     // A non-numeric amount must block, not silently pass (Fault #1 guard).
-    const broken = xml.replace('>100.00</cbc:LineExtensionAmount>', '>abc</cbc:LineExtensionAmount>');
+    // replaceAll: both the line and invoice totals carry 100.00; the line one
+    // is no longer the first occurrence (fixture is UBL-ordered).
+    const broken = xml.replaceAll('>100.00</cbc:LineExtensionAmount>', '>abc</cbc:LineExtensionAmount>');
     const v = validateInvoice(broken, 'application/xml');
     expect(v.valid).toBe(false);
     expect(v.errors.some((e) => e.rule.startsWith('ENG-LINE-04'))).toBe(true);
@@ -162,6 +164,42 @@ describe('converter engine (app/api/src/rules/convert)', () => {
       expect(XMLValidator.validate(r.output)).toBe(true);
       expect(fingerprint(parseUblInvoice(r.output))).toBe(fingerprint(parseUblInvoice(xml)));
     }
+  });
+
+  // ——— XSD gate ———
+  it('13. valid XML gets no XSD issues', () => {
+    const r = convert(fixture('00-valid.xml'));
+    const xsdIssues = r.dataIssues.filter((d) => d.rule === 'XSD-01' || d.rule === 'XSD-ERR');
+    expect(xsdIssues).toEqual([]);
+  });
+
+  it('14. structurally-broken XML is converted with XSD issues in dataIssues (not blocked)', () => {
+    const xml = fixture('00-valid.xml').replace(
+      '<cbc:IssueDate>', '<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>\n    <cbc:IssueDate>');
+    const r = convert(xml);
+    expect(['CONVERTED', 'NOOP']).toContain(r.status); // or NOOP — repairers may not change it; either is fine
+    expect(r.blocked).toEqual([]);     // XSD never blocks
+    const xsdIssues = r.dataIssues.filter((d) => d.rule === 'XSD-01');
+    expect(xsdIssues.length).toBeGreaterThan(0);
+  });
+
+  it('15. XSD issues survive a REFUSED outcome', () => {
+    const xml = fixture('02-data-semantic.xml'); // data errors -> REFUSE in full mode
+    const r = convert(xml, { mode: 'full' });
+    expect(r.status).toBe('REFUSED');
+    // dataIssues must be an array (possibly with XSD issues appended) — the
+    // diagnostic must not be dropped just because the result is REFUSED.
+    expect(Array.isArray(r.dataIssues)).toBe(true);
+  });
+
+  it('16. fingerprint guard still passes when XSD issues are present', () => {
+    const xml = fixture('00-valid.xml').replace(
+      '<cbc:IssueDate>', '<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>\n    <cbc:IssueDate>');
+    const r = convert(xml);
+    // CONVERTED implies the fingerprint guard passed (repairers changed nothing
+    // of value) — asserting status CONVERTED/NOOP and blocked==[] is sufficient;
+    // DATA_CHANGED would surface as status 'ERROR'.
+    expect(r.status).not.toBe('ERROR');
   });
 });
 

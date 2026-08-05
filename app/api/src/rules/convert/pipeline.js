@@ -5,6 +5,7 @@ import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
 import { classifyDataSemantic } from './classifier.js';
 import { fingerprint } from './fingerprint.js';
 import * as repairers from './repairers.js';
+import { validateXsd } from './xsd.js';
 
 /** Converter-local engine version (independent of the shared rules package). */
 export const ENGINE_VERSION = '1.0.0';
@@ -26,13 +27,13 @@ function ensureDeclaration(serialized, declared) {
 
 /** REFUSED result — audits from every stage are preserved, never dropped. */
 function refuse(reason, detail, {
-  inputHash, preAudit = [], audit = [], blocked = [], wouldFix, parseHint,
+  inputHash, preAudit = [], audit = [], blocked = [], wouldFix, parseHint, xsdIssues = [],
 } = {}) {
   return {
     status: 'REFUSED', reason, detail,
     inputHash,
     audit: [...preAudit, ...audit],
-    blocked, dataIssues: [], output: undefined,
+    blocked, dataIssues: [...xsdIssues], output: undefined,
     engineVersion: ENGINE_VERSION, convertedAt: new Date().toISOString(),
     ...(wouldFix !== undefined ? { wouldFix } : {}),
     ...(parseHint !== undefined ? { parseHint } : {}),
@@ -89,6 +90,16 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
       { inputHash, preAudit, parseHint: gate?.err?.msg ?? 'Unknown XML validation error' });
   }
 
+  // 3.5 XSD structural gate — non-blocking by design. Reports the input's real
+  // structural state (element order, cardinality, datatypes, unknown elements).
+  // Never enters `blocked`; surfaced on every outcome via dataIssues.
+  let xsdIssues = [];
+  try {
+    xsdIssues = validateXsd(prepared).issues;
+  } catch (e) {
+    xsdIssues = [{ rule: 'XSD-ERR', path: '', message: `XSD gate failed: ${e.message}`, severity: 'error' }];
+  }
+
   // 4. Classify with the REAL engine. fast-xml-parser is namespace-oblivious,
   //    so format defects produce ZERO engine errors — any error here is
   //    data-semantic → REFUSE. A post-gate ENG-PARSE-01 (e.g. wrong root
@@ -98,11 +109,11 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
     const parseOnly = blocked.length === 1 && blocked[0].rule.startsWith('ENG-PARSE-01');
     if (parseOnly) {
       return refuse('UNREPAIRABLE_FORMAT', 'Document could not be parsed.',
-        { inputHash, preAudit, parseHint: blocked[0].message });
+        { inputHash, preAudit, xsdIssues, parseHint: blocked[0].message });
     }
     if (mode === 'full') {
       return refuse('DATA_SEMANTIC', 'Invoice has data errors that a converter must not fix.', {
-        inputHash, preAudit, blocked,
+        inputHash, preAudit, blocked, xsdIssues,
         wouldFix: repairers.dryRun(prepared), // throwaway parse: what WOULD change
       });
     }
@@ -118,7 +129,7 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
     fpBefore = fingerprint(invoiceBefore);
   } catch (e) {
     return refuse('UNREPAIRABLE_FORMAT', 'Document could not be parsed.',
-      { inputHash, preAudit, parseHint: e.message });
+      { inputHash, preAudit, xsdIssues, parseHint: e.message });
   }
 
   // 6. DOM-based format repair. Parse is guarded: @xmldom's namespace
@@ -128,11 +139,11 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
     doc = new DOMParser().parseFromString(prepared, 'text/xml');
   } catch (e) {
     return refuse('UNREPAIRABLE_FORMAT', 'Repairers could not parse the document structure.',
-      { inputHash, preAudit, parseHint: e.message });
+      { inputHash, preAudit, xsdIssues, parseHint: e.message });
   }
   if (!doc || !doc.documentElement || doc.documentElement.tagName === 'parsererror') {
     return refuse('UNREPAIRABLE_FORMAT', 'Repairers could not parse the document structure.',
-      { inputHash, preAudit });
+      { inputHash, preAudit, xsdIssues });
   }
 
   const repairAudit = [];
@@ -149,11 +160,11 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
     output = ensureDeclaration(new XMLSerializer().serializeToString(doc), prepared);
   } catch (e) {
     return refuse('UNREPAIRABLE_FORMAT', 'Repairers could not serialize the document.',
-      { inputHash, preAudit, audit: repairAudit, parseHint: e.message });
+      { inputHash, preAudit, audit: repairAudit, xsdIssues, parseHint: e.message });
   }
   if (XMLValidator.validate(output) !== true) {
     return refuse('UNREPAIRABLE_FORMAT', 'Repairers could not produce a well-formed document.',
-      { inputHash, preAudit, audit: repairAudit });
+      { inputHash, preAudit, audit: repairAudit, xsdIssues });
   }
 
   // 8. Fingerprint guard: same canonical model, must be identical.
@@ -180,7 +191,7 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
     inputHash, outputHash,
     audit: [...preAudit, ...repairAudit],
     blocked: [],
-    dataIssues: mode === 'format' ? blocked : [],
+    dataIssues: [...(mode === 'format' ? blocked : []), ...xsdIssues],
     output: anyChange ? output : prepared,
     engineVersion: ENGINE_VERSION,
     convertedAt: new Date().toISOString(),
