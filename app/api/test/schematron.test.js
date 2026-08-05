@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { validateSchematron } from '../src/rules/schematron.js';
 import { validateInvoice } from '../src/rules/engine.js';
+import { validUblXml } from './helpers/fixtures.js';
 
 const EXAMPLES = path.join(import.meta.dirname, '..', 'schematron', 'examples');
 
@@ -132,6 +133,27 @@ describe('Schematron engine rule adapter (ENG-SCH-01)', () => {
     inv.prepaidAmount = 500;
     const r = validateInvoice(inv);
     expect(r.valid).toBe(false);
+    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-CO-11'))).toBe(true);
+  });
+
+  // XML payloads run the full interpreter at the route layer, whose ibr-073
+  // assert covers the same defect — the adapter yields to avoid reporting one
+  // defect twice with different rule IDs (see schematronRule comment).
+  it('yields the IBR-073 date check for ubl-xml input', () => {
+    const xml = validUblXml().replace(
+      '<cbc:IssueDate>2026-07-14</cbc:IssueDate>',
+      '<cbc:IssueDate>2026/07/14</cbc:IssueDate>');
+    const r = validateInvoice(xml, 'application/xml');
+    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-073'))).toBe(false);
+  });
+
+  // IBR-CO-11 has no .sch equivalent (the .sch only has the stronger ibr-co-16
+  // equality), so the adapter keeps it on both paths.
+  it('keeps the IBR-CO-11 prepaid check for ubl-xml input', () => {
+    const xml = validUblXml().replace(
+      '<cbc:PayableAmount currencyID="AED">630.00</cbc:PayableAmount>',
+      '<cbc:PrepaidAmount currencyID="AED">700.00</cbc:PrepaidAmount>\n    <cbc:PayableAmount currencyID="AED">630.00</cbc:PayableAmount>');
+    const r = validateInvoice(xml, 'application/xml');
     expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-CO-11'))).toBe(true);
   });
 });

@@ -1,6 +1,21 @@
 import { validateInvoice } from '../rules/engine.js';
+import { validateSchematron } from '../rules/schematron.js';
+import { looksLikeXml } from '../rules/xml.js';
 import { authenticate, makeRateLimiter } from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
+
+/**
+ * Extract the raw XML string from a request body when the payload is XML:
+ * a raw XML body (application/xml / text/xml) or an { document } envelope.
+ * Returns null for canonical JSON payloads.
+ */
+function xmlPayload(body) {
+  if (typeof body === 'string' && looksLikeXml(body)) return body;
+  if (body && typeof body.document === 'string' && looksLikeXml(body.document)) {
+    return body.document;
+  }
+  return null;
+}
 
 const errorObjectSchema = {
   type: 'object',
@@ -70,6 +85,26 @@ export async function validateRoutes(fastify) {
     async (request, reply) => {
       const contentType = request.headers['content-type'] || '';
       const result = validateInvoice(request.body, contentType);
+
+      // Raw UBL / PINT AE XML payloads: also run the full Schematron
+      // interpreter on the XML string. The canonical adapter (ENG-SCH-01)
+      // yields its ibr-073 date check for XML (see schematron.js) so one
+      // defect is not reported twice; its IBR-CO-11 check has no .sch
+      // equivalent and still runs on the canonical model. Documents that
+      // failed to parse have nothing for the interpreter to check.
+      const xml = xmlPayload(request.body);
+      if (xml && !result.errors.some((e) => e.rule === 'ENG-PARSE-01')) {
+        const sch = validateSchematron(xml);
+        if (sch.evalErrors.length > 0) {
+          request.log.warn(
+            { count: sch.evalErrors.length, evalErrors: sch.evalErrors },
+            'schematron assert evaluation errors');
+        }
+        result.errors.push(...sch.errors);
+        // Warnings must not invalidate the document — only severity 'error'.
+        result.valid = result.valid && !sch.errors.some((e) => e.severity === 'error');
+      }
+
       const outcome = result.errors.some((e) => e.rule === 'ENG-PARSE-01')
         ? 'error'
         : result.valid
