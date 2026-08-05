@@ -20,11 +20,6 @@ try {
   throw new Error(`UBL 2.1 XSD schema failed to load from ${MAIN_DOC}: ${e.message}`);
 }
 
-// libxml2 reports an undeclared validation root (e.g. the doc is not an
-// Invoice at all) as a validation error, not a throw — so we must classify
-// it ourselves or it would surface as a meaningless XSD-01.
-const ROOT_MISMATCH = /No matching global declaration available for the validation root/;
-
 function pathFromMessage(message) {
   const m = message.match(/\{.*\}([A-Za-z0-9]+)/);
   return m ? `/${m[1]}` : '';
@@ -60,22 +55,7 @@ export function validateXsd(xml) {
   }
 
   if (!ok) {
-    const errors = doc.validationErrors || [];
-    if (errors.every((e) => ROOT_MISMATCH.test(e.message || ''))) {
-      evalErrors.push({
-        rule: 'XSD-ERR',
-        message: 'Document root has no matching XSD global declaration (not a UBL Invoice).',
-        error: (errors[0]?.message || '').trim(),
-      });
-      issues.push({
-        rule: 'XSD-ERR',
-        path: '',
-        message: 'XSD validation could not run: document root has no matching global declaration.',
-        severity: 'error',
-      });
-      return { issues, evalErrors };
-    }
-    for (const err of errors) {
+    for (const err of doc.validationErrors || []) {
       issues.push({
         rule: 'XSD-01',
         path: pathFromMessage(err.message || ''),

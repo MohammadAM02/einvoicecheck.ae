@@ -44,7 +44,19 @@ describe('validateXsd (UBL 2.1 structural gate)', () => {
   });
 
   it('surfaces a validator error as XSD-ERR (fail-closed)', () => {
-    const r = validateXsd('<not-an-invoice/>');
+    // Genuinely unparseable XML: libxmljs.parseXml throws, exercising the
+    // fail-closed catch path. (A well-formed non-Invoice root is NOT a
+    // validator failure — see the root-mismatch test below.)
+    const r = validateXsd('<Invoice');
     expect(r.evalErrors.length + r.issues.filter((i) => i.rule === 'XSD-ERR').length).toBeGreaterThan(0);
+  });
+
+  it('flags a well-formed non-Invoice root as XSD-01, not XSD-ERR', () => {
+    // Validation ran and found no matching global declaration for the root —
+    // a structural finding, not a validator failure.
+    const r = validateXsd('<not-an-invoice/>');
+    expect(r.issues.some((i) => i.rule === 'XSD-01')).toBe(true);
+    expect(r.issues.some((i) => i.rule === 'XSD-ERR')).toBe(false);
+    expect(r.evalErrors).toEqual([]);
   });
 });
