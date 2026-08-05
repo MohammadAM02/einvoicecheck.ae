@@ -21,23 +21,29 @@ import { validUblXml } from './helpers/fixtures.js';
 const EXAMPLES = path.join(import.meta.dirname, '..', 'schematron', 'examples');
 
 // Baseline failure rule IDs per official example (see header comment).
+// v1.03 (vendored source of truth) widened the supplier CompanyID context of
+// ibr-148-ae (dropped the [TaxScheme != 'VAT'] filter), so the 10-digit TIN
+// check now matches every supplier CompanyID — including the 15-digit TRNs in
+// the official examples. Every example therefore pins ibr-148-ae too.
+const BASELINE = ['aligned-ibrp-057', 'ibr-042', 'ibr-148-ae'];
+
 const EXPECTED = {
-  'Commercial invoice.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Continuous supplies.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Deemed supply - predefined endpoint.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Disclosed agent billing.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Exports - predefined endpoint.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Exports.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Margin scheme.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Standard invoice - Extensive.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Standard invoice Mandatory fields.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Standard tax invoice - predefined endpoint.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Standard tax invoice.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Summary tax invoice.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Supply involving free trade zone.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Supply through e-commerce.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Supply under Reverse charge mechanism.xml': ['aligned-ibrp-057', 'ibr-042'],
-  'Zero rated supplies.xml': ['aligned-ibrp-057', 'ibr-042'],
+  'Commercial invoice.xml': BASELINE,
+  'Continuous supplies.xml': BASELINE,
+  'Deemed supply - predefined endpoint.xml': BASELINE,
+  'Disclosed agent billing.xml': BASELINE,
+  'Exports - predefined endpoint.xml': BASELINE,
+  'Exports.xml': BASELINE,
+  'Margin scheme.xml': BASELINE,
+  'Standard invoice - Extensive.xml': BASELINE,
+  'Standard invoice Mandatory fields.xml': BASELINE,
+  'Standard tax invoice - predefined endpoint.xml': BASELINE,
+  'Standard tax invoice.xml': BASELINE,
+  'Summary tax invoice.xml': BASELINE,
+  'Supply involving free trade zone.xml': BASELINE,
+  'Supply through e-commerce.xml': BASELINE,
+  'Supply under Reverse charge mechanism.xml': BASELINE,
+  'Zero rated supplies.xml': BASELINE,
 };
 
 const STANDARD = fs.readFileSync(path.join(EXAMPLES, 'Standard tax invoice.xml'), 'utf8');
@@ -85,6 +91,26 @@ describe('schematron interpreter parity', () => {
     const r = validateSchematron(broken);
     const ids = new Set(r.errors.map((e) => e.rule));
     expect(ids).toContain('ibr-002');
+    expect(r.evalErrors).toEqual([]);
+  });
+
+  // v1.03 added ibr-164-ae: a line classified 'O' (Not Subject to VAT) with an
+  // ItemPriceExtension/cac:TaxAmount/cbc:TaxAmount (BTAE-08) must fail. The
+  // Standard example has the ItemPriceExtension but no 'O' line, so flip the
+  // line's category and add the (unusual, per the v1.03 rule text) nested
+  // TaxAmount shape.
+  it('Not-subject-to-VAT line with ItemPriceExtension TaxAmount fires ibr-164-ae', () => {
+    const broken = STANDARD
+      // first Item ClassifiedTaxCategory (not the line-level AllowanceCharge
+      // cac:TaxCategory, which also has <cbc:ID>S</cbc:ID>) -> 'O'
+      .replace(/<cac:ClassifiedTaxCategory>\s*<cbc:ID>S<\/cbc:ID>/, '<cac:ClassifiedTaxCategory>\n\t\t\t\t<cbc:ID>O</cbc:ID>')
+      .replace(
+        '<cac:ItemPriceExtension>',
+        '<cac:ItemPriceExtension>\n\t\t\t<cac:TaxAmount><cbc:TaxAmount currencyID="AED">10.00</cbc:TaxAmount></cac:TaxAmount>'
+      );
+    const r = validateSchematron(broken);
+    const ids = new Set(r.errors.map((e) => e.rule));
+    expect(ids).toContain('ibr-164-ae');
     expect(r.evalErrors).toEqual([]);
   });
 });

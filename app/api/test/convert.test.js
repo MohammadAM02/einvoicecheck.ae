@@ -187,9 +187,9 @@ describe('converter engine (app/api/src/rules/convert)', () => {
     const xml = fixture('02-data-semantic.xml'); // data errors -> REFUSE in full mode
     const r = convert(xml, { mode: 'full' });
     expect(r.status).toBe('REFUSED');
-    // dataIssues must be an array (possibly with XSD issues appended) — the
-    // diagnostic must not be dropped just because the result is REFUSED.
-    expect(Array.isArray(r.dataIssues)).toBe(true);
+    // The XSD gate must have run on the (unrepairable) document: its findings
+    // ride along in dataIssues even though the outcome is REFUSED.
+    expect(r.dataIssues.some((d) => d.rule === 'XSD-01' || d.rule === 'XSD-ERR')).toBe(true);
   });
 
   it('16. fingerprint guard still passes when XSD issues are present', () => {
