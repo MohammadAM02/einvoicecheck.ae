@@ -24,6 +24,7 @@
     "fontoxpath": "^3.34.0",
     "ioredis": "^5.4.2",
     "jsdom": "^30.0.1",
+    "libxmljs2": "^0.37.0",
     "mongoose": "^9.7.4"
   },
   "devDependencies": {
