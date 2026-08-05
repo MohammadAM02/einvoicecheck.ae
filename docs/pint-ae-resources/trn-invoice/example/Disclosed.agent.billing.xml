@@ -9,7 +9,7 @@
 	<cbc:ID>AE-01DAB-TEST</cbc:ID>
 	<cbc:UUID>01506abf-d824-4548-af5e-539b284b4203</cbc:UUID>
 	<cbc:IssueDate>2025-02-07</cbc:IssueDate>
-	<cbc:IssueTime>15:08:00</cbc:IssueTime>
+	<cbc:IssueTime>15:08:00+04:00</cbc:IssueTime>
 	<cbc:DueDate>2025-02-07</cbc:DueDate>
 	<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
 	<cbc:Note>Tax invoice</cbc:Note>	

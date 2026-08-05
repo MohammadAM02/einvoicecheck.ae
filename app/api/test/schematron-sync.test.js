@@ -8,7 +8,7 @@ const VENDORED = path.resolve(
   '../../../docs/pint-ae-resources/trn-invoice/schematron'
 );
 
-// The vendored v1.03 tree (docs/pint-ae-resources) is the source of truth; the
+// The vendored v1.0.4 tree (docs/pint-ae-resources) is the source of truth; the
 // interpreter's working copies in app/api/schematron must stay a synced mirror.
 // If either .sch drifts (new rule, message change, context change), this fails
 // and the sync must be done deliberately — same contract as
@@ -21,7 +21,7 @@ const FILES = [
 const norm = (s) => s.replace(/\r\n/g, '\n'); // CRLF-normalize before comparing
 
 describe('schematron working-copy drift guard', () => {
-  it.each(FILES)('%s is byte-identical to the vendored v1.03 source of truth', (f) => {
+  it.each(FILES)('%s is byte-identical to the vendored v1.0.4 source of truth', (f) => {
     const working = norm(readFileSync(path.join(WORKING, f), 'utf8'));
     const vendored = norm(readFileSync(path.join(VENDORED, f), 'utf8'));
     expect(working).toBe(vendored);

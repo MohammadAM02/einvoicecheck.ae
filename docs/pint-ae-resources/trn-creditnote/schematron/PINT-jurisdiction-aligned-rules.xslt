@@ -247,31 +247,16 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="((cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID) or not(cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;)"/>
+         <xsl:when test="cbc:EndpointID/@schemeID != &#34;0235&#34; or matches(normalize-space(cbc:EndpointID), &#34;^[19]&#34;) or exists(cac:PartyTaxScheme/cbc:CompanyID)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="((cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID) or not(cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;)">
-               <xsl:attribute name="id">ibr-136-ae</xsl:attribute>
-               <xsl:attribute name="flag">fatal</xsl:attribute>
-               <xsl:attribute name="location">
-                  <xsl:apply-templates select="." mode="schematron-select-full-path"/>
-               </xsl:attribute>
-               <svrl:text>[ibr-136-ae]-Buyer legal registration identifier (IBT-047) must be present when Invoice type code [IBT-003] is 'Out of scope of VAT' or 'Credit note related to goods or services'</svrl:text>
-            </svrl:failed-assert>
-         </xsl:otherwise>
-      </xsl:choose>
-      <!--ASSERT -->
-      <xsl:choose>
-         <xsl:when test="not(cac:Party/cbc:EndpointID/@schemeID = &#34;0235&#34; and cac:Party/cbc:EndpointID != &#34;1XXXXXXXXX&#34; and not(cac:Party/cac:PartyTaxScheme/cbc:CompanyID))"/>
-         <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cac:Party/cbc:EndpointID/@schemeID = &#34;0235&#34; and cac:Party/cbc:EndpointID != &#34;1XXXXXXXXX&#34; and not(cac:Party/cac:PartyTaxScheme/cbc:CompanyID))">
+                                test="cbc:EndpointID/@schemeID != &#34;0235&#34; or matches(normalize-space(cbc:EndpointID), &#34;^[19]&#34;) or exists(cac:PartyTaxScheme/cbc:CompanyID)">
                <xsl:attribute name="id">ibr-149-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-149-ae]-The buyer legal registration identifier (IBT-048) MUST be provided when the scheme identifier (IBT-049-1) is '0235' and buyer electronic address (IBT-049) is not '1XXXXXXXXX'</svrl:text>
+               <svrl:text>[ibr-149-ae]-The buyer legal registration identifier (IBT-047) MUST be provided when the scheme identifier (IBT-049-1) is '0235' and buyer electronic address (IBT-049) is not '1XXXXXXXXX' or '9XXXXXXXXX'</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -286,22 +271,22 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-179-ae]-Buyer tax identifier (IBT-048) MUST occur maximum once</svrl:text>
+               <svrl:text>[ibr-179-ae]-Buyer VAT identifier (IBT-048) MUST occur maximum once</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="((cac:PartyIdentification/cbc:ID or cac:PartyTaxScheme/cbc:CompanyID) and (not(matches(../../cbc:ProfileExecutionID, &#34;^\d{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))) or not(not(matches(../../cbc:ProfileExecutionID, &#34;^\d{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))"/>
+         <xsl:when test="((cac:PartyIdentification/cbc:ID or cac:PartyTaxScheme/cbc:CompanyID) and (not(matches(../../cbc:ProfileExecutionID, &#34;^[01]{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))) or not(not(matches(../../cbc:ProfileExecutionID, &#34;^[01]{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="((cac:PartyIdentification/cbc:ID or cac:PartyTaxScheme/cbc:CompanyID) and (not(matches(../../cbc:ProfileExecutionID, &#34;^\d{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))) or not(not(matches(../../cbc:ProfileExecutionID, &#34;^\d{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))">
+                                test="((cac:PartyIdentification/cbc:ID or cac:PartyTaxScheme/cbc:CompanyID) and (not(matches(../../cbc:ProfileExecutionID, &#34;^[01]{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))) or not(not(matches(../../cbc:ProfileExecutionID, &#34;^[01]{7}1$&#34;)) and cbc:EndpointID/@schemeID = &#34;0235&#34; and not(matches(cbc:EndpointID, &#34;^1\d{9}$&#34;)))">
                <xsl:attribute name="id">ibr-135-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-135-ae]-Either Buyer identifier (IBT-046) or Buyer tax identifier (IBT-048 ) MUST be present when the Invoice transaction type code [BTAE-02]  is other than XXXXXXX1 (Exports) and scheme identifier (IBT-049-1) is '0235' and buyer electronic address (IBT-049) is not '1XXXXXXXXX'</svrl:text>
+               <svrl:text>[ibr-135-ae]-Either Buyer identifier (IBT-046) or Buyer VAT identifier (IBT-048 ) MUST be present when the Invoice transaction type code [BTAE-02]  is other than XXXXXXX1 (Exports) and scheme identifier (IBT-049-1) is '0235' and buyer electronic address (IBT-049) is not '1XXXXXXXXX'</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -316,7 +301,22 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-180-ae]-When Scheme identifier (IBT-049-1) is '0235' and Buyer legal registration identifier (ibt-047) is provided, then Buyer legal registration identifier type (BTAE-16) MUST be present</svrl:text>
+               <svrl:text>[ibr-180-ae]-When scheme identifier (IBT-049-1) is '0235' and Buyer legal registration identifier (ibt-047) is provided, then Buyer legal registration identifier type (BTAE-16) MUST be present</svrl:text>
+            </svrl:failed-assert>
+         </xsl:otherwise>
+      </xsl:choose>
+      <!--ASSERT -->
+      <xsl:choose>
+         <xsl:when test="not(cac:PartyLegalEntity/cbc:CompanyID) or not(cbc:EndpointID[@schemeID = &#34;0235&#34;]) or  matches(normalize-space(cbc:EndpointID), &#34;^[19]&#34;) or cac:PartyLegalEntity/cbc:CompanyID/@schemeAgencyID = (&#34;TL&#34;,&#34;CL&#34;, &#34;EID&#34;, &#34;PAS&#34;, &#34;CD&#34;)"/>
+         <xsl:otherwise>
+            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
+                                test="not(cac:PartyLegalEntity/cbc:CompanyID) or not(cbc:EndpointID[@schemeID = &#34;0235&#34;]) or matches(normalize-space(cbc:EndpointID), &#34;^[19]&#34;) or cac:PartyLegalEntity/cbc:CompanyID/@schemeAgencyID = (&#34;TL&#34;,&#34;CL&#34;, &#34;EID&#34;, &#34;PAS&#34;, &#34;CD&#34;)">
+               <xsl:attribute name="id">ibr-183-ae</xsl:attribute>
+               <xsl:attribute name="flag">fatal</xsl:attribute>
+               <xsl:attribute name="location">
+                  <xsl:apply-templates select="." mode="schematron-select-full-path"/>
+               </xsl:attribute>
+               <svrl:text>[ibr-183-ae]-The value in Buyer legal registration identifier type [BTAE-16] should either be 'Commercial/Trade license' or 'Emirates ID' or 'Passport' or 'Cabinet decision' when Buyer legal registration identifier (IBT-047) is provided and scheme identifier (IBT-049-1) is '0235' and buyer electronic address (IBT-049) is not '1XXXXXXXXX'.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -365,11 +365,11 @@
       <xsl:apply-templates select="*" mode="M12"/>
    </xsl:template>
    <!--RULE -->
-   <xsl:template match="cac:AccountingBuyerParty/cac:Party/cac:PostalAddress"
+   <xsl:template match="cac:AccountingSupplierParty/cac:Party/cac:PostalAddress"
                  priority="1036"
                  mode="M12">
       <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                       context="cac:AccountingBuyerParty/cac:Party/cac:PostalAddress"/>
+                       context="cac:AccountingSupplierParty/cac:Party/cac:PostalAddress"/>
       <!--ASSERT -->
       <xsl:choose>
          <xsl:when test="(cbc:StreetName) and (cbc:CityName) and (cbc:CountrySubentity)"/>
@@ -381,7 +381,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-143-ae]-In Seller postal address (IBG-05), Seller address line 1 (IBT-035),  Seller city (IBT-037) and Seller to country subdivision (IBT-039) must be provided.</svrl:text>
+               <svrl:text>[ibr-143-ae]-In Seller postal address (IBG-05), Seller address line 1 (IBT-035),  Seller city (IBT-037) and Seller country subdivision (IBT-039) must be provided.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -425,16 +425,16 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{5}1[01]{2}$&#34;)) or cac:PartyTaxScheme/cbc:CompanyID != cac:PartyIdentification/cbc:ID"/>
+         <xsl:when test="not(matches((ancestor::*[local-name()='Invoice' or local-name()='CreditNote'][1]/cbc:ProfileExecutionID)[1], '^[01]{5}1[01]{2}$')) or exists(cac:PartyTaxScheme/cbc:CompanyID)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{5}1[01]{2}$&#34;)) or cac:PartyTaxScheme/cbc:CompanyID != cac:PartyIdentification/cbc:ID">
+                                test="not(matches((ancestor::*[local-name()='Invoice' or local-name()='CreditNote'][1]/cbc:ProfileExecutionID)[1], '^[01]{5}1[01]{2}$')) or exists(cac:PartyTaxScheme/cbc:CompanyID)">
                <xsl:attribute name="id">ibr-177-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-177-ae]-Either Seller tax registration identifier (IBT-032) or Seller tax identifier (IBT-031) MUST be provided</svrl:text>
+               <svrl:text>[ibr-177-ae]-Either Seller tax registration identifier (IBT-032) or Seller VAT identifier (IBT-031) MUST be provided</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -449,16 +449,16 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-178-ae]-Tax scheme code, if provided in (IBT-031-1) shall be '!VAT' when Seller tax registration identifier (IBT-032) is provided</svrl:text>
+               <svrl:text>[ibr-178-ae]-Tax scheme code, if provided in (IBT-031-1) shall not be 'VAT' when Seller tax registration identifier (IBT-032) is provided</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cac:Party/cbc:EndpointID/@schemeID = &#34;0235&#34; and not(cac:Party/cac:PartyLegalEntity/cbc:CompanyID))"/>
+         <xsl:when test="not(cbc:EndpointID/@schemeID = &#34;0235&#34; and not(cac:PartyLegalEntity/cbc:CompanyID))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cac:Party/cbc:EndpointID/@schemeID = &#34;0235&#34; and not(cac:Party/cac:PartyLegalEntity/cbc:CompanyID))">
+                                test="not(cbc:EndpointID/@schemeID = &#34;0235&#34; and not(cac:PartyLegalEntity/cbc:CompanyID))">
                <xsl:attribute name="id">ibr-150-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -479,7 +479,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-173-ae]-The value in Seller legal registration identifier type [BTAE-15] Scheme identifier [IBT-030-1] should either be 'Commercial/Trade license' or 'Emirates ID' or 'Passport' or 'Cabinet decision' when the value in Seller legal registration identifier (IBT-030) is provided and scheme identifier (IBT-034-1) is '0235' and the Seller country code (IBT-055) is AE.</svrl:text>
+               <svrl:text>[ibr-173-ae]-The value in Seller legal registration identifier type [BTAE-15] scheme identifier [IBT-030-1] should either be 'Commercial/Trade license' or 'Emirates ID' or 'Passport' or 'Cabinet decision' when the value in Seller legal registration identifier (IBT-030) is provided and scheme identifier (IBT-034-1) is '0235' and the Seller country code (IBT-055) is AE.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -494,7 +494,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-181-ae]-When Scheme identifier (IBT-034-1) is '0235' and Seller legal registration identifier (ibt-030) is provided, then Seller legal registration identifier type (BTAE-15) MUST be present</svrl:text>
+               <svrl:text>[ibr-181-ae]-When scheme identifier (IBT-034-1) is '0235' and Seller legal registration identifier (ibt-030) is provided, then Seller legal registration identifier type (BTAE-15) MUST be present</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -506,10 +506,10 @@
                        context="cac:Price/cac:AllowanceCharge"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cbc:BaseAmount) or xs:decimal(../cbc:PriceAmount) = xs:decimal(cbc:BaseAmount) - xs:decimal(cbc:Amount)"/>
+         <xsl:when test="not(cbc:BaseAmount) or (../cbc:PriceAmount castable as xs:decimal and cbc:BaseAmount castable as xs:decimal and cbc:Amount castable as xs:decimal and xs:decimal(../cbc:PriceAmount) = xs:decimal(cbc:BaseAmount) - xs:decimal(cbc:Amount))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cbc:BaseAmount) or xs:decimal(../cbc:PriceAmount) = xs:decimal(cbc:BaseAmount) - xs:decimal(cbc:Amount)">
+                                test="not(cbc:BaseAmount) or (../cbc:PriceAmount castable as xs:decimal and cbc:BaseAmount castable as xs:decimal and cbc:Amount castable as xs:decimal and xs:decimal(../cbc:PriceAmount) = xs:decimal(cbc:BaseAmount) - xs:decimal(cbc:Amount))">
                <xsl:attribute name="id">aligned-ibrp-004</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -546,10 +546,10 @@
       <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="cac:PaymentMeans"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cbc:PaymentMeansTypeCode = &#34;30&#34;) or cac:PayeeFinancialAccount/cbc:ID"/>
+         <xsl:when test="not(cbc:PaymentMeansCode = &#34;30&#34;) or cac:PayeeFinancialAccount/cbc:ID"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cbc:PaymentMeansTypeCode = &#34;30&#34;) or cac:PayeeFinancialAccount/cbc:ID">
+                                test="not(cbc:PaymentMeansCode = &#34;30&#34;) or cac:PayeeFinancialAccount/cbc:ID">
                <xsl:attribute name="id">ibr-192-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -575,18 +575,18 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-128-ae]-When Country code (IBT-040, IBT-055, IBT-069, IBT-080) is AE, then country subdivision (IBT-039, IBT-054, IBT-068, IBT-079) should be one among one of these (AUH, DXB, SHJ, UAQ, FUJ, AJM, RAK).</svrl:text>
+               <svrl:text>[ibr-128-ae]-When Country code (IBT-040, IBT-055, IBT-069, IBT-080) is AE, then country subdivision (IBT-039, IBT-054, IBT-068, IBT-079) must be one of (AUH, DXB, SHJ, UAQ, FUJ, AJM, RAK).</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <xsl:apply-templates select="*" mode="M12"/>
    </xsl:template>
    <!--RULE -->
-   <xsl:template match="cac:AllowanceCharge[cbc:ChargeIndicator = false()]"
+   <xsl:template match="cac:AllowanceCharge[cbc:ChargeIndicator = false()][not(ancestor::cac:Price)]"
                  priority="1030"
                  mode="M12">
       <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                       context="cac:AllowanceCharge[cbc:ChargeIndicator = false()]"/>
+                       context="cac:AllowanceCharge[cbc:ChargeIndicator = false()][not(ancestor::cac:Price)]"/>
       <!--ASSERT -->
       <xsl:choose>
          <xsl:when test="not(parent::ubl:Invoice|parent::cn:CreditNote) or exists(cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/cbc:ID)"/>
@@ -619,10 +619,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or (cbc:Amount = round(cbc:BaseAmount * cbc:MultiplierFactorNumeric) div 100)"/>
+         <xsl:when test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or number(cbc:Amount) = (number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) or number(cbc:Amount) = round((number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) * 100) div 100"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or (cbc:Amount = round(cbc:BaseAmount * cbc:MultiplierFactorNumeric) div 100)">
+                                test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or number(cbc:Amount) = (number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) or number(cbc:Amount) = round((number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) * 100) div 100">
                <xsl:attribute name="id">ibr-131-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -634,16 +634,16 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cac:CategoryCode/cbc:ID = &#34;N&#34;)"/>
+         <xsl:when test="not(cac:TaxCategory/cbc:ID = &#34;N&#34;)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cac:CategoryCode/cbc:ID = &#34;N&#34;)">
+                                test="not(cac:TaxCategory/cbc:ID = &#34;N&#34;)">
                <xsl:attribute name="id">ibr-115-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-115-ae]-[ibr-115-ae]-Document level allowance tax category code (IBT-095) cannot be 'Standard rate additional VAT'.</svrl:text>
+               <svrl:text>[ibr-115-ae]-Document level allowance tax category code (IBT-095) cannot be 'Standard rate additional VAT'.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -702,10 +702,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or (cbc:Amount = (cbc:BaseAmount * cbc:MultiplierFactorNumeric) div 100)"/>
+         <xsl:when test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or number(cbc:Amount) = (number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) or number(cbc:Amount) = round((number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) * 100) div 100"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or (cbc:Amount = (cbc:BaseAmount * cbc:MultiplierFactorNumeric) div 100)">
+                                test="not(exists(cbc:BaseAmount) and exists(cbc:MultiplierFactorNumeric)) or number(cbc:Amount) = (number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) or number(cbc:Amount) = round((number(cbc:BaseAmount) * number(cbc:MultiplierFactorNumeric) div 100) * 100) div 100">
                <xsl:attribute name="id">ibr-146-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -717,10 +717,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cac:CategoryCode/cbc:ID = &#34;N&#34;)"/>
+         <xsl:when test="not(cac:TaxCategory/cbc:ID = &#34;N&#34;)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cac:CategoryCode/cbc:ID = &#34;N&#34;)">
+                                test="not(cac:TaxCategory/cbc:ID = &#34;N&#34;)">
                <xsl:attribute name="id">ibr-114-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -752,10 +752,10 @@
       <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="cbc:CalculationRate"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(matches(., &#34;^\d+(\.\d{7})?$&#34;))"/>
+         <xsl:when test="matches(., concat('^[0-9]+(\.[0-9]', codepoints-to-string(123), '1,6', codepoints-to-string(125), ')?$'))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(matches(., &#34;^\d+(\.\d{7})?$&#34;))">
+                                test="matches(., concat('^[0-9]+(\.[0-9]', codepoints-to-string(123), '1,6', codepoints-to-string(125), ')?$'))">
                <xsl:attribute name="id">ibr-002-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -775,10 +775,10 @@
                        context="cac:InvoiceLine | cac:CreditNoteLine"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(exists(cac:Item/cac:ClassifiedTaxCategory)) or (exists(cac:Item/cac:ClassifiedTaxCategory) and exists(cac:ItemPriceExtension/cac:TaxTotal/cbc:TaxAmount) and exists(cac:ItemPriceExtension/cbc:Amount))"/>
+         <xsl:when test="not(exists(cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) != &#34;E&#34;])) or (exists(cac:ItemPriceExtension/cac:TaxTotal/cbc:TaxAmount) and exists(cac:ItemPriceExtension/cbc:Amount))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(exists(cac:Item/cac:ClassifiedTaxCategory)) or (exists(cac:Item/cac:ClassifiedTaxCategory) and exists(cac:ItemPriceExtension/cac:TaxTotal/cbc:TaxAmount) and exists(cac:ItemPriceExtension/cbc:Amount))">
+                                test="not(exists(cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) != &#34;E&#34;])) or (exists(cac:ItemPriceExtension/cac:TaxTotal/cbc:TaxAmount) and exists(cac:ItemPriceExtension/cbc:Amount))">
                <xsl:attribute name="id">ibr-104-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -814,7 +814,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-145-ae]-Each Invoice line (IBG-25) MUST be categorized with an Invoiced item tax category code (IBT-151)..</svrl:text>
+               <svrl:text>[ibr-145-ae]-Each Invoice line (IBG-25) MUST be categorized with an Invoiced item VAT category code (IBT-151).</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -850,10 +850,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="((../cbc:InvoiceTypeCode = &#34;81&#34; or ../cbc:InvoiceTypeCode = &#34;480&#34;) and count(cac:Item/cac:ClassifiedTaxCategory) = 1) or not(../cbc:InvoiceTypeCode = &#34;81&#34; or ../cbc:InvoiceTypeCode = &#34;480&#34;)"/>
+         <xsl:when test="((../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or ../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34;) and count(cac:Item/cac:ClassifiedTaxCategory) = 1) or not(../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or ../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34;)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="((../cbc:InvoiceTypeCode = &#34;81&#34; or ../cbc:InvoiceTypeCode = &#34;480&#34;) and count(cac:Item/cac:ClassifiedTaxCategory) = 1) or not(../cbc:InvoiceTypeCode = &#34;81&#34; or ../cbc:InvoiceTypeCode = &#34;480&#34;)">
+                                test="((../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or ../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34;) and count(cac:Item/cac:ClassifiedTaxCategory) = 1) or not(../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or ../(cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34;)">
                <xsl:attribute name="id">ibr-123-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -901,10 +901,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="/*/cbc:ProfileID and (matches(normalize-space(/*/cbc:ProfileID), 'urn:peppol:bis:billing') or matches(normalize-space(/*/cbc:ProfileID), 'urn:peppol:bis:selfbilling'))"/>
+         <xsl:when test="/*/cbc:ProfileID and (matches(normalize-space(/*/cbc:ProfileID), '^urn:peppol:bis:billing') or matches(normalize-space(/*/cbc:ProfileID), '^urn:peppol:bis:selfbilling'))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="/*/cbc:ProfileID and (matches(normalize-space(/*/cbc:ProfileID), 'urn:peppol:bis:billing') or matches(normalize-space(/*/cbc:ProfileID), 'urn:peppol:bis:selfbilling'))">
+                                test="/*/cbc:ProfileID and (matches(normalize-space(/*/cbc:ProfileID), '^urn:peppol:bis:billing') or matches(normalize-space(/*/cbc:ProfileID), '^urn:peppol:bis:selfbilling'))">
                <xsl:attribute name="id">aligned-ibrp-002-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -985,7 +985,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[aligned-ibrp-ae-01-ae]-An Invoice that contains an Invoice line (ibg-25), a Document level allowance (ibg-20) or a Document level charge (ibg-21) where the VAT category code (ibt-151, ibt-095 or ibt-102) is "Reverse charge" MUST contain in the VAT Breakdown (ibg-23) at least  one VAT category code (ibt-118) equal with "VAT reverse charge".</svrl:text>
+               <svrl:text>[aligned-ibrp-ae-01-ae]-An Invoice that contains an Invoice line (ibg-25), a Document level allowance (ibg-20) or a Document level charge (ibg-21) where the VAT category code (ibt-151, ibt-095 or ibt-102) is "Reverse charge" MUST contain in the VAT Breakdown (ibg-23) at least one VAT category code (ibt-118) equal with "VAT reverse charge".</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1006,31 +1006,46 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(matches(cbc:ProfileExecutionID, &#34;^1[01]{6}$&#34;)) or cac:BuyerCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID"/>
+         <xsl:when test="not(matches(cbc:ProfileExecutionID, &#34;^1[01]{7}$&#34;)) or cac:BuyerCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(matches(cbc:ProfileExecutionID, &#34;^1[01]{6}$&#34;)) or cac:BuyerCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID">
+                                test="not(matches(cbc:ProfileExecutionID, &#34;^1[01]{7}$&#34;)) or cac:BuyerCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID">
                <xsl:attribute name="id">ibr-007-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-007-ae]-When Invoice Transaction-type code (BTAE-02) has value 1XXXXXXX (Free trade zone), then providing value in Beneficiary ID (BTAE-01) MUST be provided.</svrl:text>
+               <svrl:text>[ibr-007-ae]-When Invoice Transaction-type code (BTAE-02) has value 1XXXXXXX (Free trade zone), then Beneficiary ID (BTAE-01) MUST be provided.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(not(cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID = &#34;VAT&#34;]/cbc:CompanyID) or (cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;)"/>
+         <xsl:when test="(not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) and cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID = &#34;VAT&#34;]/cbc:CompanyID) or ((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(not(cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID = &#34;VAT&#34;]/cbc:CompanyID) or (cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;)">
+                                test="(not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) and cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID = &#34;VAT&#34;]/cbc:CompanyID) or ((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;)">
                <xsl:attribute name="id">ibr-134-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-134-ae]-Seller tax Identifier (IBT-031) MUST be there, except when the Invoice type code (IBT-003) is 'Out of scope of VAT' or 'Credit note related to goods or services'.</svrl:text>
+               <svrl:text>[ibr-134-ae]-Seller VAT Identifier (IBT-031) MUST be there, except when the Invoice type code (IBT-003) is 'Out of scope of VAT' or 'Credit note related to goods or services'.</svrl:text>
+            </svrl:failed-assert>
+         </xsl:otherwise>
+      </xsl:choose>
+      <!--ASSERT -->
+      <xsl:choose>
+         <xsl:when test="not(cbc:InvoiceTypeCode = &#34;480&#34; or cbc:CreditNoteTypeCode = &#34;81&#34;) or exists(cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID)"/>
+         <xsl:otherwise>
+            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
+                                test="not(cbc:InvoiceTypeCode = &#34;480&#34; or cbc:CreditNoteTypeCode = &#34;81&#34;) or exists(cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID)">
+               <xsl:attribute name="id">ibr-136-ae</xsl:attribute>
+               <xsl:attribute name="flag">fatal</xsl:attribute>
+               <xsl:attribute name="location">
+                  <xsl:apply-templates select="." mode="schematron-select-full-path"/>
+               </xsl:attribute>
+               <svrl:text>[ibr-136-ae]-Buyer legal registration identifier (IBT-047) must be present when Invoice type code [IBT-003] is 'Out of scope of VAT' or 'Credit note related to goods or services'</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1045,7 +1060,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-137-ae]-Principle ID (BTAE-14) is MUST, where Invoice transaction type code [BT-UAE-002] is XXXXX1XX (Disclosed Agent billing).</svrl:text>
+               <svrl:text>[ibr-137-ae]-Principal ID (BTAE-14) is MUST, where Invoice transaction type code [BTAE-02] is XXXXX1XX (Disclosed Agent billing).</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1060,7 +1075,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-138-ae]-Invoicing period [IBG-14] is MUST, where Invoice transaction type code [BTAE-002] is XXX1XXXX (Summary invoice).</svrl:text>
+               <svrl:text>[ibr-138-ae]-Invoicing period [IBG-14] is MUST, where Invoice transaction type code [BTAE-02] is XXX1XXXX (Summary invoice).</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1075,16 +1090,16 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-141-ae]-When, Tax point date [IBT-007] is present, it should be before the Invoice issue date [IBT-002].</svrl:text>
+               <svrl:text>[ibr-141-ae]-When, VAT point date [IBT-007] is present, it should be before the Invoice issue date [IBT-002].</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="((cbc:InvoiceTypeCode = &#34;381&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and (((cac:BillingReference) and  (cac:DiscrepancyResponse/cbc:ResponseCode != &#34;VD&#34;)) or (not(cac:BillingReference) and  (cac:DiscrepancyResponse/cbc:ResponseCode = &#34;VD&#34;))))  or not(cbc:InvoiceTypeCode = &#34;381&#34; or cbc:InvoiceTypeCode = &#34;81&#34;)"/>
+         <xsl:when test="(((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) and (((cac:BillingReference) and  (cac:DiscrepancyResponse/cbc:ResponseCode != &#34;VD&#34;)) or (not(cac:BillingReference) and  (cac:DiscrepancyResponse/cbc:ResponseCode = &#34;VD&#34;))))  or not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="((cbc:InvoiceTypeCode = &#34;381&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and (((cac:BillingReference) and (cac:DiscrepancyResponse/cbc:ResponseCode != &#34;VD&#34;)) or (not(cac:BillingReference) and (cac:DiscrepancyResponse/cbc:ResponseCode = &#34;VD&#34;)))) or not(cbc:InvoiceTypeCode = &#34;381&#34; or cbc:InvoiceTypeCode = &#34;81&#34;)">
+                                test="(((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) and (((cac:BillingReference) and (cac:DiscrepancyResponse/cbc:ResponseCode != &#34;VD&#34;)) or (not(cac:BillingReference) and (cac:DiscrepancyResponse/cbc:ResponseCode = &#34;VD&#34;)))) or not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;)">
                <xsl:attribute name="id">ibr-055-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1111,10 +1126,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]) and (count(//cac:TaxTotal/cac:TaxSubtotal) = 1)) or not(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]))"/>
+         <xsl:when test="(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]) and (count(//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='N']) = 1)) or not(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]) and (count(//cac:TaxTotal/cac:TaxSubtotal) = 1)) or not(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]))">
+                                test="(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]) and (count(//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='N']) = 1)) or not(exists(//cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))=&#34;VAT&#34;]/cbc:ID[normalize-space(.) = &#34;N&#34;]))">
                <xsl:attribute name="id">ibr-105-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1126,10 +1141,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="((cbc:InvoiceTypeCode = &#34;81&#34; or cbc:InvoiceTypeCode = &#34;480&#34;) and (//cac:TaxCategory/cbc:ID = &#34;E&#34; or //cac:TaxCategory/cbc:ID = &#34;O&#34; or //cac:TaxCategory/cbc:ID = &#34;Z&#34;) and (//cac:ClassifiedTaxCategory/cbc:ID = &#34;E&#34; or //cac:ClassifiedTaxCategory/cbc:ID = &#34;O&#34;  or //cac:ClassifiedTaxCategory/cbc:ID = &#34;Z&#34;)) or not(cbc:InvoiceTypeCode = &#34;81&#34; or cbc:InvoiceTypeCode = &#34;480&#34;)"/>
+         <xsl:when test="not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34;) or (every $cat in (//cac:TaxCategory/cbc:ID | //cac:ClassifiedTaxCategory/cbc:ID) satisfies normalize-space($cat) = (&#34;E&#34;,&#34;O&#34;,&#34;Z&#34;))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="((cbc:InvoiceTypeCode = &#34;81&#34; or cbc:InvoiceTypeCode = &#34;480&#34;) and (//cac:TaxCategory/cbc:ID = &#34;E&#34; or //cac:TaxCategory/cbc:ID = &#34;O&#34; or //cac:TaxCategory/cbc:ID = &#34;Z&#34;) and (//cac:ClassifiedTaxCategory/cbc:ID = &#34;E&#34; or //cac:ClassifiedTaxCategory/cbc:ID = &#34;O&#34; or //cac:ClassifiedTaxCategory/cbc:ID = &#34;Z&#34;)) or not(cbc:InvoiceTypeCode = &#34;81&#34; or cbc:InvoiceTypeCode = &#34;480&#34;)">
+                                test="not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34;) or (every $cat in (//cac:TaxCategory/cbc:ID | //cac:ClassifiedTaxCategory/cbc:ID) satisfies normalize-space($cat) = (&#34;E&#34;,&#34;O&#34;,&#34;Z&#34;))">
                <xsl:attribute name="id">ibr-122-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1141,25 +1156,25 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cbc:InvoiceTypeCode = &#34;381&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) or not(cbc:TaxPointDate)"/>
+         <xsl:when test="not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) or not(cbc:TaxPointDate)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cbc:InvoiceTypeCode = &#34;381&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) or not(cbc:TaxPointDate)">
+                                test="not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) or not(cbc:TaxPointDate)">
                <xsl:attribute name="id">ibr-124-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-124-ae]-Tax point date [IBT-007] MUST not be there when invoice type code (IBT-003) is 'credit note' or 'Credit note related to goods or services'.</svrl:text>
+               <svrl:text>[ibr-124-ae]-VAT point date [IBT-007] MUST not be there when invoice type code (IBT-003) is 'credit note' or 'Credit note related to goods or services'.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:CreditNoteTypeCode) = &#34;261&#34;) or (matches(cbc:ProfileExecutionID, &#34;^[01]1[01]{6}$&#34;)) or (cac:LegalMonetaryTotal/cbc:PayableAmount &gt; 0 and (cbc:DueDate))"/>
+         <xsl:when test="((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or cbc:CreditNoteTypeCode = &#34;261&#34; or matches(cbc:ProfileExecutionID, &#34;^[01]1[01]{6}$&#34;)) or not(cac:LegalMonetaryTotal/cbc:PayableAmount &gt; 0) or exists(cbc:DueDate)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:CreditNoteTypeCode) = &#34;261&#34;) or (matches(cbc:ProfileExecutionID, &#34;^[01]1[01]{6}$&#34;)) or (cac:LegalMonetaryTotal/cbc:PayableAmount &gt; 0 and (cbc:DueDate))">
+                                test="((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34; or cbc:CreditNoteTypeCode = &#34;261&#34; or matches(cbc:ProfileExecutionID, &#34;^[01]1[01]{6}$&#34;)) or not(cac:LegalMonetaryTotal/cbc:PayableAmount &gt; 0) or exists(cbc:DueDate)">
                <xsl:attribute name="id">ibr-127-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1171,25 +1186,25 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$&#34;)) or not(//cac:TaxCategoryCode/cbc:ID = &#34;N&#34;)"/>
+         <xsl:when test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$&#34;)) or not((//cac:TaxCategory/cbc:ID | //cac:ClassifiedTaxCategory/cbc:ID)[normalize-space(.) != &#34;N&#34;])"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$&#34;)) or not(//cac:TaxCategoryCode/cbc:ID = &#34;N&#34;)">
+                                test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$&#34;)) or not((//cac:TaxCategory/cbc:ID | //cac:ClassifiedTaxCategory/cbc:ID)[normalize-space(.) != &#34;N&#34;])">
                <xsl:attribute name="id">ibr-116-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-116-ae]-When Invoice transaction-type code (BTAE-02) has value XX1XXXXX (Margin scheme), then the tax category code (IBT-151) should have 'Standard rate additional VAT '.</svrl:text>
+               <svrl:text>[ibr-116-ae]-When Invoice transaction-type code (BTAE-02) has value XX1XXXXX (Margin scheme), then the tax category code (IBT-151) should have 'Standard rate additional VAT'.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not((cbc:InvoiceTypeCode = &#34;380&#34; or cbc:InvoiceTypeCode = &#34;381&#34;) and not(cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory/cbc:ID != &#34;E&#34; and cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory/cbc:ID != &#34;O&#34;))"/>
+         <xsl:when test="not(((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;380&#34;) or ((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34;)) or exists((cac:InvoiceLine | cac:CreditNoteLine)/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) != &#34;E&#34; and normalize-space(cbc:ID) != &#34;O&#34;])"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not((cbc:InvoiceTypeCode = &#34;380&#34; or cbc:InvoiceTypeCode = &#34;381&#34;) and not(cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory/cbc:ID != &#34;E&#34; and cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory/cbc:ID != &#34;O&#34;))">
+                                test="not(((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;380&#34;) or ((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34;)) or exists((cac:InvoiceLine | cac:CreditNoteLine)/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) != &#34;E&#34; and normalize-space(cbc:ID) != &#34;O&#34;])">
                <xsl:attribute name="id">ibr-151-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1201,40 +1216,40 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(matches(cbc:ProfileExecutionID, &#34;^.{7}1$&#34;)) or (cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:StreetName and cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CityName and  cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CountrySubentity)"/>
+         <xsl:when test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{7}1$&#34;)) or cac:Delivery/cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode = &#34;AE&#34; or (cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:StreetName and cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CityName and cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CountrySubentity)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(matches(cbc:ProfileExecutionID, &#34;^.{7}1$&#34;)) or (cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:StreetName and cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CityName and cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CountrySubentity)">
+                                test="not(matches(cbc:ProfileExecutionID, &#34;^[01]{7}1$&#34;)) or cac:Delivery/cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode = &#34;AE&#34; or (cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:StreetName and cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CityName and cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CountrySubentity)">
                <xsl:attribute name="id">ibr-152-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-152-ae]-In Delivery Information (IBG-13), Deliver to address line 1 (IBT-075), deliver to city (IBT-077), deliver to country subdivision (IBT-079) MUST be there, in case the Invoice transaction type code [BTAE-002] is XXXXXXX1 (Exports) and the deliver to country code [IBT-080] should not be 'AE'.</svrl:text>
+               <svrl:text>[ibr-152-ae]-In Delivery Information (IBG-13), Deliver to address line 1 (IBT-075), deliver to city (IBT-077), deliver to country subdivision (IBT-079) MUST be there, in case the Invoice transaction type code [BTAE-02] is XXXXXXX1 (Exports) and the deliver to country code [IBT-080] should not be 'AE'.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cbc:TaxCurrencyCode = &#34;AED&#34; and cbc:DocumentCurrencyCode != &#34;AED&#34; and (not(cac:PricingExchangeRate/cbc:SourceCurrencyCode = cbc:DocumentCurrencyCode) or not(cac:PricingExchangeRate/cbc:TargetCurrencyCode = cbc:TaxCurrencyCode) or not(cac:PricingExchangeRate/cbc:CalculationRate)))"/>
+         <xsl:when test="not(cbc:TaxCurrencyCode = &#34;AED&#34; and cbc:DocumentCurrencyCode != &#34;AED&#34; and (not(cac:TaxExchangeRate/cbc:SourceCurrencyCode = cbc:DocumentCurrencyCode) or not(cac:TaxExchangeRate/cbc:TargetCurrencyCode = cbc:TaxCurrencyCode) or not(cac:TaxExchangeRate/cbc:CalculationRate)))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cbc:TaxCurrencyCode = &#34;AED&#34; and cbc:DocumentCurrencyCode != &#34;AED&#34; and (not(cac:PricingExchangeRate/cbc:SourceCurrencyCode = cbc:DocumentCurrencyCode) or not(cac:PricingExchangeRate/cbc:TargetCurrencyCode = cbc:TaxCurrencyCode) or not(cac:PricingExchangeRate/cbc:CalculationRate)))">
+                                test="not(cbc:TaxCurrencyCode = &#34;AED&#34; and cbc:DocumentCurrencyCode != &#34;AED&#34; and (not(cac:TaxExchangeRate/cbc:SourceCurrencyCode = cbc:DocumentCurrencyCode) or not(cac:TaxExchangeRate/cbc:TargetCurrencyCode = cbc:TaxCurrencyCode) or not(cac:TaxExchangeRate/cbc:CalculationRate)))">
                <xsl:attribute name="id">ibr-153-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-153-ae] When the VAT accounting currency (IBT-006) is set to AED and the invoice currency code (IBT-005) differs from AED, the source currency must be designated as the invoice currency code (IBT-005), and the target currency must be specified as the VAT accounting currency (IBT-006), provided that the currency exchange rate (BTAE-04) is available.</svrl:text>
+               <svrl:text>[ibr-153-ae]-When the Tax accounting currency (IBT-006) is set to AED and the invoice currency code (IBT-005) differs from AED, the source currency must be designated as the invoice currency code (IBT-005), and the target currency must be specified as the Tax accounting currency (IBT-006), provided that the currency exchange rate (BTAE-04) is available</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not((cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and  matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$|^[01]1[01]{6}$|^[01]{3}1[01]{4}$&#34;))"/>
+         <xsl:when test="not(((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) and  matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$|^[01]1[01]{6}$|^[01]{3}1[01]{4}$&#34;))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not((cbc:InvoiceTypeCode = &#34;480&#34; or cbc:InvoiceTypeCode = &#34;81&#34;) and matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$|^[01]1[01]{6}$|^[01]{3}1[01]{4}$&#34;))">
+                                test="not(((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;480&#34; or (cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;81&#34;) and matches(cbc:ProfileExecutionID, &#34;^[01]{2}1[01]{5}$|^[01]1[01]{6}$|^[01]{3}1[01]{4}$&#34;))">
                <xsl:attribute name="id">ibr-157-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1246,10 +1261,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cbc:InvoiceTypeCode = &#34;381&#34; and not(exists(cac:DiscrepancyResponse/cbc:ResponseCode)))"/>
+         <xsl:when test="not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; and not(exists(cac:DiscrepancyResponse/cbc:ResponseCode)))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cbc:InvoiceTypeCode = &#34;381&#34; and not(exists(cac:DiscrepancyResponse/cbc:ResponseCode)))">
+                                test="not((cbc:InvoiceTypeCode | cbc:CreditNoteTypeCode) = &#34;381&#34; and not(exists(cac:DiscrepancyResponse/cbc:ResponseCode)))">
                <xsl:attribute name="id">ibr-158-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1261,10 +1276,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(cbc:DocumentCurrencyCode != &#34;AED&#34; and (exists(//cbc:CalculationRate))) or cbc:DocumentCurrencyCode = &#34;AED&#34;"/>
+         <xsl:when test="(cbc:DocumentCurrencyCode != &#34;AED&#34; and (exists(//cac:TaxExchangeRate/cbc:CalculationRate))) or cbc:DocumentCurrencyCode = &#34;AED&#34;"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(cbc:DocumentCurrencyCode != &#34;AED&#34; and (exists(//cbc:CalculationRate))) or cbc:DocumentCurrencyCode = &#34;AED&#34;">
+                                test="(cbc:DocumentCurrencyCode != &#34;AED&#34; and (exists(//cac:TaxExchangeRate/cbc:CalculationRate))) or cbc:DocumentCurrencyCode = &#34;AED&#34;">
                <xsl:attribute name="id">ibr-159-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1300,7 +1315,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-175-ae]-When Invoice currency code [IBT-005] is other than 'AED' and Tax accounting currency [IBT-006] is 'AED', then the value in Invoice total VAT amount in VAT accounting currency [IBT-111] and Invoice total amount with VAT in tax accounting currency [BTAE-20] MUST be present.</svrl:text>
+               <svrl:text>[ibr-175-ae]-When Invoice currency code [IBT-005] is other than 'AED' and Tax accounting currency [IBT-006] is 'AED', then the value in Invoice total VAT amount in tax accounting currency [IBT-111] and Invoice (or CreditNote) total amount with VAT in AED [BTAE-20] MUST be present.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1315,31 +1330,16 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-176-ae]-When Invoice transaction type code [BTAE-02] is XXXXX1XX (Disclosed agent billing), then the value in field Seller tax Identifier [IBT-031] and Principle ID [BTAE-14] should not be the same.</svrl:text>
+               <svrl:text>[ibr-176-ae]-When Invoice transaction type code [BTAE-02] is XXXXX1XX (Disclosed agent billing), then the value in field Seller VAT Identifier [IBT-031] and Principal ID [BTAE-14] should not be the same.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cac:PartyLegalEntity/cbc:CompanyID) or not(cbc:EndpointID[@schemeID = &#34;0235&#34;]) or  starts-with(cbc:EndpointID, &#34;1&#34;) or cac:PartyLegalEntity/cbc:CompanyID/@schemeAgencyID = (&#34;CL&#34;, &#34;EID&#34;, &#34;PAS&#34;, &#34;CD&#34;)"/>
+         <xsl:when test="not(//cac:TaxCategory/cbc:ID = &#34;S&#34;) or (every $p in //cac:TaxCategory[cbc:ID = &#34;S&#34;]/cbc:Percent satisfies ($p castable as xs:decimal and xs:decimal($p) = 5.00))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cac:PartyLegalEntity/cbc:CompanyID) or not(cbc:EndpointID[@schemeID = &#34;0235&#34;]) or starts-with(cbc:EndpointID, &#34;1&#34;) or cac:PartyLegalEntity/cbc:CompanyID/@schemeAgencyID = (&#34;CL&#34;, &#34;EID&#34;, &#34;PAS&#34;, &#34;CD&#34;)">
-               <xsl:attribute name="id">ibr-183-ae</xsl:attribute>
-               <xsl:attribute name="flag">fatal</xsl:attribute>
-               <xsl:attribute name="location">
-                  <xsl:apply-templates select="." mode="schematron-select-full-path"/>
-               </xsl:attribute>
-               <svrl:text>[ibr-183-ae]-The value in Buyer legal registration identifier type [BTAE-16] should either be 'Commercial/Trade license' or 'Emirates ID' or 'Passport' or 'Cabinet decision' when Buyer legal registration identifier (IBT-047) is provided and scheme identifier (IBT-049-1) is '0235' and buyer electronic address (IBT-049) is not '1XXXXXXXXX'.</svrl:text>
-            </svrl:failed-assert>
-         </xsl:otherwise>
-      </xsl:choose>
-      <!--ASSERT -->
-      <xsl:choose>
-         <xsl:when test="not(//cac:TaxCategory/cbc:ID = &#34;S&#34;) or //cac:TaxCategory[cbc:ID = &#34;S&#34;]/cbc:Percent = 5.00"/>
-         <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(//cac:TaxCategory/cbc:ID = &#34;S&#34;) or //cac:TaxCategory[cbc:ID = &#34;S&#34;]/cbc:Percent = 5.00">
+                                test="not(//cac:TaxCategory/cbc:ID = &#34;S&#34;) or (every $p in //cac:TaxCategory[cbc:ID = &#34;S&#34;]/cbc:Percent satisfies ($p castable as xs:decimal and xs:decimal($p) = 5.00))">
                <xsl:attribute name="id">ibr-190-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1351,25 +1351,25 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="exists(cac:PaymentMeans/cbc:PaymentMeansCode) = not((cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;381&#34; or  (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;261&#34;or matches(cbc:ProfileExecutionID, &#34;^\d1\d{6}$&#34;))"/>
+         <xsl:when test="((cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;261&#34; or matches(cbc:ProfileExecutionID, &#34;^[01]1[01]{6}$&#34;)) or exists(cac:PaymentMeans/cbc:PaymentMeansCode)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="exists(cac:PaymentMeans/cbc:PaymentMeansCode) = not((cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;261&#34;or matches(cbc:ProfileExecutionID, &#34;^\d1\d{6}$&#34;))">
+                                test="((cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;81&#34; or (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;381&#34; or (cbc:InvoiceTypeCode|cbc:CreditNoteTypeCode) = &#34;261&#34; or matches(cbc:ProfileExecutionID, &#34;^[01]1[01]{6}$&#34;)) or exists(cac:PaymentMeans/cbc:PaymentMeansCode)">
                <xsl:attribute name="id">ibr-191-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-191-ae]- Payment means type code (ibt-081) must be provided except when the invoice type code (ibt-003) is 'Credit note' or 'Credit note related to goods or Invoice transaction-type code (BTAE-002) is X1XXXXXX (Deemed supply) .</svrl:text>
+               <svrl:text>[ibr-191-ae]- Payment means type code (ibt-081) must be provided except when the invoice type code (ibt-003) is 'Credit note' or "Credit note related to goods or services", or Invoice transaction-type code (BTAE-002) is X1XXXXXX (Deemed supply).</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="string-length(cbc:ProfileExecutionID) &lt;= 8 and (matches(cbc:ProfileExecutionID, &#34;^[01]{1,8}$&#34;))"/>
+         <xsl:when test="(matches(cbc:ProfileExecutionID, &#34;^[01]{8}$&#34;))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="string-length(cbc:ProfileExecutionID) &lt;= 8 and (matches(cbc:ProfileExecutionID, &#34;^[01]{1,8}$&#34;))">
+                                test="(matches(cbc:ProfileExecutionID, &#34;^[01]{8}$&#34;))">
                <xsl:attribute name="id">ibr-154-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1429,10 +1429,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cac:ClassifiedTaxCategory/cbc:ID = &#34;AE&#34; and (exists(cac:InvoiceLine/cac:Item/cac:CommodityClassification/cbc:NatureCode))) or cac:ClassifiedTaxCategory/cbc:ID != &#34;AE&#34;"/>
+         <xsl:when test="not(cac:ClassifiedTaxCategory/cbc:ID = &#34;AE&#34;) or exists(cac:CommodityClassification/cbc:NatureCode)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cac:ClassifiedTaxCategory/cbc:ID = &#34;AE&#34; and (exists(cac:InvoiceLine/cac:Item/cac:CommodityClassification/cbc:NatureCode))) or cac:ClassifiedTaxCategory/cbc:ID != &#34;AE&#34;">
+                                test="not(cac:ClassifiedTaxCategory/cbc:ID = &#34;AE&#34;) or exists(cac:CommodityClassification/cbc:NatureCode)">
                <xsl:attribute name="id">ibr-166-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1453,7 +1453,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-184-ae]-When the Item type [BTAE-13] is 'Goods' then Item classification identifier (ibt-158) must be provided. .</svrl:text>
+               <svrl:text>[ibr-184-ae]-When the Item type [BTAE-13] is 'Goods' then Item classification identifier (ibt-158) must be provided.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1468,22 +1468,22 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-185-ae]-When the Item type [BTAE-13] is 'Services' then Service accounting code (BTAE-17) must be provided. .</svrl:text>
+               <svrl:text>[ibr-185-ae]-When the Item type [BTAE-13] is 'Services' then Service accounting code (BTAE-17) must be provided.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cac:CommodityClassification/cbc:CommodityCode = &#34;B&#34;) or cac:CommodityClassification/cbc:ItemClassificationCode or cac:AdditionalItemIdentification/cbc:ID"/>
+         <xsl:when test="not(cac:CommodityClassification/cbc:CommodityCode = &#34;B&#34;) or (exists(cac:CommodityClassification/cbc:ItemClassificationCode) and exists(cac:AdditionalItemIdentification/cbc:ID))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(cac:CommodityClassification/cbc:CommodityCode = &#34;B&#34;) or cac:CommodityClassification/cbc:ItemClassificationCode or cac:AdditionalItemIdentification/cbc:ID">
+                                test="not(cac:CommodityClassification/cbc:CommodityCode = &#34;B&#34;) or (exists(cac:CommodityClassification/cbc:ItemClassificationCode) and exists(cac:AdditionalItemIdentification/cbc:ID))">
                <xsl:attribute name="id">ibr-186-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-186-ae]-When the Item type [BTAE-13] is 'Both' then Item classification identifier (ibt-158) and Service accounting code (BTAE-17) must be provided. .</svrl:text>
+               <svrl:text>[ibr-186-ae]-When the Item type [BTAE-13] is 'Both' then Item classification identifier (ibt-158) and Service accounting code (BTAE-17) must be provided.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1582,31 +1582,31 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="exists(cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/cbc:Percent) or (cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/normalize-space(cbc:ID)='O')"/>
+         <xsl:when test="exists(cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/cbc:Percent) or (cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/normalize-space(cbc:ID)=('O','E'))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="exists(cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/cbc:Percent) or (cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/normalize-space(cbc:ID)='O')">
+                                test="exists(cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/cbc:Percent) or (cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/normalize-space(cbc:ID)=('O','E'))">
                <xsl:attribute name="id">aligned-ibrp-048</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[aligned-ibrp-048]-Each VAT breakdown (ibg-23) MUST have a VAT category rate (ibt-119), except if the Invoice is not subject to VAT.</svrl:text>
+               <svrl:text>[aligned-ibrp-048]-Each VAT breakdown (ibg-23) MUST have a VAT category rate (ibt-119), except if the Invoice is not subject to VAT or Exempt from Tax.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(cac:TaxCategory/cbc:ID = &#34;O&#34;) and not(cac:TaxCategory/cbc:Percent) or  (not(cac:TaxCategory/cbc:ID = &#34;O&#34;)) and cac:TaxCategory/cbc:Percent"/>
+         <xsl:when test="(cac:TaxCategory/cbc:ID = (&#34;O&#34;,&#34;E&#34;) and not(cac:TaxCategory/cbc:Percent)) or (not(cac:TaxCategory/cbc:ID = (&#34;O&#34;,&#34;E&#34;)) and cac:TaxCategory/cbc:Percent)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(cac:TaxCategory/cbc:ID = &#34;O&#34;) and not(cac:TaxCategory/cbc:Percent) or (not(cac:TaxCategory/cbc:ID = &#34;O&#34;)) and cac:TaxCategory/cbc:Percent">
+                                test="(cac:TaxCategory/cbc:ID = (&#34;O&#34;,&#34;E&#34;) and not(cac:TaxCategory/cbc:Percent)) or (not(cac:TaxCategory/cbc:ID = (&#34;O&#34;,&#34;E&#34;)) and cac:TaxCategory/cbc:Percent)">
                <xsl:attribute name="id">ibr-119-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-119-ae]-Each VAT breakdown (IBG-23) shall have a VAT category rate (IBT-119), except if the Invoice is not subject to VAT.</svrl:text>
+               <svrl:text>[ibr-119-ae]-Each VAT breakdown (IBG-23) shall have a VAT category rate (IBT-119), except if the Invoice is not subject to VAT or Exempt from Tax.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1620,10 +1620,10 @@
                        context="cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'S'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT'] | cac:CreditNoteLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'S'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) &gt; 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) &gt; 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) &gt; 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) &gt; 0)">
                <xsl:attribute name="id">aligned-ibrp-s-05</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1643,10 +1643,10 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=false()]/cac:TaxCategory[normalize-space(cbc:ID)='S'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) &gt; 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) &gt; 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) &gt; 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) &gt; 0)">
                <xsl:attribute name="id">aligned-ibrp-s-06</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1666,10 +1666,10 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=true()]/cac:TaxCategory[normalize-space(cbc:ID)='S'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) &gt; 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) &gt; 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) &gt; 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) &gt; 0)">
                <xsl:attribute name="id">aligned-ibrp-s-07</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1689,10 +1689,10 @@
                        context="/*/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory[normalize-space(cbc:ID) = 'S'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="every $rate in xs:decimal(cbc:Percent) satisfies (((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/ cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02))) or ((exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02))))"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal) and (every $rate in xs:decimal(cbc:Percent) satisfies (((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02))) or ((exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02)))))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="every $rate in xs:decimal(cbc:Percent) satisfies (((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/ cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02))) or ((exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02))))">
+                                test="(cbc:Percent castable as xs:decimal) and (every $rate in xs:decimal(cbc:Percent) satisfies (((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02))) or ((exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = 'S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) or exists(//cac:AllowanceCharge[cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate])) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)='S'][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) + sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=true()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)) - sum(../../../cac:AllowanceCharge[cbc:ChargeIndicator=false()][cac:TaxCategory/normalize-space(cbc:ID)='S'][cac:TaxCategory/xs:decimal(cbc:Percent) = $rate]/xs:decimal(cbc:Amount)),0.02)))))">
                <xsl:attribute name="id">aligned-ibrp-s-08</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1704,10 +1704,10 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="u:slack(abs(xs:decimal(../cbc:TaxAmount)) , round((abs(xs:decimal(../cbc:TaxableAmount)) * (xs:decimal(cbc:Percent) div 100)) * 10 * 10) div 100 ,0.02 )"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and ../cbc:TaxableAmount castable as xs:decimal and ../cbc:TaxAmount castable as xs:decimal) and u:slack(abs(xs:decimal(../cbc:TaxAmount)) , round((abs(xs:decimal(../cbc:TaxableAmount)) * (xs:decimal(cbc:Percent) div 100)) * 10 * 10) div 100 ,0.02 )"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="u:slack(abs(xs:decimal(../cbc:TaxAmount)) , round((abs(xs:decimal(../cbc:TaxableAmount)) * (xs:decimal(cbc:Percent) div 100)) * 10 * 10) div 100 ,0.02 )">
+                                test="(cbc:Percent castable as xs:decimal and ../cbc:TaxableAmount castable as xs:decimal and ../cbc:TaxAmount castable as xs:decimal) and u:slack(abs(xs:decimal(../cbc:TaxAmount)) , round((abs(xs:decimal(../cbc:TaxableAmount)) * (xs:decimal(cbc:Percent) div 100)) * 10 * 10) div 100 ,0.02 )">
                <xsl:attribute name="id">aligned-ibrp-s-09</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1728,7 +1728,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[aligned-ibrp-s-10]-A VAT breakdown (ibg-23) with VAT Category code (ibt-118) "Standard rate" MUST not have a VAT exemption reason code (ibt-121) or VAT exemption reason text (ibt-120).</svrl:text>
+               <svrl:text>[aligned-ibrp-s-10]-A VAT breakdown (ibg-23) with VAT Category code (ibt-118) "Standard rate" MUST not have a VAT exemption reason code (IBT-186) or VAT exemption reason text (IBT-185).</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1742,10 +1742,10 @@
                        context="/*/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory[normalize-space(cbc:ID) = 'N'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="every $rate in xs:decimal(cbc:Percent) satisfies ((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) and  (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/ cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)),0.02))) or (exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate])  and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) ,0.02))))"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal) and (every $rate in xs:decimal(cbc:Percent) satisfies ((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) and  (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)),0.02))) or (exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate])  and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) ,0.02)))))"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="every $rate in xs:decimal(cbc:Percent) satisfies ((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/ cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)),0.02))) or (exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) ,0.02))))">
+                                test="(cbc:Percent castable as xs:decimal) and (every $rate in xs:decimal(cbc:Percent) satisfies ((exists(//cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:InvoiceLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)),0.02))) or (exists(//cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID) = &#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]) and (u:slack(../xs:decimal(cbc:TaxableAmount), sum(../../../cac:CreditNoteLine[cac:Item/cac:ClassifiedTaxCategory/normalize-space(cbc:ID)=&#34;N&#34;][cac:Item/cac:ClassifiedTaxCategory/xs:decimal(cbc:Percent) =$rate]/xs:decimal(cbc:LineExtensionAmount)) ,0.02)))))">
                <xsl:attribute name="id">ibr-102-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1809,15 +1809,15 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(cac:TaxCategory)"/>
+         <xsl:when test="not(cbc:Percent)"/>
          <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="not(cac:TaxCategory)">
+            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="not(cbc:Percent)">
                <xsl:attribute name="id">ibr-121-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-121-ae]-In a VAT breakdown (IBG-23) where VAT category code (IBT-118) is 'Exempt from VAT', VAT category VAT Rate (IBT-119) shall not be provided.</svrl:text>
+               <svrl:text>[ibr-121-ae]-In a VAT breakdown (IBG-23) where VAT category code (IBT-118) is 'Exempt from VAT', VAT category Rate (IBT-119) shall not be provided.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -1831,25 +1831,24 @@
                        context="cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'E'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT'] | cac:CreditNoteLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'E'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="not(cbc:Percent)"/>
          <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="not(cbc:Percent)">
                <xsl:attribute name="id">aligned-ibrp-e-05</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[aligned-ibrp-e-05]-In an Invoice line (ibg-25) where the Invoiced item VAT category code (ibt-151) is "Exempt from VAT", the Invoiced item VAT rate (ibt-152) MUST be 0 (zero). </svrl:text>
+               <svrl:text>[aligned-ibrp-e-05]-In an Invoice line (ibg-25) where the Invoiced item VAT category code (ibt-151) is "Exempt from VAT", the Invoiced item VAT rate (ibt-152) shall not be there. </svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(../../cac:ItemPriceExtension/cac:TaxAmount/cbc:TaxAmount)"/>
+         <xsl:when test="not(../../cac:ItemPriceExtension/cac:TaxTotal/cbc:TaxAmount)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(../../cac:ItemPriceExtension/cac:TaxAmount/cbc:TaxAmount)">
+                                test="not(../../cac:ItemPriceExtension/cac:TaxTotal/cbc:TaxAmount)">
                <xsl:attribute name="id">ibr-163-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1869,10 +1868,10 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=false()]/cac:TaxCategory[normalize-space(cbc:ID)='E'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)">
                <xsl:attribute name="id">aligned-ibrp-e-06</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1892,10 +1891,10 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=true()]/cac:TaxCategory[normalize-space(cbc:ID)='E'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)">
                <xsl:attribute name="id">aligned-ibrp-e-07</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1915,10 +1914,10 @@
                        context="cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'Z'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT'] | cac:CreditNoteLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'Z'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)">
                <xsl:attribute name="id">aligned-ibrp-z-05</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1953,10 +1952,10 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=false()]/cac:TaxCategory[normalize-space(cbc:ID)='Z'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)">
                <xsl:attribute name="id">aligned-ibrp-z-06</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -1976,10 +1975,10 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=true()]/cac:TaxCategory[normalize-space(cbc:ID)='Z'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+                                test="(cbc:Percent castable as xs:decimal and xs:decimal(cbc:Percent) = 0)">
                <xsl:attribute name="id">aligned-ibrp-z-07</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -2029,15 +2028,15 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="../cbc:TaxAmount = 0"/>
+         <xsl:when test="cbc:Percent = 0"/>
          <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="../cbc:TaxAmount = 0">
+            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="cbc:Percent = 0">
                <xsl:attribute name="id">ibr-120-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-120-ae]-In a VAT breakdown (IBG-23) where VAT category code (IBT-118) is 'Zero Rated', VAT category VAT Rate (IBT-119) shall equal to 0.</svrl:text>
+               <svrl:text>[ibr-120-ae]-In a VAT breakdown (IBG-23) where VAT category code (IBT-118) is 'Zero Rated', VAT category Rate (IBT-119) shall equal to 0.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -2060,21 +2059,6 @@
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
                <svrl:text>[aligned-ibrp-o-05]-An Invoice line (ibg-25) where the VAT category code (ibt-151) is "Not subject to VAT" MUST not contain an Invoiced item VAT rate (ibt-152).</svrl:text>
-            </svrl:failed-assert>
-         </xsl:otherwise>
-      </xsl:choose>
-      <!--ASSERT -->
-      <xsl:choose>
-         <xsl:when test="not(../../cac:ItemPriceExtension/cac:TaxAmount/cbc:TaxAmount)"/>
-         <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(../../cac:ItemPriceExtension/cac:TaxAmount/cbc:TaxAmount)">
-               <xsl:attribute name="id">ibr-164-ae</xsl:attribute>
-               <xsl:attribute name="flag">fatal</xsl:attribute>
-               <xsl:attribute name="location">
-                  <xsl:apply-templates select="." mode="schematron-select-full-path"/>
-               </xsl:attribute>
-               <svrl:text>[ibr-164-ae]-In Line VAT information (IBG-30) where Invoiced item VAT category code (IBT-151) is 'Not Subject to VAT', VAT Line amount [BTAE-08] shall not be there.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -2162,10 +2146,9 @@
       </xsl:choose>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="not(exists(cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/cbc:Percent))"/>
+         <xsl:when test="not(cbc:Percent)"/>
          <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="not(exists(cac:TaxCategory[cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']/cbc:Percent))">
+            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="not(cbc:Percent)">
                <xsl:attribute name="id">aligned-ibrp-o-11-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -2185,10 +2168,9 @@
                        context="cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'AE'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT'] | cac:CreditNoteLine/cac:Item/cac:ClassifiedTaxCategory[normalize-space(cbc:ID) = 'AE'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent))"/>
+         <xsl:when test="exists(cbc:Percent)"/>
          <xsl:otherwise>
-            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent))">
+            <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="exists(cbc:Percent)">
                <xsl:attribute name="id">aligned-ibrp-ae-05-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
@@ -2253,16 +2235,16 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=false()]/cac:TaxCategory[normalize-space(cbc:ID)='AE'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="exists(cbc:Percent) and normalize-space(cbc:Percent) != '' and cbc:Percent castable as xs:decimal and xs:decimal(normalize-space(cbc:Percent)) = 0"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+                                test="exists(cbc:Percent) and normalize-space(cbc:Percent) != '' and cbc:Percent castable as xs:decimal and xs:decimal(normalize-space(cbc:Percent)) = 0">
                <xsl:attribute name="id">aligned-ibrp-ae-06</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[aligned-ibrp-ae-06]-In a Document level allowance (ibg-20) where the Document level allowance VAT category code (ibt-95) is "Reverse charge" the Document level allowance VAT rate (ibt-96) MUST be greater than zero.</svrl:text>
+               <svrl:text>[aligned-ibrp-ae-06]-In a Document level allowance (ibg-20) where the Document level allowance VAT category code (ibt-95) is "Reverse charge" the Document level allowance VAT rate (ibt-96) MUST be zero.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -2276,16 +2258,16 @@
                        context="cac:AllowanceCharge[cbc:ChargeIndicator=true()]/cac:TaxCategory[normalize-space(cbc:ID)='AE'][cac:TaxScheme/normalize-space(upper-case(cbc:ID))='VAT']"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="(xs:decimal(cbc:Percent) = 0)"/>
+         <xsl:when test="exists(cbc:Percent) and normalize-space(cbc:Percent) != '' and cbc:Percent castable as xs:decimal and xs:decimal(normalize-space(cbc:Percent)) = 0"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="(xs:decimal(cbc:Percent) = 0)">
+                                test="exists(cbc:Percent) and normalize-space(cbc:Percent) != '' and cbc:Percent castable as xs:decimal and xs:decimal(normalize-space(cbc:Percent)) = 0">
                <xsl:attribute name="id">aligned-ibrp-ae-07</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[aligned-ibrp-ae-07]-In a Document level charge (ibg-21) where the Document level charge VAT category code (ibt-102) is "Reverse charge" the Document level charge VAT rate (ibt-103) MUST be greater than zero.</svrl:text>
+               <svrl:text>[aligned-ibrp-ae-07]-In a Document level charge (ibg-21) where the Document level charge VAT category code (ibt-102) is "Reverse charge" the Document level charge VAT rate (ibt-103) MUST be zero.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -2330,34 +2312,34 @@
       <xsl:apply-templates select="*" mode="M12"/>
    </xsl:template>
    <!--RULE -->
-   <xsl:template match="cac:Party[cac:PostalAddress/cac:Country/cbc:IdentificationCode = 'AE']/cac:PartyTaxScheme/cbc:CompanyID"
+   <xsl:template match="cac:Party[cac:PostalAddress/cac:Country/cbc:IdentificationCode = 'AE']/cac:PartyTaxScheme[cac:TaxScheme/normalize-space(upper-case(cbc:ID)) = 'VAT']/cbc:CompanyID"
                  priority="1002"
                  mode="M12">
       <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                       context="cac:Party[cac:PostalAddress/cac:Country/cbc:IdentificationCode = 'AE']/cac:PartyTaxScheme/cbc:CompanyID"/>
+                       context="cac:Party[cac:PostalAddress/cac:Country/cbc:IdentificationCode = 'AE']/cac:PartyTaxScheme[cac:TaxScheme/normalize-space(upper-case(cbc:ID)) = 'VAT']/cbc:CompanyID"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test="matches(., &#34;^1[a-zA-Z0-9]{12}03$&#34;)"/>
+         <xsl:when test="string-length(.) = 15 and starts-with(., &#34;1&#34;) and ends-with(., &#34;03&#34;) and matches(., &#34;^[0-9]+$&#34;)"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test="matches(., &#34;^1[a-zA-Z0-9]{12}03$&#34;)">
+                                test="string-length(.) = 15 and starts-with(., &#34;1&#34;) and ends-with(., &#34;03&#34;) and matches(., &#34;^[0-9]+$&#34;)">
                <xsl:attribute name="id">ibr-132-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-132-ae]-VAT identifier [IBT-031, IBT-048, IBT-063, BTAE-14] should be TRN [VAT registration number] and must be 15 alphanumeric digits, starting with 1, ending with 03 .</svrl:text>
+               <svrl:text>[ibr-132-ae]-VAT identifier [IBT-031, IBT-048, IBT-063, BTAE-14] should be TRN [VAT registration number] and must be 15 digits, starting with 1, ending with 03.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
       <xsl:apply-templates select="*" mode="M12"/>
    </xsl:template>
    <!--RULE -->
-   <xsl:template match="cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID"
+   <xsl:template match="cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme[cac:TaxScheme/normalize-space(upper-case(cbc:ID)) != 'VAT']/cbc:CompanyID"
                  priority="1001"
                  mode="M12">
       <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                       context="cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID"/>
+                       context="cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme[cac:TaxScheme/normalize-space(upper-case(cbc:ID)) != 'VAT']/cbc:CompanyID"/>
       <!--ASSERT -->
       <xsl:choose>
          <xsl:when test="matches(., &#34;^1[0-9]{9}$&#34;)"/>
@@ -2369,7 +2351,7 @@
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-148-ae]-The Seller VAT registration identifier (IBT-032) should be TIN (tax identification number) and must be 10 numeric digits and should be of the format 1XXXXXXXXXX.</svrl:text>
+               <svrl:text>[ibr-148-ae]-The Seller VAT registration identifier (IBT-032) should be TIN (tax identification number) and must be 10 numeric digits and should be of the format 1XXXXXXXXX.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>
@@ -2380,16 +2362,16 @@
       <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="cac:TaxScheme/cbc:ID"/>
       <!--ASSERT -->
       <xsl:choose>
-         <xsl:when test=". = &#34;VAT&#34; or not(exists(/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID))"/>
+         <xsl:when test=". = &#34;VAT&#34; or exists(//cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID[ string-length(normalize-space(.)) = 10 and starts-with(normalize-space(.), &#34;1&#34;) and translate(normalize-space(.), &#34;0123456789&#34;, &#34;&#34;) = &#34;&#34;])"/>
          <xsl:otherwise>
             <svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
-                                test=". = &#34;VAT&#34; or not(exists(/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID))">
+                                test=". = &#34;VAT&#34; or exists(//cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID[ string-length(normalize-space(.)) = 10 and starts-with(normalize-space(.), &#34;1&#34;) and translate(normalize-space(.), &#34;0123456789&#34;, &#34;&#34;) = &#34;&#34;])">
                <xsl:attribute name="id">ibr-133-ae</xsl:attribute>
                <xsl:attribute name="flag">fatal</xsl:attribute>
                <xsl:attribute name="location">
                   <xsl:apply-templates select="." mode="schematron-select-full-path"/>
                </xsl:attribute>
-               <svrl:text>[ibr-133-ae]-VAT scheme code, if provided in (IBT-095-01) or (IBT-031-1) or (IBT-048-1) or (IBT-063-1) or (IBT-102-1) or (IBT-118-1) shall be 'VAT' except when Seller tax registration identifier (IBT-032) is provided.</svrl:text>
+               <svrl:text>[ibr-133-ae]-VAT scheme code, if provided in (IBT-095-1) or (IBT-031-1) or (IBT-048-1) or (IBT-063-1) or (IBT-102-1) or (IBT-118-1) shall be 'VAT' except when Seller tax registration identifier (IBT-032) is provided.</svrl:text>
             </svrl:failed-assert>
          </xsl:otherwise>
       </xsl:choose>

@@ -4,12 +4,12 @@
 	xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd">
 	<cbc:CustomizationID>urn:peppol:pint:billing-1@ae-1</cbc:CustomizationID>  <!--  IBT-024 -->
-	<cbc:ProfileID>'urn:peppol:bis:billing</cbc:ProfileID>  <!--  IBT-023 -->
+	<cbc:ProfileID>urn:peppol:bis:billing</cbc:ProfileID>  <!--  IBT-023 -->
 	<cbc:ProfileExecutionID>10001010</cbc:ProfileExecutionID>	<!--  BTAE-02 -->
 	<cbc:ID>INV-001/2025</cbc:ID> <!--  IBT-001 -->
 	<cbc:UUID>4b6000ca-0128-4bdc-99a6-406f2909247f</cbc:UUID> <!--  BTAE-07 -->
 	<cbc:IssueDate>2025-01-30</cbc:IssueDate> <!--  IBT-002 -->
-	<cbc:IssueTime>18:24:10</cbc:IssueTime>  <!--  IBT-168 -->
+	<cbc:IssueTime>18:24:10+04:00</cbc:IssueTime>  <!--  IBT-168 -->
 	<cbc:DueDate>2025-02-13</cbc:DueDate>  <!--  IBT-009 -->
 	<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode> <!--  IBT-003 -->
 	<cbc:Note>Tax invoice</cbc:Note>	<!--  IBT-022 -->
@@ -287,7 +287,6 @@
 			<cbc:TaxAmount currencyID="AED">0</cbc:TaxAmount> <!--  IBT-117 -->
 			<cac:TaxCategory>
 				<cbc:ID>E</cbc:ID>  <!--  IBT-118 -->
-				<cbc:Percent>0</cbc:Percent>  <!--  IBT-119 -->
 				<cac:TaxScheme>
 					<cbc:ID>VAT</cbc:ID>  <!--  IBT-118-1 -->
 				</cac:TaxScheme>
@@ -443,7 +442,6 @@
 			</cac:CommodityClassification>
 			<cac:ClassifiedTaxCategory>  <!--  IBG-30 -->
 				<cbc:ID>E</cbc:ID>  <!--  IBT-151 -->
-				<cbc:Percent>0</cbc:Percent>  <!--  IBT-152 -->
 				<cbc:TaxExemptionReasonCode>DL8.46.2</cbc:TaxExemptionReasonCode>
 				<cbc:TaxExemptionReason>Supply of residential units (lease or sale)</cbc:TaxExemptionReason>
 				<cac:TaxScheme>
@@ -462,9 +460,6 @@
 		</cac:Price>	
 		<cac:ItemPriceExtension>
 			<cbc:Amount currencyID="AED">3900</cbc:Amount>  <!--  BTAE-10 -->
-			<cac:TaxTotal>
-				<cbc:TaxAmount currencyID="AED">0</cbc:TaxAmount>   <!--  BTAE-08 -->
-			</cac:TaxTotal>
 		</cac:ItemPriceExtension>				
 	</cac:InvoiceLine>
 	<cac:InvoiceLine>  <!--  IBG-25 -->

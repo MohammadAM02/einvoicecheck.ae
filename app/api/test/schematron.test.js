@@ -5,11 +5,18 @@
  * PeppolUAETDDValidatorTest: good documents must produce zero unexpected
  * failures; mutated documents must produce the exact expected rule IDs.
  *
- * Baseline: the 16 official PINT AE example invoices (vendored from
+ * Baseline: the 27 official PINT AE v1.0.4 example invoices (vendored from
  * docs.peppol.eu resources.zip) all share one recurring defect — a line-level
- * price AllowanceCharge with BaseAmount but no MultiplierFactorNumeric and no
- * reason — so every file pins the same expected failure set. Any deviation
- * means the interpreter regressed (or the .sch files changed).
+ * price AllowanceCharge with BaseAmount but no reason — so every file pins the
+ * same expected failure set. Any deviation means the interpreter regressed
+ * (or the .sch files changed).
+ *
+ * v1.0.4 restored the [TaxScheme != 'VAT'] context filter on ibr-148-ae (the
+ * dev-1.03 regression that made the 10-digit TIN check match every 15-digit
+ * UAE TRN) and narrowed the AllowanceCharge rule context with
+ * [not(ancestor::cac:Price)] — so neither ibr-148-ae nor aligned-ibrp-057
+ * appears in the baseline anymore. ibr-164-ae was removed upstream in v1.0.4
+ * (replaced by the ibr-sr-63 specification-identifier wildcard check).
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
@@ -21,24 +28,31 @@ import { validUblXml } from './helpers/fixtures.js';
 const EXAMPLES = path.join(import.meta.dirname, '..', 'schematron', 'examples');
 
 // Baseline failure rule IDs per official example (see header comment).
-// v1.03 (vendored source of truth) widened the supplier CompanyID context of
-// ibr-148-ae (dropped the [TaxScheme != 'VAT'] filter), so the 10-digit TIN
-// check now matches every supplier CompanyID — including the 15-digit TRNs in
-// the official examples. Every example therefore pins ibr-148-ae too.
-const BASELINE = ['aligned-ibrp-057', 'ibr-042', 'ibr-148-ae'];
+const BASELINE = ['ibr-042'];
 
 const EXPECTED = {
+  'Buyer-PAS-identifier.xml': BASELINE,
   'Commercial invoice.xml': BASELINE,
-  'Continuous supplies.xml': BASELINE,
-  'Deemed supply - predefined endpoint.xml': BASELINE,
-  'Disclosed agent billing.xml': BASELINE,
-  'Exports - predefined endpoint.xml': BASELINE,
+  'Continuous.supplies.xml': BASELINE,
+  'Deemed.supply.-.predefined.endpoint.xml': BASELINE,
+  'Disclosed.agent.billing.xml': BASELINE,
+  'Doc-level-allowance-AE-category.xml': BASELINE,
+  'Doc-level-allowance-E-category.xml': BASELINE,
+  'Doc-level-allowance-O-category.xml': BASELINE,
+  'Doc-level-allowance-Z-category.xml': BASELINE,
+  'Doc-level-charge-AE-category.xml': BASELINE,
+  'Doc-level-charge-E-category.xml': BASELINE,
+  'Doc-level-charge-O-category.xml': BASELINE,
+  'Doc-level-charge-Z-category.xml': BASELINE,
+  'Exports.-.predefined.endpoint.xml': BASELINE,
   'Exports.xml': BASELINE,
   'Margin scheme.xml': BASELINE,
-  'Standard invoice - Extensive.xml': BASELINE,
+  'Seller-PAS-identifier.xml': BASELINE,
+  'Seller-TIN-identifier.xml': BASELINE,
   'Standard invoice Mandatory fields.xml': BASELINE,
-  'Standard tax invoice - predefined endpoint.xml': BASELINE,
   'Standard tax invoice.xml': BASELINE,
+  'Standard.invoice.-.Extensive.xml': BASELINE,
+  'Standard.tax.invoice.-.predefined.endpoint.xml': BASELINE,
   'Summary tax invoice.xml': BASELINE,
   'Supply involving free trade zone.xml': BASELINE,
   'Supply through e-commerce.xml': BASELINE,
@@ -49,9 +63,9 @@ const EXPECTED = {
 const STANDARD = fs.readFileSync(path.join(EXAMPLES, 'Standard tax invoice.xml'), 'utf8');
 
 describe('schematron interpreter parity', () => {
-  it('walks all 301 asserts from both .sch files', () => {
+  it('walks all 302 asserts from both .sch files', () => {
     const r = validateSchematron(STANDARD);
-    expect(r.totalAsserts).toBeGreaterThanOrEqual(300);
+    expect(r.totalAsserts).toBe(302);
     expect(r.evaluated).toBeGreaterThan(200);
     expect(r.evalErrors).toEqual([]);
   });
@@ -94,23 +108,17 @@ describe('schematron interpreter parity', () => {
     expect(r.evalErrors).toEqual([]);
   });
 
-  // v1.03 added ibr-164-ae: a line classified 'O' (Not Subject to VAT) with an
-  // ItemPriceExtension/cac:TaxAmount/cbc:TaxAmount (BTAE-08) must fail. The
-  // Standard example has the ItemPriceExtension but no 'O' line, so flip the
-  // line's category and add the (unusual, per the v1.03 rule text) nested
-  // TaxAmount shape.
-  it('Not-subject-to-VAT line with ItemPriceExtension TaxAmount fires ibr-164-ae', () => {
-    const broken = STANDARD
-      // first Item ClassifiedTaxCategory (not the line-level AllowanceCharge
-      // cac:TaxCategory, which also has <cbc:ID>S</cbc:ID>) -> 'O'
-      .replace(/<cac:ClassifiedTaxCategory>\s*<cbc:ID>S<\/cbc:ID>/, '<cac:ClassifiedTaxCategory>\n\t\t\t\t<cbc:ID>O</cbc:ID>')
-      .replace(
-        '<cac:ItemPriceExtension>',
-        '<cac:ItemPriceExtension>\n\t\t\t<cac:TaxAmount><cbc:TaxAmount currencyID="AED">10.00</cbc:TaxAmount></cac:TaxAmount>'
-      );
+  // v1.0.4 removed ibr-164-ae upstream and added ibr-sr-63: the Specification
+  // identifier (IBT-024) must not contain a wildcard '*' character. The
+  // Standard example's CustomizationID is urn:peppol:pint:billing-1@ae-1.
+  it('wildcard in Specification identifier fires ibr-sr-63', () => {
+    const broken = STANDARD.replace(
+      '<cbc:CustomizationID>urn:peppol:pint:billing-1@ae-1</cbc:CustomizationID>',
+      '<cbc:CustomizationID>urn:peppol:pint:billing-*@ae-1</cbc:CustomizationID>'
+    );
     const r = validateSchematron(broken);
     const ids = new Set(r.errors.map((e) => e.rule));
-    expect(ids).toContain('ibr-164-ae');
+    expect(ids).toContain('ibr-sr-63');
     expect(r.evalErrors).toEqual([]);
   });
 });

@@ -147,7 +147,6 @@
 			<cbc:TaxAmount currencyID="AED">0</cbc:TaxAmount>
 			<cac:TaxCategory>
 				<cbc:ID>E</cbc:ID>
-				<cbc:Percent>0</cbc:Percent>
 				<cac:TaxScheme>
 					<cbc:ID>VAT</cbc:ID>
 				</cac:TaxScheme>
@@ -217,7 +216,6 @@
 			<cbc:Name>Item Name</cbc:Name>
 			<cac:ClassifiedTaxCategory>
 				<cbc:ID>E</cbc:ID>
-				<cbc:Percent>0</cbc:Percent>
 				<cbc:TaxExemptionReasonCode>DL8.46.4</cbc:TaxExemptionReasonCode>
 				<cbc:TaxExemptionReason>Local passenger transport</cbc:TaxExemptionReason>
 				<cac:TaxScheme>
@@ -236,9 +234,6 @@
 		</cac:Price>
 		<cac:ItemPriceExtension>
 			<cbc:Amount currencyID="AED">727.5</cbc:Amount>  <!--  BTAE-10 -->
-			<cac:TaxTotal>
-				<cbc:TaxAmount currencyID="AED">0</cbc:TaxAmount>   <!--  BTAE-08 -->
-			</cac:TaxTotal>
 		</cac:ItemPriceExtension>	
 	</cac:InvoiceLine>
 </Invoice>
