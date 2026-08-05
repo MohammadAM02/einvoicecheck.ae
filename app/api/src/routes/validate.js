@@ -1,6 +1,21 @@
 import { validateInvoice } from '../rules/engine.js';
+import { validateSchematron } from '../schematron-interpreter.js';
+import { looksLikeXml } from '../rules/xml.js';
 import { authenticate, makeRateLimiter } from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
+
+/**
+ * Extract the raw XML string from a request body when the payload is XML:
+ * a raw XML body (application/xml / text/xml) or an { document } envelope.
+ * Returns null for canonical JSON payloads.
+ */
+function xmlPayload(body) {
+  if (typeof body === 'string' && looksLikeXml(body)) return body;
+  if (body && typeof body.document === 'string' && looksLikeXml(body.document)) {
+    return body.document;
+  }
+  return null;
+}
 
 const errorObjectSchema = {
   type: 'object',
@@ -70,6 +85,39 @@ export async function validateRoutes(fastify) {
     async (request, reply) => {
       const contentType = request.headers['content-type'] || '';
       const result = validateInvoice(request.body, contentType);
+
+      // Raw UBL / PINT AE XML payloads: also run the full Schematron
+      // interpreter on the XML string. The canonical adapter (ENG-SCH-01)
+      // always checks the date too, so when the interpreter reports its
+      // ibr-073 assert the route dedupes the adapter's ENG-SCH-01/IBR-073
+      // (one defect, one rule id). Its IBR-CO-11 check has no .sch
+      // equivalent and still runs on the canonical model. Documents that
+      // failed to parse have nothing for the interpreter to check.
+      const xml = xmlPayload(request.body);
+      if (xml && !result.errors.some((e) => e.rule === 'ENG-PARSE-01')) {
+        const sch = validateSchematron(xml);
+        if (sch.evalErrors.length > 0) {
+          request.log.warn(
+            { count: sch.evalErrors.length, evalErrors: sch.evalErrors },
+            'schematron assert evaluation errors');
+        }
+        result.errors.push(...sch.errors);
+        // The interpreter's ibr-073 assert covers the same defect as the
+        // adapter's ENG-SCH-01/IBR-073 date check. The adapter always runs
+        // (the free web tool has no interpreter), so dedup here when the
+        // interpreter did report it — one defect, one rule id on the API path.
+        if (sch.errors.some((e) => e.rule === 'ibr-073')) {
+          const kept = [];
+          for (const e of result.errors) {
+            if (e.rule.includes('IBR-073') && !e.rule.includes('ibr-073')) continue;
+            kept.push(e);
+          }
+          result.errors = kept;
+        }
+        // Warnings must not invalidate the document — only severity 'error'.
+        result.valid = result.valid && !sch.errors.some((e) => e.severity === 'error');
+      }
+
       const outcome = result.errors.some((e) => e.rule === 'ENG-PARSE-01')
         ? 'error'
         : result.valid

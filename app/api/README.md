@@ -80,12 +80,27 @@ The `IBR-CO-*` and `IBR-005/IBR-CL-04` identifiers are taken directly from the
 PINT AE business-rule set:
 <https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessrule/>.
 Per-VAT-category rules (`BR-S-08/09`) are the EN 16931 rules PINT AE inherits;
-the exact PINT-AE schematron IDs should be confirmed against the official
-package — see `TODO(pint-ae-xsd)`.
+the exact PINT-AE schematron IDs are confirmed against the vendored v1.0.4
+package — see `docs/pint-ae-resources/`.
 
-### What is intentionally NOT implemented (V1 preflight scope)
-- Full UBL/PINT AE **XSD** structural validation and the complete **Schematron**
-  rule set (anchored via `TODO(pint-ae-xsd)`).
+### Implemented (V2 — XSD + Schematron layers)
+- Full UBL 2.1 **XSD** structural validation in the converter engine: the official
+  OASIS schema set (`docs/pint-ae-resources/ubl-2.1/xsd/`, validated via
+  `libxmljs2`) runs on the input in the converter pipeline and surfaces
+  `XSD-01`/`XSD-ERR` issues as non-blocking `dataIssues`.
+- Complete **Schematron** interpreter: the official PINT-AE v1.0.4 `.sch` rule
+  sets (UBL validation + jurisdiction-aligned, 302 asserts) run over XML payloads
+  at `/v1/validate` (`src/schematron-interpreter.js`), yielding real `ibr-*`
+  rule IDs. `ENG-SCH-01` (IBR-073, IBR-CO-11) remains the deterministic engine
+  adapter; the route dedupes IBR-073 against the interpreter's `ibr-073`.
+- Codelists are generated from the vendored PINT-AE `.gc` files
+  (`scripts/generate-codelists.mjs`) — drift breaks the suite.
+- Vendored source of truth: `docs/pint-ae-resources/` (official PINT-AE v1.0.4
+  resources + OASIS UBL 2.1 XSDs). The web tool runs the same engine via a
+  byte-identical vendored copy (`app/web/src/lib/rules/`), enforced by a parity
+  test.
+
+### What is intentionally NOT implemented (preflight scope)
 - XML **digital signature**, **AS4** transmission, and the Peppol participant
   lookup — these belong to an accredited ASP, not a preflight linter.
 - The complete ISO 4217 currency table (shape-checked; AED is the material case).

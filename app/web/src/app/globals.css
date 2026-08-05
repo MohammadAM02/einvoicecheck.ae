@@ -1815,6 +1815,46 @@ summary:focus-visible,
   margin-top: 18px;
 }
 
+.validation-layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.validation-layer-badge {
+  padding: 6px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--ink-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.validation-layer-badge.is-active {
+  color: var(--navy);
+  background: var(--accent-subtle);
+  border-color: var(--accent-hover);
+}
+
+.validation-issue-list.is-filtered .validation-issue {
+  border-style: dashed;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .validation-issue {
   min-width: 0;
   padding: 16px;

@@ -6,20 +6,24 @@
  *  - UAE Electronic Invoicing Guidelines v1.1 (MoF, 01 June 2026)
  *  - UAE Electronic Invoice mandatory fields v1.0 (MoF, 23 Feb 2026)
  *
- * TODO(pint-ae-xsd): replace these hand-maintained lists with the genericode
- * code lists shipped inside the official PINT AE package once the machine
- * -readable .gc / XSD files are wired in.
+ * The AE VAT category set below is GENERATED from the official genericode file
+ * vendored in docs/pint-ae-resources (source of truth), NOT hand-maintained
+ * here. Regenerate with: node scripts/generate-codelists.mjs (see
+ * app/api/scripts/generate-codelists.mjs). This module is browser-safe: it
+ * has no node: imports, so the identical copy in app/web/src/lib/rules runs
+ * inside the Next.js client bundle.
  */
 
-// AE-aligned VAT category codes (subset of UNCL5305 used by PINT AE).
+// BEGIN GENERATED — do not edit by hand (run: node scripts/generate-codelists.mjs)
 export const VAT_CATEGORY_CODES = {
-  S: { name: 'Standard rate', expectedRate: 5 },
-  Z: { name: 'Zero rated', expectedRate: 0 },
-  E: { name: 'Exempt from tax', expectedRate: 0 },
-  O: { name: 'Services outside scope of tax', expectedRate: 0 },
-  AE: { name: 'VAT reverse charge', expectedRate: 0 },
-  N: { name: 'Standard rate additional VAT', expectedRate: 5 },
+  "S": { name: "Standard rate", expectedRate: 5 },
+  "E": { name: "Exempt from tax", expectedRate: 0 },
+  "O": { name: "Services outside scope of tax / Not subject to tax", expectedRate: 0 },
+  "AE": { name: "VAT Reverse Charge", expectedRate: 0 },
+  "Z": { name: "Zero rated", expectedRate: 0 },
+  "N": { name: "Standard rate additional VAT", expectedRate: 5 },
 };
+// END GENERATED
 
 // UAE standard VAT rate (Federal Decree-Law No. 8 of 2017).
 export const UAE_STANDARD_VAT_RATE = 5;
@@ -31,7 +35,10 @@ export const DOMESTIC_CURRENCY = 'AED';
 // out of scope for preflight — AED is the one that matters for UAE domestic).
 export const ISO4217_RE = /^[A-Z]{3}$/;
 
-// UNCL1001 invoice type codes recognised by PINT AE (BT-3).
+// UNCL1001 invoice type codes recognised by PINT AE (BT-3). The pack's
+// UNCL1001-inv.gc is a minimal baseline (380, 480); the engine's list is the
+// UAE-aligned subset the interpreter's ibr-cl-01 enforces over the full
+// UNCL1001 set at runtime.
 export const INVOICE_TYPE_CODES = {
   380: 'Commercial invoice',
   381: 'Credit note',
