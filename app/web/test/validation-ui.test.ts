@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fieldLabel, sortValidationIssues, toReportText, type ValidationIssue, type ValidationResult } from '@/lib/validation-ui';
+import { fieldLabel, layerOf, sortValidationIssues, toReportText, type ValidationIssue, type ValidationResult } from '@/lib/validation-ui';
 
 describe('fieldLabel', () => {
   it('uses finance-readable labels for known paths', () => {
@@ -26,6 +26,27 @@ describe('sortValidationIssues', () => {
     expect(sorted).toEqual([issues[1], issues[0]]);
     expect(sorted).not.toBe(issues);
     expect(issues.map((issue) => issue.severity)).toEqual(['warning', 'error']);
+  });
+});
+
+describe('layerOf', () => {
+  it('classifies format rules', () => {
+    expect(layerOf('ENG-PARSE-01')).toBe('format');
+    expect(layerOf('FMT-CHARS-01')).toBe('format');
+    expect(layerOf('FMT-NS-02')).toBe('format');
+  });
+
+  it('classifies structure rules', () => {
+    expect(layerOf('XSD-01')).toBe('structure');
+    expect(layerOf('ENG-XSD-01')).toBe('structure');
+  });
+
+  it('classifies everything else as semantic', () => {
+    expect(layerOf('ibr-073')).toBe('semantic');
+    expect(layerOf('ibr-132-ae')).toBe('semantic');
+    expect(layerOf('ENG-VAT-01')).toBe('semantic');
+    expect(layerOf('aligned-ibrp-002-ae')).toBe('semantic');
+    expect(layerOf('ENG-SCH-01')).toBe('semantic');
   });
 });
 

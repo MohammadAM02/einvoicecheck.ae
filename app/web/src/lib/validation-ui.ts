@@ -20,6 +20,20 @@ export type ValidationRateLimit = {
   degraded: boolean;
 };
 
+export type ValidationLayer = 'format' | 'structure' | 'semantic';
+
+export const LAYER_LABELS: Record<ValidationLayer, string> = {
+  format: 'Format',
+  structure: 'Structure',
+  semantic: 'Semantic',
+};
+
+export function layerOf(rule: string): ValidationLayer {
+  if (/^ENG-PARSE-/.test(rule) || /^FMT-/.test(rule)) return 'format';
+  if (/^XSD-/.test(rule) || /^ENG-XSD-/.test(rule)) return 'structure';
+  return 'semantic';
+}
+
 export type ValidateApiSuccess = {
   ok: true;
   result: ValidationResult;

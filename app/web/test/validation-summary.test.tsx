@@ -95,4 +95,45 @@ describe('ValidationSummary', () => {
     expect(screen.getByText('Rate-limit protection is temporarily degraded.')).toBeTruthy();
     expect(screen.queryByText('Would be rejected')).toBeNull();
   });
+
+  it('renders layer badges with counts', () => {
+    const result: ValidationResult = {
+      valid: false,
+      invoiceType: '388',
+      schemaVersion: 'PINT AE 1.0',
+      errors: [
+        { path: '/', rule: 'ENG-PARSE-01', severity: 'error', message: 'parse' },
+        { path: '/', rule: 'XSD-01', severity: 'error', message: 'structure' },
+        { path: '/', rule: 'ibr-073', severity: 'error', message: 'semantic' },
+        { path: '/', rule: 'ENG-VAT-01', severity: 'error', message: 'semantic 2' },
+      ],
+    };
+    render(h(ValidationSummary, { result, rateLimit, onReset: vi.fn() }));
+
+    expect(screen.getByText('Format')).toBeTruthy();
+    expect(screen.getByText('Structure')).toBeTruthy();
+    expect(screen.getByText('Semantic')).toBeTruthy();
+    // counts: 1 format, 1 structure, 2 semantic
+    expect(screen.getByText('1 Format')).toBeTruthy();
+    expect(screen.getByText('1 Structure')).toBeTruthy();
+    expect(screen.getByText('2 Semantic')).toBeTruthy();
+  });
+
+  it('filters the issue list when a layer badge is clicked', async () => {
+    const user = userEvent.setup();
+    const result: ValidationResult = {
+      valid: false,
+      invoiceType: '388',
+      schemaVersion: 'PINT AE 1.0',
+      errors: [
+        { path: '/a', rule: 'XSD-01', severity: 'error', message: 'structure issue' },
+        { path: '/b', rule: 'ibr-073', severity: 'error', message: 'semantic issue' },
+      ],
+    };
+    render(h(ValidationSummary, { result, rateLimit, onReset: vi.fn() }));
+
+    await user.click(screen.getByText('1 Structure'));
+    expect(screen.getByText('structure issue')).toBeTruthy();
+    expect(screen.queryByText('semantic issue')).toBeNull();
+  });
 });
