@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { startTestApp, stopTestApp } from './helpers/testApp.js';
 import { validInvoice, brokenInvoice, validUblXml } from './helpers/fixtures.js';
+import { validateInvoice } from '../src/rules/engine.js';
 
 describe('POST /v1/validate', () => {
   let ctx;
@@ -110,10 +111,18 @@ describe('POST /v1/validate', () => {
     const body = res.json();
     expect(body.valid).toBe(false);
     const rules = body.errors.map((e) => e.rule);
-    // interpreter emits the real .sch id (lowercase); the adapter yields for
-    // XML so the same defect is not reported twice
+    // interpreter emits the real .sch id (lowercase); the route dedupes the
+    // adapter's ENG-SCH-01/IBR-073 against it so the defect appears once
     expect(rules).toContain('ibr-073');
     expect(rules.some((r) => r.includes('IBR-073'))).toBe(false);
+  });
+
+  it('engine-only XML path still reports IBR-073 (free tool has no interpreter)', () => {
+    const xml = validUblXml().replace(
+      '<cbc:IssueDate>2026-07-14</cbc:IssueDate>',
+      '<cbc:IssueDate>2026/07/14</cbc:IssueDate>');
+    const r = validateInvoice(xml, 'application/xml'); // engine directly — no route, no interpreter
+    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-073'))).toBe(true);
   });
 
   it('runs the Schematron interpreter for { document } envelopes', async () => {

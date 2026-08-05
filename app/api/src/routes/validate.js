@@ -88,8 +88,9 @@ export async function validateRoutes(fastify) {
 
       // Raw UBL / PINT AE XML payloads: also run the full Schematron
       // interpreter on the XML string. The canonical adapter (ENG-SCH-01)
-      // yields its ibr-073 date check for XML (see schematron.js) so one
-      // defect is not reported twice; its IBR-CO-11 check has no .sch
+      // always checks the date too, so when the interpreter reports its
+      // ibr-073 assert the route dedupes the adapter's ENG-SCH-01/IBR-073
+      // (one defect, one rule id). Its IBR-CO-11 check has no .sch
       // equivalent and still runs on the canonical model. Documents that
       // failed to parse have nothing for the interpreter to check.
       const xml = xmlPayload(request.body);
@@ -101,6 +102,18 @@ export async function validateRoutes(fastify) {
             'schematron assert evaluation errors');
         }
         result.errors.push(...sch.errors);
+        // The interpreter's ibr-073 assert covers the same defect as the
+        // adapter's ENG-SCH-01/IBR-073 date check. The adapter always runs
+        // (the free web tool has no interpreter), so dedup here when the
+        // interpreter did report it — one defect, one rule id on the API path.
+        if (sch.errors.some((e) => e.rule === 'ibr-073')) {
+          const kept = [];
+          for (const e of result.errors) {
+            if (e.rule.includes('IBR-073') && !e.rule.includes('ibr-073')) continue;
+            kept.push(e);
+          }
+          result.errors = kept;
+        }
         // Warnings must not invalidate the document — only severity 'error'.
         result.valid = result.valid && !sch.errors.some((e) => e.severity === 'error');
       }

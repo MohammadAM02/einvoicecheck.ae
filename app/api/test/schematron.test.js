@@ -136,15 +136,16 @@ describe('Schematron engine rule adapter (ENG-SCH-01)', () => {
     expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-CO-11'))).toBe(true);
   });
 
-  // XML payloads run the full interpreter at the route layer, whose ibr-073
-  // assert covers the same defect — the adapter yields to avoid reporting one
-  // defect twice with different rule IDs (see schematronRule comment).
-  it('yields the IBR-073 date check for ubl-xml input', () => {
+  // The adapter always runs its date check — the API route dedupes against
+  // the interpreter's ibr-073 assert for XML payloads (see schematronRule
+  // comment and routes/validate.js); the web tool has no interpreter, so
+  // this check is its only date coverage.
+  it('reports the IBR-073 date check for ubl-xml input (adapter always runs)', () => {
     const xml = validUblXml().replace(
       '<cbc:IssueDate>2026-07-14</cbc:IssueDate>',
       '<cbc:IssueDate>2026/07/14</cbc:IssueDate>');
     const r = validateInvoice(xml, 'application/xml');
-    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-073'))).toBe(false);
+    expect(r.errors.map((e) => e.rule).some((x) => x.includes('IBR-073'))).toBe(true);
   });
 
   // IBR-CO-11 has no .sch equivalent (the .sch only has the stronger ibr-co-16
