@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { GuardrailNotice } from '@/components/Chrome';
 import { InvoiceValidator } from '@/components/InvoiceValidator';
 import { RepairerWorkspace } from '@/components/RepairerWorkspace';
@@ -174,8 +175,4 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       </div>
     </>
   );
-}
-
-function notFound(): never {
-  throw new Error('Tool not found');
 }
