@@ -121,7 +121,11 @@ export async function POST(request: Request) {
 
     if (!apiRes.ok) {
       return NextResponse.json(
-        { ok: false, error: responseData.message ?? responseData.error ?? `Generation failed with HTTP ${apiRes.status}.` },
+        {
+          ok: false,
+          error: responseData.message ?? responseData.error ?? `Generation failed with HTTP ${apiRes.status}.`,
+          ...(Array.isArray(responseData.fieldErrors) ? { fieldErrors: responseData.fieldErrors } : {}),
+        },
         { status: apiRes.status },
       );
     }

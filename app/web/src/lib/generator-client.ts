@@ -41,7 +41,12 @@ export type GenerateError = {
   fieldErrors?: { field: string; message: string }[];
 };
 
-export type GenerateResponse = GenerateSuccess | GenerateError;
+/** Shape returned by the web proxy /api/tools/generate (convert-style envelope). */
+type GenerateApiEnvelope = {
+  ok: true;
+  result: GenerateSuccess;
+  rateLimit: { limit: number; remaining: number; resetSeconds: number; degraded: boolean };
+};
 
 export async function generateXml(
   data: GenerateInput,
@@ -71,7 +76,7 @@ export async function generateXml(
     );
   }
 
-  const apiBody = body as GenerateResponse;
+  const apiBody = body as GenerateApiEnvelope | GenerateError;
 
   if (!response.ok || apiBody.ok !== true) {
     const message =
@@ -85,5 +90,5 @@ export async function generateXml(
     );
   }
 
-  return apiBody as GenerateSuccess;
+  return apiBody.result;
 }
