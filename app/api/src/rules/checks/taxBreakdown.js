@@ -33,8 +33,9 @@ export const taxBreakdownRule = {
       const rate = st.category?.rate;
       const code = st.category?.code;
 
-      // BR-S-09: tax = taxable x rate/100
-      if (isNumber(st.taxableAmount) && isNumber(rate) && isNumber(st.taxAmount)) {
+      // BR-S-09: tax = taxable x rate/100 (SKIPPED for AE — reverse charge,
+      // seller tax amount is 0 by definition; buyer self-assesses).
+      if (code !== 'AE' && isNumber(st.taxableAmount) && isNumber(rate) && isNumber(st.taxAmount)) {
         const expectedTax = round2((Number(st.taxableAmount) * Number(rate)) / 100);
         if (!moneyEq(expectedTax, st.taxAmount)) {
           out.push(err(`${base}/taxAmount`, 'ENG-TAX-09/BR-S-09',

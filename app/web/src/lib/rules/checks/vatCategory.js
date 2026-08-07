@@ -24,6 +24,9 @@ function checkCategory(out, path, code, rate) {
     return;
   }
   const expected = VAT_CATEGORY_CODES[code].expectedRate;
+  // AE carries a notional rate (5 or 0); the binding invariant is tax amount 0
+  // (enforced in taxBreakdown.js). Skip strict rate equality for AE.
+  if (code === 'AE') return;
   if (rate === undefined || rate === null) {
     // Rate is required for rated categories (S/N); 0 is implied for Z/E/O/AE.
     if (expected !== 0) {

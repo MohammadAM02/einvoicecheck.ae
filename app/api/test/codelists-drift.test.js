@@ -26,12 +26,14 @@ function parseGenericode(xml) {
 
 describe('VAT category codelist drift guard', () => {
   it('VAT_CATEGORY_CODES matches the vendored Aligned-TaxCategoryCodes.gc', () => {
-    const expectedRates = { S: 5, Z: 0, E: 0, O: 0, AE: 0, N: 5 };
+    // AE (VAT Reverse Charge) carries a notional rate (5 or 0) in official
+    // PINT-AE samples; null = rate not enforced by the semantic engine.
+    const expectedRates = { S: 5, Z: 0, E: 0, O: 0, AE: null, N: 5 };
     const codes = parseGenericode(readFileSync(GC_PATH, 'utf8'));
     const expected = Object.fromEntries(
       Object.keys(codes).map((code) => [
         code,
-        { name: codes[code], expectedRate: expectedRates[code] ?? 0 },
+        { name: codes[code], expectedRate: expectedRates[code] === null ? null : (expectedRates[code] ?? 0) },
       ])
     );
     expect(VAT_CATEGORY_CODES).toEqual(expected);
@@ -42,7 +44,8 @@ describe('VAT category codelist drift guard', () => {
     expect(VAT_CATEGORY_CODES.Z.expectedRate).toBe(0);
     expect(VAT_CATEGORY_CODES.E.expectedRate).toBe(0);
     expect(VAT_CATEGORY_CODES.O.expectedRate).toBe(0);
-    expect(VAT_CATEGORY_CODES.AE.expectedRate).toBe(0);
+    // AE is not rate-enforced (notional rate; seller tax amount must be 0).
+    expect(VAT_CATEGORY_CODES.AE.expectedRate).toBe(null);
     expect(VAT_CATEGORY_CODES.N.expectedRate).toBe(5);
   });
 });

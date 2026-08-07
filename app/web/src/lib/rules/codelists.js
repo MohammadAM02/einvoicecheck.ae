@@ -19,7 +19,7 @@ export const VAT_CATEGORY_CODES = {
   "S": { name: "Standard rate", expectedRate: 5 },
   "E": { name: "Exempt from tax", expectedRate: 0 },
   "O": { name: "Services outside scope of tax / Not subject to tax", expectedRate: 0 },
-  "AE": { name: "VAT Reverse Charge", expectedRate: 0 },
+  "AE": { name: "VAT Reverse Charge", expectedRate: null },
   "Z": { name: "Zero rated", expectedRate: 0 },
   "N": { name: "Standard rate additional VAT", expectedRate: 5 },
 };

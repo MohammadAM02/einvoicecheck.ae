@@ -20,7 +20,10 @@ const TARGETS = [
 
 // EN 16931 rate semantics overlaid on the genericode (the .gc carries only
 // code+name; rates are enforced separately by BR-S/BR-Z/BR-E — see vatCategory.js).
-const expectedRates = { S: 5, Z: 0, E: 0, O: 0, AE: 0, N: 5 };
+// AE (VAT Reverse Charge) carries a NOTIONAL rate (5 or 0) in official PINT-AE
+// samples; the binding invariant is seller tax amount 0 (buyer self-assesses).
+// null = rate not enforced by the semantic engine.
+const expectedRates = { S: 5, Z: 0, E: 0, O: 0, AE: null, N: 5 };
 
 /** Parse a genericode .gc file into { code -> name } for the (id) column. */
 function parseGenericode(xml) {
@@ -51,7 +54,7 @@ if (MISSING.length > 0) {
 const entries = Object.keys(codes)
   .map(
     (code) =>
-      `  ${JSON.stringify(code)}: { name: ${JSON.stringify(codes[code])}, expectedRate: ${expectedRates[code] ?? 0} },`
+      `  ${JSON.stringify(code)}: { name: ${JSON.stringify(codes[code])}, expectedRate: ${expectedRates[code] === null ? 'null' : (expectedRates[code] ?? 0)} },`
   )
   .join('\n');
 
