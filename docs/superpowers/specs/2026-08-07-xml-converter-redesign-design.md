@@ -30,6 +30,7 @@ The user reported the XML converter page (`/tools/xml-converter`) is "too confus
 2. Route validation to the existing validator page (handoff, not an embedded wizard).
 3. Use **official PINT-AE 1.0.4 example XMLs** for "Try a sample" (deployed API already bundles them; web currently uses a hand-rolled sample).
 4. Preserve the security posture: no payload persistence, server-side key, IP rate limiting.
+5. **Rename the tool** from "XML Converter" → **"XML Repairer"** (display name, URL slug, and internal component names — full authority granted by owner).
 
 ## 3. Non-Goals
 
@@ -89,14 +90,46 @@ The user reported the XML converter page (`/tools/xml-converter`) is "too confus
 - Source files are Apache-2.0-licensed OpenPeppol examples already vendored in the API; copying to web assets is consistent with existing vendoring practice. Record source path in a comment.
 - Verify each sample is **valid** (passes `NOOP`) so the demo shows a clean "no changes needed" state. A deliberately-broken sample for the "Repaired — N fixes" state is out of v1 (an optional follow-up); the repair state is still covered by component tests with synthetic fixtures.
 
-## 7. Files Touched
+## 7. Rename — "XML Converter" → "XML Repairer"
+
+Owner approved: display name, URL slug, and internal component names all change. **No redirect** from the old slug (clean break, old links 404 — accepted trade-off).
+
+### 7.1 Rename surface (deployed lineage, origin/main)
+
+| File | Current | New |
+|---|---|---|
+| `app/web/src/app/tools/[slug]/page.tsx` | TOOLS key `'xml-converter'`, h1 `'XML Converter'`, SEO title `'Free UBL XML converter — …'`, `targetKeyword: 'UBL XML converter'`, blurb, context copy, render condition `slug === 'xml-converter'` | TOOLS key `'xml-repairer'`, h1 `'XML Repairer'`, SEO title `'Free UBL XML repairer — fix format defects before validation'`, `targetKeyword: 'UBL XML repairer'`, blurb/context copy reworded to repair-first |
+| `app/web/src/lib/site.ts` | `TOOL_SLUGS` contains `'xml-converter'` | `'xml-repairer'` |
+| `app/web/src/components/Chrome.tsx` | nav `{ href: '/tools/xml-converter', label: 'XML Converter' }` | `{ href: '/tools/xml-repairer', label: 'XML Repairer' }` |
+| `app/web/src/components/ConverterWorkspace.tsx` | component + class names | rename to `RepairerWorkspace` (impl: `git mv`, update imports) |
+| `app/web/src/lib/converter-client.ts` | file + `convertXml`/`readXmlFile` + `ConverterClientError` | rename file to `repairer-client.ts`, update symbol names + imports (keep `convertXml` call to `/api/tools/convert` — the web proxy route path is unchanged) |
+| `app/web/src/app/api/tools/convert/route.ts` | `TOOL = 'uae-e-invoice-converter'` (rate-limit namespace), error strings "converter…" | `TOOL = 'uae-e-invoice-repairer'`, error strings "repairer…". **Route path `/api/tools/convert` stays** (internal contract; renaming breaks the client + Redis namespace continuity). |
+| Analytics events | `converter_input_selected`, `converter_error`, `converter_submitted`, `converter_result` | rename to `repairer_*` (tracked in `ConverterWorkspace`/`RepairerWorkspace`) |
+| `app/web/src/app/sitemap.ts` | derives from `TOOL_SLUGS` | auto-follows — no manual change |
+
+### 7.2 Explicitly NOT renamed (contract stability)
+
+- **API path `POST /v1/convert`** — paid API contract; renaming breaks consumers. The endpoint's internal name stays "convert".
+- **Web proxy route `/api/tools/convert`** — internal but referenced by the client; kept for continuity (see above).
+- **API test files** (`app/api/test/convert*.test.js`, fixtures) — unchanged; they test the contract, not the web tool name.
+- **Redis `plan:limits:*` and tool rate-limit namespace** — only the tool namespace `uae-e-invoice-converter` becomes `uae-e-invoice-repairer`; the `plan:limits:*` contract is untouched.
+- **sessionStorage handoff key** — see §5.3; named `einvoicecheck:converter-handoff` and kept (not user-visible; changing it adds churn for zero gain).
+
+### 7.3 SEO note
+
+Old slug `/tools/xml-converter` 404s after deploy (no redirect, per owner decision). New slug `/tools/xml-repairer` is statically generated via `generateStaticParams` from `TOOL_SLUGS`, so it appears in the sitemap automatically. The `targetKeyword` change from "UBL XML converter" → "UBL XML repairer" is a deliberate SEO pivot; the old keyword's equity is not carried over (accepted as part of the clean break).
+
+## 8. Files Touched
 
 | File | Change |
 |---|---|
-| `app/web/src/components/ConverterWorkspace.tsx` | Rewrite per §5.1 |
-| `app/web/src/lib/converter-client.ts` | Drop `mode`, add download/copy helpers |
+| `app/web/src/components/ConverterWorkspace.tsx` → `RepairerWorkspace.tsx` | Rename + rewrite per §5.1 |
+| `app/web/src/lib/converter-client.ts` → `repairer-client.ts` | Rename; drop `mode`, add download/copy helpers |
 | `app/web/src/components/validation/ValidatorWorkspace.tsx` | sessionStorage handoff hook (§5.3) |
-| `app/web/src/app/tools/[slug]/page.tsx` | Copy touch-ups only |
+| `app/web/src/app/tools/[slug]/page.tsx` | Slug/name/copy changes per §7.1 |
+| `app/web/src/lib/site.ts` | `TOOL_SLUGS` `'xml-converter'` → `'xml-repairer'` |
+| `app/web/src/components/Chrome.tsx` | Nav label + href per §7.1 |
+| `app/web/src/app/api/tools/convert/route.ts` | Tool namespace + error strings per §7.1 (path unchanged) |
 | `app/web/src/lib/validation-samples.ts` | (unused by converter; no change) |
 | New: web sample assets (2–3 XML files) | Under `app/web/src/lib/samples/` or `public/` (impl choice) |
 | `app/web/test/*` | Extend per §9 |
@@ -127,5 +160,5 @@ The redesign touches user-supplied invoices (business/personal data) and the exi
 ## 9. Out of Scope / Follow-ups
 
 - **Repo divergence** (local `main` vs `origin/main`): reconcile after this feature lands. Decide whether local `main` should be reset to `origin/main` or the compliance-manifest work (untracked `src/compliance/pint-ae-1.0.3/`) is merged in intentionally.
-- Dead web proxy route `app/api/tools/convert` (local lineage only) — irrelevant on origin/main; ignore.
+- **Old slug `/tools/xml-converter`** — intentionally left to 404 (no redirect, per owner decision; see §7.3).
 - Monthly quota enforcement, `/usage` rate limit, UsageEvent TTL — existing open items in `docs/PRODUCTION_STATUS.md`; untouched by this feature.
