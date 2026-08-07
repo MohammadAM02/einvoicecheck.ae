@@ -132,7 +132,13 @@ Old slug `/tools/xml-converter` 404s after deploy (no redirect, per owner decisi
 | `app/web/src/app/api/tools/convert/route.ts` | Tool namespace + error strings per §7.1 (path unchanged) |
 | `app/web/src/lib/validation-samples.ts` | (unused by converter; no change) |
 | New: web sample assets (2–3 XML files) | Under `app/web/src/lib/samples/` or `public/` (impl choice) |
-| `app/web/test/*` | Extend per §9 |
+| `app/api/src/rules/xml.js` + `app/web/src/lib/rules/xml.js` | Engine fix §9.2 — parse line-level AllowanceCharge (BOTH trees) |
+| `app/api/src/rules/checks/vatCategory.js` + web copy | Engine fix §9.3 — AE rate not enforced (BOTH trees) |
+| `app/api/src/rules/checks/taxBreakdown.js` + web copy | Engine fix §9.3 — AE skips tax arithmetic (BOTH trees) |
+| `app/api/scripts/generate-codelists.mjs` | Engine fix §9.3 — AE rate source of truth; re-derive both codelists.js |
+| New: `app/web/test/engine-parity.test.ts` | Parity guard §9.4 (currently missing despite validation.ts claim) |
+| `app/api/test/*` | Engine fix tests §9.5 |
+| `app/web/test/*` | Extend per §10 |
 
 ## 8. Security & Privacy
 
@@ -148,8 +154,58 @@ The redesign touches user-supplied invoices (business/personal data) and the exi
    - [ ] Confirm sessionStorage key is cleared after validator read and on converter reset.
    - [ ] Confirm the download Blob URL is revoked after use (memory hygiene).
    - [ ] Re-run the API/web test suites and a manual E2E (CONVERTED + REFUSED cases) against the deployed API.
+   - [ ] Confirm the official tax-invoice samples now pass both `/v1/convert` and `/v1/validate` (engine fixes §9).
 
-## 9. Testing
+## 9. Engine Fixes — False Positives on Official Tax-Invoice Samples
+
+Owner approved: both engine fixes ship with this redesign (the samples feature depends on them — two of the three candidate official samples currently REFUSE).
+
+### 9.1 Reproduced failures (official PINT-AE 1.0.4 samples, deployed engine)
+
+| Sample | Result | Blocked rules |
+|---|---|---|
+| `Standard tax invoice.xml` | REFUSED (DATA_SEMANTIC) | ENG-LINE-05 — line net 10486.00 ≠ qty×price 9800.00 |
+| `Summary tax invoice.xml` | REFUSED (DATA_SEMANTIC) | ENG-VAT-04, ENG-TAX-09 — AE category at rate 5, tax 0.00 |
+| `Standard invoice Mandatory fields.xml` | NOOP | — |
+| `Commercial invoice.xml` | NOOP | — |
+
+XSD gate and Schematron both pass on the official samples — the false positives are purely in the semantic engine, which the repairer mirrors (classify → REFUSE on any error).
+
+### 9.2 Bug 1 — Line-level AllowanceCharge never parsed
+
+**Root cause:** `app/api/src/rules/xml.js` `parseUblInvoice()` hardcodes `allowance: 0, charge: 0` per invoice line and never reads `cac:InvoiceLine/cac:AllowanceCharge`. `ENG-LINE-05` (lineArithmetic.js) *correctly* computes `qty×price − allowance + charge`, so any line with a discount or charge false-fails. The official "Standard tax invoice" line 1: qty 2000, base 9800, discount 294 (3%), charge 980 (10%) → 9800 − 294 + 980 = **10486** ✓.
+
+**Fix:** in `parseUblInvoice()`, parse `ln.AllowanceCharge` (repeatable, per UBL):
+- `ChargeIndicator=false` → sum into `allowance`
+- `ChargeIndicator=true` → sum into `charge`
+- Use `Amount` (not `BaseAmount` × `MultiplierFactorNumeric` — Amount is authoritative; fall back to computed if absent).
+
+### 9.3 Bug 2 — AE (reverse-charge) category rate expectation
+
+**Root cause:** `scripts/generate-codelists.mjs` line 23 hardcodes `expectedRates = { …, AE: 0, … }`, and the generated `codelists.js` carries `"AE": { name: "VAT Reverse Charge", expectedRate: 0 }`. `vatCategory.js` then enforces `rate === 0` for AE (ENG-VAT-04), and `taxBreakdown.js` enforces `tax = taxable × rate` (ENG-TAX-09). The official PINT-AE sample carries **AE + 5% + tax 0** — a legitimate reverse-charge representation (notional rate 5%, seller VAT amount 0, buyer self-assesses). The vendored jurisdiction Schematron only requires the AE breakdown to exist (`aligned-ibrp-ae-01-ae`) — it does not pin the rate to 0. The engine invented a rule stricter than the official profile.
+
+**Fix (engine-side, matching the official profile):**
+- **`vatCategory.js`**: for category `AE`, do not require `rate === 0`. Accept `rate` as a notional value (5 or 0); the binding invariant is that the *seller's tax amount is 0* (buyer self-assesses), which ENG-TAX-09's fix below handles. Missing rate stays OK (already allowed for expectedRate 0 — preserve that).
+- **`taxBreakdown.js`**: for category `AE`, skip the `tax = taxable × rate` arithmetic (ENG-TAX-09) — the seller's tax is 0 by definition. Keep `ENG-TAX-08` (taxable reconciles to line nets) — that still applies.
+- **`generate-codelists.mjs`**: either drop `AE` from the rate-enforced set (treat as "no enforced rate") or set its `expectedRate` to `null` to mean "not enforced". Keep the generator as the source of truth, re-derive both `codelists.js` copies.
+
+### 9.4 Dual-copy sync — critical implementation constraint
+
+The engine exists **twice**: `app/api/src/rules/**` (canonical) and `app/web/src/lib/rules/**` (vendored byte-for-byte copy for the web Docker build). **Every engine fix must land in BOTH trees.**
+
+The `validation.ts` header claims a parity test (`test/tool-engine-parity.test.ts` — "hashes both trees and fails the build if they ever drift") **does not exist in `app/web/test/`**. Nothing currently prevents drift. Add the parity test as part of this work:
+- New: `app/web/test/engine-parity.test.ts` — walks `app/api/src/rules/` and `app/web/src/lib/rules/`, hashes the shared files (checks/, codelists.js, engine.js, error.js, money.js, normalize.js, registry.js, structure.js, xml.js), fails on any difference.
+- Run it in CI/`npm test` on both services.
+
+### 9.5 Engine fix tests
+
+- `app/api/test/convert.test.js` (or a new `app/api/test/engine-official-samples.test.js`): assert `convert()` on `Standard tax invoice.xml` → **CONVERTED/NOOP (not REFUSED)**, and `Summary tax invoice.xml` → **CONVERTED/NOOP (not REFUSED)**.
+- `app/api/test/validate.test.js`: assert `POST /v1/validate` on both official samples returns `valid: true` (no false ENG-* errors).
+- Line allowance/charge unit test: a synthetic line with allowance + charge must pass ENG-LINE-05.
+- AE category unit tests: `AE + 5% + tax 0` passes; `AE + tax > 0` still fails (seller must not charge VAT on reverse charge).
+- Parity test (§9.4) passes after both trees are updated.
+
+## 10. Testing (page)
 
 - **New**: `ConverterWorkspace` component tests — renders single-mode (no toggle), sample loads, verdict renders per status, download/copy present on CONVERTED/NOOP, "Validate repaired invoice →" writes sessionStorage + navigates.
 - **Extend**: `ValidatorWorkspace` handoff test — pre-fills + auto-validates from sessionStorage, ignores malformed/stale values, clears key after read.
@@ -157,8 +213,9 @@ The redesign touches user-supplied invoices (business/personal data) and the exi
 - **Regression**: existing `tools-validate`, `validation-ui`, `billing`, `auth-keys`, `webhooks` suites must stay green.
 - **Manual E2E**: on the deployed API, run a real `CONVERTED` and a `REFUSED` document through the page; confirm handoff pre-fills the validator.
 
-## 9. Out of Scope / Follow-ups
+## 11. Out of Scope / Follow-ups
 
 - **Repo divergence** (local `main` vs `origin/main`): reconcile after this feature lands. Decide whether local `main` should be reset to `origin/main` or the compliance-manifest work (untracked `src/compliance/pint-ae-1.0.3/`) is merged in intentionally.
 - **Old slug `/tools/xml-converter`** — intentionally left to 404 (no redirect, per owner decision; see §7.3).
-- Monthly quota enforcement, `/usage` rate limit, UsageEvent TTL — existing open items in `docs/PRODUCTION_STATUS.md`; untouched by this feature.
+- **Monthly quota enforcement, `/usage` rate limit, UsageEvent TTL** — existing open items in `docs/PRODUCTION_STATUS.md`; untouched by this feature.
+- **Other PINT-AE rule gaps** (e.g. IBR-073 date format, IBR-CO-11 prepaid ≤ payable from PRODUCTION_STATUS.md) — separate workstreams, not part of the false-positive fixes in §9.
