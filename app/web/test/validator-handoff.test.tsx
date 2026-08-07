@@ -79,6 +79,28 @@ describe('ValidatorWorkspace handoff', () => {
     ).toBeTruthy();
   });
 
+  it('pre-fills + auto-validates when the handoff comes from the xml-generator', async () => {
+    validationClient.validateInvoiceDocument.mockResolvedValue(successResponse);
+
+    sessionStorage.setItem(
+      'einvoicecheck:converter-handoff',
+      JSON.stringify({ source: 'xml-generator', xml: '<Invoice/>' }),
+    );
+
+    render(h(ValidatorWorkspace, { context: 'tool' }));
+
+    await waitFor(() => {
+      expect(
+        sessionStorage.getItem('einvoicecheck:converter-handoff'),
+      ).toBeNull();
+    });
+
+    expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith(
+      '<Invoice/>',
+      expect.any(AbortSignal),
+    );
+  });
+
   it('ignores malformed handoff silently', () => {
     sessionStorage.setItem(
       'einvoicecheck:converter-handoff',
