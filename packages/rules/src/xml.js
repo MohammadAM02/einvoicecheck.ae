@@ -1,4 +1,4 @@
-import { XMLParser } from 'fast-xml-parser';
+import { XMLParser, XMLValidator } from 'fast-xml-parser';
 
 /**
  * Map a UBL 2.1 / PINT AE Invoice or CreditNote XML document into the engine's
@@ -63,6 +63,12 @@ export function looksLikeXml(body) {
 }
 
 export function parseUblInvoice(xmlString) {
+  const gate = XMLValidator.validate(xmlString);
+  if (gate !== true) {
+    const e = new Error(gate?.err?.msg || 'Document is not well-formed XML');
+    e.code = 'BAD_XML_WELLFORMED';
+    throw e;
+  }
   const tree = parser.parse(xmlString);
   const root = tree.Invoice ? 'Invoice' : tree.CreditNote ? 'CreditNote' : null;
   if (!root) {

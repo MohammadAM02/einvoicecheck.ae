@@ -154,6 +154,21 @@ describe('POST /v1/validate', () => {
     expect(body.errors.map((e) => e.rule)).toEqual(['ENG-PARSE-01']);
   });
 
+  it('malformed XML (mismatched closing tag) hits the well-formedness gate', async () => {
+    const xml = validUblXml().replace('</Invoice>', '</Invocie>');
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/v1/validate',
+      headers: { ...auth(), 'content-type': 'application/xml' },
+      payload: xml,
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.valid).toBe(false);
+    expect(body.errors.map((e) => e.rule)).toContain('ENG-PARSE-01');
+    expect(body.errors[0].message).toMatch(/Invocie|well.formed|closing tag/i);
+  });
+
   it('canonical JSON keeps the ENG-SCH-01 adapter (bad date → ENG-SCH-01/IBR-073)', async () => {
     const inv = validInvoice();
     inv.issueDate = '2026/08/01';
