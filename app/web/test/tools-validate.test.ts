@@ -78,8 +78,8 @@ describe('free tool runs the REAL rule engine', () => {
     }
     // If this fails, re-copy app/api/src/rules -> app/web/src/lib/rules. The free
     // tool must never diverge from the paid API's engine.
-    // The 'convert' directory is API-only pipeline code — not vendored rule logic.
-    expect(await hashTree(WEB_RULES)).toEqual(await hashTree(API_RULES, new Set(['convert'])));
+    // 'convert' and 'generate' are API-only pipeline code — not vendored rule logic.
+    expect(await hashTree(WEB_RULES)).toEqual(await hashTree(API_RULES, new Set(['convert', 'generate'])));
   });
 
   it('accepts a valid canonical JSON invoice with no errors', async () => {
