@@ -62,7 +62,7 @@ Hermes reported that:
 - web tests were `101/101`;
 - parser failures should surface as `ENG-PARSE-01` with line/column details.
 
-**Independent live evidence**
+**Prior independent live evidence**
 
 The live validator was tested with malformed XML containing a mismatched closing tag:
 
@@ -80,11 +80,21 @@ Observed result:
 
 This is the wrong diagnosis. A parser must reject the document before semantic checks run.
 
+**Cross-agent evidence (reported, not independently verified)**
+
+The current `.hermes/critic-loop.md` in commit `0682ad33ef08de263a3992716e0eb5afe63cf6b6` reports:
+
+- deployment on 2026-08-07 at 21:09 UTC+4;
+- a live test where `<Invoice>...</Invoicee>` produced one `ENG-PARSE-01` issue and zero semantic issues;
+- a resolved-table reference of `5af5169`.
+
+The reference `5af5169` does not resolve to a commit in this GitHub repository. The live result is therefore useful evidence, but the deployment trail is internally inconsistent. Under the operating rules, CL-001 remains blocked until the deployed commit or Railway deployment reference is recorded and the result is independently reproduced.
+
 **Unknown**
 
-- Whether commit `f9bce804c58af0e6b39c71c215a36d30fa8d7945` is deployed to Railway.
-- Whether the live UI/API are using the same parser path and rule copies.
-- Whether the live test reaches the corrected parser gate.
+- Whether the reported deployment used commit `f9bce804c58af0e6b39c71c215a36d30fa8d7945`.
+- Whether `5af5169` is a Railway deployment reference or an invalid/mistaken commit SHA.
+- Whether the reported live result can be independently reproduced through the live UI and API.
 - Whether production is still running an older deployed commit.
 
 **Acceptance test**
@@ -100,7 +110,7 @@ Expected:
 
 **Next action**
 
-Map repository code, confirm canonical parser source, compare deployed commit, deploy if needed, then retest live.
+Resolve the evidence conflict: record the actual deployed commit or Railway deployment reference, then independently retest the malformed fixture through the live UI and API.
 
 ---
 
@@ -153,9 +163,10 @@ After CL-001 is live-verified:
 
 ## Repository monitor
 
-- **Last scanned main commit:** `9a8918d5f50dd45d089f4e6ccdde0d8ab945daa8` — `docs: add shared critic loop state`
+- **Last scanned main commit:** `0682ad33ef08de263a3992716e0eb5afe63cf6b6` — `docs: add critic-loop shared state + ChatGPT repo-monitor prompt`
 - **Scanned:** 2026-08-07
-- The next scan must inspect commits after this SHA, ignore state-only `critic-loop.md` commits, and advance this baseline only when a product/code commit has been evaluated.
+- This commit added cross-agent state evidence but no product code. Its live-verification claim is recorded above as reported and conflicting.
+- The next scan must inspect commits after this SHA, ignore state-only critic-loop commits, and advance this baseline only when a product/code or material evidence commit has been evaluated.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
 
 ---
