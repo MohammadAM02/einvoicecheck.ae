@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { GuardrailNotice } from '@/components/Chrome';
 import { InvoiceValidator } from '@/components/InvoiceValidator';
 import { RepairerWorkspace } from '@/components/RepairerWorkspace';
+import { GeneratorWorkspace } from '@/components/GeneratorWorkspace';
 import { ScopePanel } from '@/components/ScopePanel';
 import { breadcrumbSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { API_BASE_URL, PRICING, TOOL_SLUGS, type ToolSlug } from '@/lib/site';
@@ -65,6 +66,13 @@ const TOOLS: Record<ToolSlug, ToolDef> = {
     targetKeyword: 'UBL XML repairer',
     blurb: 'Fix UBL XML formatting issues before validation. The repairer fixes namespace URIs, prefix casing, illegal characters, missing declarations, and encoding mismatches — without ever touching invoice data (TRNs, amounts, dates). Every change is audited.',
   },
+  'xml-generator': {
+    title: 'Free UAE e-invoice XML generator — build PINT-AE XML from a form',
+    h1: 'XML Generator',
+    description: 'Build a PINT-AE 1.0.4 / UBL 2.1 XML invoice from a form: structure built from the official FTA examples, totals computed, live data-entry checks. Free, no signup, nothing is transmitted.',
+    targetKeyword: 'UAE e-invoice XML generator',
+    blurb: 'Build a PINT-AE XML invoice from a form instead of hand-writing XML. Structure comes from the official FTA examples, totals are computed, and data-entry checks run as you type — then validate the result before it reaches your provider.',
+  },
 };
 
 export function generateStaticParams() {
@@ -103,6 +111,16 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 is the wrong length, whose VAT category does not match its rate, or whose totals are
                 off by a fil. Paste the invoice below and see those errors now, before the deadline
                 is on top of you.
+              </p>
+            </div>
+          ) : slug === 'xml-generator' ? (
+            <div className="validator-tool-primary">
+              <GeneratorWorkspace />
+              <p className="muted validator-tool-context">
+                The generator builds <strong>format-correct</strong> PINT-AE XML from the official FTA
+                examples — structure is guaranteed, only your data can be wrong. It computes totals,
+                checks TRNs as you type, and <strong>never transmits anything</strong> until you choose
+                to validate the result.
               </p>
             </div>
           ) : slug === 'xml-repairer' ? (
