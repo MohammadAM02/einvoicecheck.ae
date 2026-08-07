@@ -10,7 +10,7 @@ Both sides can read/write. One source of truth.
 | # | Finding | Severity | Status | Hermes note |
 |---|---|---|---|---|
 | F-01 | Malformed XML returns semantic errors instead of parse error | P0 | ✅ RESOLVED | Deployed 2026-08-07 21:09 UTC+4. Live test confirmed: `<Invoice>...</Invoicee>` → 1 ENG-PARSE-01, 0 semantic. |
-| F-02 | Wrong UBL namespace URIs pass validation | P1 | unresolved | parseUblInvoice strips prefixes, ignores namespace URI. XSD gate runs only in converter, not /v1/validate. |
+| F-02 | Wrong UBL namespace URIs pass validation | P1 | unresolved | parseUblInvoice strips prefixes, ignores namespace URI. XSD gate runs only in the Repairer (currently under `rules/convert`), not /v1/validate. |
 | F-03 | Reverse-charge (AE) + non-zero VAT passes | P1 | unresolved | No cross-check between taxCategory code and taxAmount. |
 | F-04 | Invalid dates like 2026-02-30 pass format check | P2 | unresolved | ibr-073 checks format pattern, not calendar validity. |
 | F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | Engine's price extraction assumes simple PriceAmount shape. |
@@ -22,6 +22,7 @@ Both sides can read/write. One source of truth.
 | F-11 | Generator wastes desktop width (single column) | P3 | unresolved | |
 | F-12 | Rate limit quota shown after submit, not before | P3 | unresolved | |
 | F-13 | "API" and "Documentation" nav links both go to /docs | P3 | unresolved | |
+| F-14 | Existing XML Repairer is still named Converter in API and backend contracts | P1 | 🔄 IN PROGRESS | Hard-rename design approved: `docs/superpowers/specs/2026-08-07-xml-repairer-hard-rename-design.md`. Implementation pending written-spec review and plan. |
 
 ## Resolved
 
