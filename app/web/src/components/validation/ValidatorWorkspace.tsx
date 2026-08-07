@@ -51,7 +51,7 @@ export function ValidatorWorkspace({ context = 'tool' }: {
       if (!raw) return;
       sessionStorage.removeItem('einvoicecheck:converter-handoff');
       const parsed = JSON.parse(raw) as { source?: string; xml?: string };
-      if (parsed?.source === 'xml-repairer' && typeof parsed.xml === 'string' && parsed.xml.trim()) {
+      if (['xml-repairer', 'xml-generator'].includes(parsed?.source ?? '') && typeof parsed.xml === 'string' && parsed.xml.trim()) {
         setDocumentText(parsed.xml);
         void validate(parsed.xml, 'repaired.xml');
       }
