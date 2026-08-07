@@ -17,4 +17,12 @@ describe('official PINT-AE samples (engine false-positive regression)', () => {
     expect(res.status).not.toBe('REFUSED');
     expect(res.blocked).toEqual([]);
   });
+
+  it('self-billed invoice (389) returns an explicit unsupported warning, not a silent pass', async () => {
+    const xml = sample('Standard tax invoice.xml').replace('<cbc:InvoiceTypeCode>380', '<cbc:InvoiceTypeCode>389');
+    const res = await convert(xml, { mode: 'full' });
+    const warned = (res.blocked || []).some((b) => b.rule === 'ENG-TYPE-01/SELF-BILLING')
+      || (res.dataIssues || []).some((d) => d.rule === 'ENG-TYPE-01/SELF-BILLING');
+    expect(warned).toBe(true);
+  });
 });

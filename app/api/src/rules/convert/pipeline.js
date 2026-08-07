@@ -27,13 +27,13 @@ function ensureDeclaration(serialized, declared) {
 
 /** REFUSED result — audits from every stage are preserved, never dropped. */
 function refuse(reason, detail, {
-  inputHash, preAudit = [], audit = [], blocked = [], wouldFix, parseHint, xsdIssues = [],
+  inputHash, preAudit = [], audit = [], blocked = [], wouldFix, parseHint, xsdIssues = [], warnings = [],
 } = {}) {
   return {
     status: 'REFUSED', reason, detail,
     inputHash,
     audit: [...preAudit, ...audit],
-    blocked, dataIssues: [...xsdIssues], output: undefined,
+    blocked, dataIssues: [...warnings, ...xsdIssues], output: undefined,
     engineVersion: ENGINE_VERSION, convertedAt: new Date().toISOString(),
     ...(wouldFix !== undefined ? { wouldFix } : {}),
     ...(parseHint !== undefined ? { parseHint } : {}),
@@ -104,16 +104,16 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
   //    so format defects produce ZERO engine errors — any error here is
   //    data-semantic → REFUSE. A post-gate ENG-PARSE-01 (e.g. wrong root
   //    element) is beyond the repairers' scope → UNREPAIRABLE.
-  const { blocked, repairable } = classifyDataSemantic(prepared);
+  const { blocked, warnings, repairable } = classifyDataSemantic(prepared);
   if (!repairable) {
     const parseOnly = blocked.length === 1 && blocked[0].rule.startsWith('ENG-PARSE-01');
     if (parseOnly) {
       return refuse('UNREPAIRABLE_FORMAT', 'Document could not be parsed.',
-        { inputHash, preAudit, xsdIssues, parseHint: blocked[0].message });
+        { inputHash, preAudit, xsdIssues, warnings, parseHint: blocked[0].message });
     }
     if (mode === 'full') {
       return refuse('DATA_SEMANTIC', 'Invoice has data errors that a converter must not fix.', {
-        inputHash, preAudit, blocked, xsdIssues,
+        inputHash, preAudit, blocked, xsdIssues, warnings,
         wouldFix: repairers.dryRun(prepared), // throwaway parse: what WOULD change
       });
     }
@@ -191,7 +191,7 @@ export function convertWithRepairers(xml, opts = {}, domRepairers = repairers.DO
     inputHash, outputHash,
     audit: [...preAudit, ...repairAudit],
     blocked: [],
-    dataIssues: [...(mode === 'format' ? blocked : []), ...xsdIssues],
+    dataIssues: [...warnings, ...(mode === 'format' ? blocked : []), ...xsdIssues],
     output: anyChange ? output : prepared,
     engineVersion: ENGINE_VERSION,
     convertedAt: new Date().toISOString(),

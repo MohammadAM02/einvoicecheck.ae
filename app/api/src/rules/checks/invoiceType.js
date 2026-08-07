@@ -23,6 +23,17 @@ export const invoiceTypeRule = {
       );
       return out;
     }
+    if (code === '389') {
+      out.push(
+        warn(
+          '/invoiceType',
+          'ENG-TYPE-01/SELF-BILLING',
+          'Self-billed invoice (389) is not yet supported by this validator. Structural checks ran, but self-billing business rules (PINT-AE Self-Billing 1.0.4) are not vendored, so results are incomplete.',
+          'Use an accredited ASP for self-billed invoices, or validate a supplier-issued invoice (388) instead.'
+        )
+      );
+      return out;
+    }
     if (!isKnownInvoiceType(code)) {
       out.push(
         warn(

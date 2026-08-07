@@ -19,5 +19,10 @@ export function classifyDataSemantic(xml) {
   const blocked = validation.errors
     .filter((e) => e.severity === 'error')
     .map((e) => ({ rule: e.rule, path: e.path, message: e.message }));
-  return { blocked, repairable: blocked.length === 0 };
+  // Warnings never block repair, but they MUST surface (e.g. the explicit
+  // ENG-TYPE-01/SELF-BILLING unsupported notice for type 389).
+  const warnings = validation.errors
+    .filter((e) => e.severity === 'warning')
+    .map((e) => ({ rule: e.rule, path: e.path, message: e.message, fix: e.fix, severity: 'warning' }));
+  return { blocked, warnings, repairable: blocked.length === 0 };
 }

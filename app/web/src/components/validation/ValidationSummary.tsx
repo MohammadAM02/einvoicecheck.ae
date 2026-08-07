@@ -21,6 +21,7 @@ export function ValidationSummary(props: {
     : result.errors.filter((issue) => layerOf(issue.rule) === layerFilter);
   const blockingCount = result.errors.filter((issue) => issue.severity === 'error').length;
   const warningCount = result.errors.filter((issue) => issue.severity === 'warning').length;
+  const selfBilling = result.errors.some((issue) => issue.rule === 'ENG-TYPE-01/SELF-BILLING');
   const canCopy = typeof navigator !== 'undefined' && typeof navigator.clipboard?.writeText === 'function';
   const headingId = 'validation-summary-heading';
 
@@ -37,6 +38,10 @@ export function ValidationSummary(props: {
 
   return h('section', { className: 'validation-summary', 'aria-labelledby': headingId },
     h('h2', { id: headingId, ref: headingRef, tabIndex: -1 }, result.valid ? 'Preflight passed' : 'Preflight failed'),
+    selfBilling ? h('div', { className: 'validation-banner validation-banner--self-billing', role: 'status' },
+      h('strong', null, 'Self-billed invoices are not fully validated'),
+      h('p', null, 'This document is type 389 (self-billed invoice). Structural checks ran, but self-billing business rules are not vendored, so results are incomplete. Use an accredited ASP for self-billed invoices.'),
+    ) : null,
     h('p', null, `${blockingCount} blocking issue${blockingCount === 1 ? '' : 's'} and ${warningCount} warning${warningCount === 1 ? '' : 's'}.`),
     h('p', null, `Detected invoice type: ${result.invoiceType ?? 'Not identified'}`),
     h('p', null, `Validation profile: ${result.schemaVersion}`),

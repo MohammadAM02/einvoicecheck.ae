@@ -1782,6 +1782,29 @@ summary:focus-visible,
   line-height: 1.55;
 }
 
+.validation-banner {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  line-height: 1.5;
+}
+
+.validation-banner strong {
+  display: block;
+  font-weight: 700;
+}
+
+.validation-banner p {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.validation-banner--self-billing {
+  color: var(--warn);
+  background: var(--warn-subtle);
+  border: 1px solid #e8d9a8;
+}
+
 .validation-summary__api {
   display: flex;
   align-items: center;
