@@ -2544,6 +2544,110 @@ pre {
   }
 }
 
+/* ============================================================
+   XML REPAIRER — stepper, dropzone, progress, verdict, diff, actions
+   ============================================================ */
+
+/* Stepper */
+.repairer-stepper { display: flex; gap: 0; margin: 0 0 26px; }
+.repairer-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
+.repairer-step::after { content: ''; position: absolute; top: 17px; left: calc(50% + 22px); width: calc(100% - 44px); height: 2px; background: var(--border); }
+.repairer-step:last-child::after { display: none; }
+.repairer-step.done::after { background: var(--accent); }
+.repairer-step .repairer-dot { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border); display: grid; place-items: center; font-weight: 600; font-size: .85rem; color: var(--ink-muted); z-index: 1; transition: all .2s; }
+.repairer-step.active .repairer-dot { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
+.repairer-step.done .repairer-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+.repairer-step .repairer-label { font-size: .8rem; color: var(--ink-muted); font-weight: 500; }
+.repairer-step.active .repairer-label { color: var(--accent); font-weight: 600; }
+.repairer-step.done .repairer-label { color: var(--ink-secondary); }
+
+/* Dropzone */
+.repairer-dropzone { border: 2px dashed var(--border-solid); border-radius: var(--radius-lg); background: var(--bg-card); padding: 26px 22px; text-align: center; transition: border-color .15s, background .15s; cursor: pointer; }
+.repairer-dropzone:hover,
+.repairer-dropzone.is-dragging { border-color: var(--accent); background: var(--accent-subtle); }
+.repairer-dropzone .repairer-dz-icon { font-size: 1.4rem; margin-bottom: 4px; }
+.repairer-dropzone .repairer-dz-title { font-weight: 600; color: var(--navy); font-family: var(--font-heading); }
+.repairer-dropzone .repairer-dz-hint { color: var(--ink-muted); font-size: .85rem; margin-top: 3px; }
+
+/* Paste box */
+.repairer-paste-box { width: 100%; margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font: 400 .8rem/1.5 var(--font-code); padding: 12px; min-height: 130px; color: var(--ink); resize: vertical; background: var(--bg-elevated); }
+.repairer-paste-box:focus { outline: 2px solid var(--accent-subtle); border-color: var(--accent); }
+
+/* Input actions row */
+.repairer-input-actions { display: flex; gap: 10px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
+
+/* Edit link */
+.repairer-edit-link { font-size: .85rem; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; background: none; border: none; }
+
+/* Progress checklist */
+.repairer-progress-list { display: flex; flex-direction: column; gap: 10px; padding: 6px 0 10px; }
+.repairer-progress-item { display: flex; align-items: center; gap: 12px; font-size: .92rem; color: var(--ink-secondary); }
+.repairer-progress-item .repairer-picon { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; border: 2px solid var(--border); color: var(--ink-muted); flex-shrink: 0; }
+.repairer-progress-item.pending .repairer-picon { border-color: var(--border); }
+.repairer-progress-item.running .repairer-picon { border-color: var(--accent); }
+.repairer-progress-item.done .repairer-picon { background: var(--success); border-color: var(--success); color: #fff; }
+.repairer-progress-item.done { color: var(--ink); }
+.repairer-progress-item .repairer-pstep { font-family: var(--font-code); font-size: .78rem; color: var(--ink-muted); width: 84px; flex-shrink: 0; }
+
+/* Verdict */
+.repairer-verdict { display: flex; align-items: center; gap: 12px; border-radius: var(--radius-lg); padding: 14px 18px; margin: 16px 0; }
+.repairer-verdict.ok { background: var(--success-subtle); border: 1px solid #bfe8d3; }
+.repairer-verdict.warn { background: var(--warn-subtle); border: 1px solid #f0e2ae; }
+.repairer-verdict.err { background: var(--error-subtle); border: 1px solid #f3c9c4; }
+.repairer-verdict .repairer-vicon { font-size: 1.4rem; }
+.repairer-verdict .repairer-vtitle { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; }
+.repairer-verdict .repairer-vsub { font-size: .86rem; color: var(--ink-secondary); }
+
+/* Diff toolbar + split diff */
+.repairer-diff-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.repairer-diff-toolbar .repairer-dt-status { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; }
+.repairer-diff-toolbar .repairer-dt-meta { margin-left: auto; font-size: .8rem; color: var(--ink-muted); }
+.repairer-diff-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+.repairer-diff-col { min-width: 0; }
+.repairer-diff-col + .repairer-diff-col { border-left: 1px solid var(--border); }
+.repairer-diff-col .repairer-dc-head { padding: 8px 12px; font-size: .78rem; font-weight: 600; background: var(--bg-elevated); border-bottom: 1px solid var(--border); color: var(--ink-secondary); display: flex; justify-content: space-between; }
+.repairer-diff-col .repairer-dc-head .repairer-dh-badge { font-weight: 500; color: var(--ink-muted); }
+.repairer-diff-col pre { margin: 0; padding: 10px 12px; font: 400 .72rem/1.55 var(--font-code); overflow: auto; max-height: 380px; color: var(--ink); white-space: pre-wrap; word-break: break-all; }
+.repairer-diff-col pre .repairer-dl { display: block; }
+.repairer-diff-col pre .repairer-dl.del { background: #fff0ee; color: var(--error); text-decoration: line-through; text-decoration-color: rgba(180,35,24,.45); }
+.repairer-diff-col pre .repairer-dl.add { background: #e8f7ef; color: var(--success); }
+.repairer-diff-col pre .repairer-dl.ctx { color: var(--ink-secondary); }
+
+/* Result actions */
+.repairer-result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 4px; }
+
+/* Fade-in animation */
+.repairer-fade-in { animation: repairerFade .35s ease; }
+@keyframes repairerFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Spinner */
+.repairer-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(8,127,107,.25); border-top-color: var(--accent); border-radius: 50%; animation: repairerSpin .7s linear infinite; }
+@keyframes repairerSpin { to { transform: rotate(360deg); } }
+
+/* Next panel */
+.repairer-next-panel { margin-top: 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius-md); background: var(--bg-card); padding: 16px 18px; }
+
+/* Toast */
+.repairer-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 11px 20px; border-radius: var(--radius-md); font-size: .88rem; box-shadow: 0 1px 2px rgba(16,42,67,.06), 0 8px 24px rgba(16,42,67,.08); opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 50; }
+.repairer-toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+/* Blocked issues table inside repairer */
+.repairer-blocked-table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: 12px; }
+.repairer-blocked-table th { text-align: left; color: var(--ink-muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.repairer-blocked-table td { padding: 6px 8px; border-bottom: 1px solid var(--bg-elevated); font-family: var(--font-code); font-size: .76rem; vertical-align: top; }
+
+/* Audit table inside repairer */
+.repairer-audit-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.repairer-audit-table th { text-align: left; color: var(--ink-muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.repairer-audit-table td { padding: 6px 8px; border-bottom: 1px solid var(--bg-elevated); font-family: var(--font-code); font-size: .76rem; vertical-align: top; }
+
+/* Hash row in repairer details */
+.repairer-hash-row { font-family: var(--font-code); font-size: .76rem; color: var(--ink-muted); word-break: break-all; }
+
+/* ============================================================
+   END XML REPAIRER
+   ============================================================ */
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;

@@ -51,13 +51,12 @@ type ConvertApiError = {
 
 export async function convertXml(
   xml: string,
-  mode?: 'format' | 'full',
   signal?: AbortSignal,
 ): Promise<ConvertApiResponse> {
   const response = await fetch('/api/tools/convert', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(mode ? { xml, mode } : { xml }),
+    body: JSON.stringify({ xml }),
     signal,
   });
 
@@ -81,6 +80,20 @@ export async function convertXml(
   }
 
   return apiBody as ConvertApiResponse;
+}
+
+export function downloadXml(filename: string, content: string): void {
+  const blob = new Blob([content], { type: 'application/xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function copyXml(content: string): Promise<void> {
+  await navigator.clipboard.writeText(content);
 }
 
 export async function readXmlFile(file: File): Promise<string> {
