@@ -1,0 +1,185 @@
+/* ============================================================
+   AESTHETIC POLISH — micro-interactions, film grain, ambient gradients
+   Imported after globals.css + visual-compression.css.
+   Theme-agnostic: reuses existing tokens only, no color/font changes.
+   ============================================================ */
+
+/* --- Film grain overlay -------------------------------------- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --- Smooth scroll -------------------------------------------- */
+/* Reduced-motion users still get instant scroll (globals.css has
+   the !important override inside prefers-reduced-motion). */
+html {
+  scroll-behavior: smooth;
+}
+
+/* --- Selection ------------------------------------------------ */
+::selection {
+  background: var(--accent-subtle);
+  color: var(--navy);
+}
+
+/* --- Page scrollbar (matches existing textarea/pre styling) --- */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-solid) transparent;
+}
+html::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background: var(--border-solid);
+  border-radius: 9999px;
+  border: 2px solid var(--bg);
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}
+
+/* --- Hero ambient gradient ------------------------------------ */
+.compliance-hero {
+  position: relative;
+  isolation: isolate;
+}
+.compliance-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 65% 45% at 50% 0%, rgba(8, 127, 107, 0.07), transparent 62%),
+    radial-gradient(ellipse 40% 35% at 85% 15%, rgba(14, 165, 196, 0.05), transparent 60%);
+}
+
+/* --- Dark problem-section glow -------------------------------- */
+.problem-section {
+  position: relative;
+  isolation: isolate;
+}
+.problem-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 45% at 78% 12%, rgba(8, 127, 107, 0.14), transparent 62%);
+}
+
+/* --- Button press feedback ------------------------------------ */
+.btn:active:not(:disabled),
+.nav-primary-action:active,
+.cta-button:active {
+  transform: translateY(1px) scale(0.985);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(8, 127, 107, 0.22);
+}
+.nav-primary-action:hover,
+.cta-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(8, 127, 107, 0.18);
+}
+
+/* --- Nav link animated underline ------------------------------ */
+.nav-text-link {
+  position: relative;
+}
+.nav-text-link::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 5px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s ease;
+}
+.nav-text-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* --- Dropzone drag glow --------------------------------------- */
+.invoice-drop-zone,
+.upload-zone {
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.invoice-drop-zone.is-dragging,
+.upload-zone.is-dragging {
+  border-color: var(--accent);
+  background: #d9efe9;
+  box-shadow: 0 0 0 4px rgba(8, 127, 107, 0.14), 0 8px 24px rgba(8, 127, 107, 0.1);
+  transform: scale(1.005);
+}
+
+/* --- Card / panel depth --------------------------------------- */
+.validator-workspace,
+.validator-result {
+  box-shadow: 0 1px 2px rgba(16, 42, 67, 0.04), 0 14px 36px rgba(16, 42, 67, 0.07);
+}
+.card.featured,
+.card.highlight,
+.pricing-card.featured {
+  box-shadow: 0 1px 2px rgba(16, 42, 67, 0.04), 0 16px 40px rgba(8, 127, 107, 0.08);
+}
+
+/* --- Interactive card hover (template + failure cards) -------- */
+.template-card,
+.failure-card {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+.failure-card:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.template-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
+}
+
+/* --- Layer badges hover --------------------------------------- */
+.validation-layer-badge {
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s, transform 0.2s;
+}
+.validation-layer-badge:hover:not(.is-active) {
+  border-color: var(--accent);
+  color: var(--navy);
+}
+
+/* --- FAQ / disclosure open reveal ----------------------------- */
+.faq-item summary:hover,
+.disclosure-item summary:hover {
+  color: var(--accent);
+}
+.faq-item[open] p,
+.disclosure-item[open] p {
+  animation: polishReveal 0.3s ease;
+}
+@keyframes polishReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   END AESTHETIC POLISH
+   ============================================================ */
