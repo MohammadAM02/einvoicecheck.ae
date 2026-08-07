@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { GuardrailNotice } from '@/components/Chrome';
 import { InvoiceValidator } from '@/components/InvoiceValidator';
-import { ConverterWorkspace } from '@/components/ConverterWorkspace';
+import { RepairerWorkspace } from '@/components/RepairerWorkspace';
 import { ScopePanel } from '@/components/ScopePanel';
 import { breadcrumbSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { API_BASE_URL, PRICING, TOOL_SLUGS, type ToolSlug } from '@/lib/site';
@@ -57,12 +57,12 @@ const TOOLS: Record<ToolSlug, ToolDef> = {
     targetKeyword: 'e invoicing UAE',
     blurb: 'Check the shape of a UAE Tax Registration Number before it reaches an invoice. Format only - this does not confirm the TRN is registered with the FTA.',
   },
-  'xml-converter': {
-    title: 'Free UBL XML converter — repair UAE e-invoice format defects',
-    h1: 'XML Converter',
-    description: 'Repair format defects in UBL 2.1 / PINT AE XML invoices: fix namespace URIs, prefix case, illegal characters, and encoding declarations. Audit trail included. Free, no signup.',
-    targetKeyword: 'UBL XML converter',
-    blurb: 'Fix UBL XML formatting issues before validation. The converter repairs namespace URIs, prefix casing, illegal characters, missing declarations, and encoding mismatches — without ever touching invoice data (TRNs, amounts, dates). Every change is audited.',
+  'xml-repairer': {
+    title: 'Free UBL XML repairer — fix format defects before validation',
+    h1: 'XML Repairer',
+    description: 'Repair format defects in UBL 2.1 / PINT AE XML invoices: fix namespace URIs, prefix case, illegal characters, and encoding declarations — never touches invoice data. Free, no signup.',
+    targetKeyword: 'UBL XML repairer',
+    blurb: 'Fix UBL XML formatting issues before validation. The repairer fixes namespace URIs, prefix casing, illegal characters, missing declarations, and encoding mismatches — without ever touching invoice data (TRNs, amounts, dates). Every change is audited.',
   },
 };
 
@@ -104,11 +104,11 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 is on top of you.
               </p>
             </div>
-          ) : slug === 'xml-converter' ? (
+          ) : slug === 'xml-repairer' ? (
             <div className="validator-tool-primary">
-              <ConverterWorkspace />
+              <RepairerWorkspace />
               <p className="muted validator-tool-context">
-                The converter repairs <strong>format only</strong> — namespace URIs, prefix casing,
+                The repairer fixes <strong>format only</strong> — namespace URIs, prefix casing,
                 illegal XML characters, missing declarations, and encoding mismatches. It will
                 <strong>never</strong> change a TRN, amount, date, or any other invoice data value.
                 Every repair is audited with a machine-readable trail and SHA-256 hashes.

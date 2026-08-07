@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * Abuse control is an IP rate limit in the shared Redis.
  * Nothing about the submitted XML is persisted here.
  */
-const TOOL = 'uae-e-invoice-converter';
+const TOOL = 'uae-e-invoice-repairer';
 const MAX_BYTES = 256 * 1024;
 
 /**
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     apiKey = apiKeyHeader();
   } catch (e) {
     return NextResponse.json(
-      { ok: false, error: 'The converter tool is not configured yet. Please try again later.' },
+      { ok: false, error: 'The repairer tool is not configured yet. Please try again later.' },
       { status: 503 },
     );
   }
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
     });
   } catch {
     return NextResponse.json(
-      { ok: false, error: 'Could not reach the converter API. Try again shortly.' },
+      { ok: false, error: 'Could not reach the repairer API. Try again shortly.' },
       { status: 502 },
     );
   }

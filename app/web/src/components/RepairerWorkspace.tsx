@@ -3,8 +3,8 @@
 import type React from 'react';
 import { createElement as h, useEffect, useRef, useState } from 'react';
 import { trackEvent } from '@/lib/analytics';
-import { ConverterClientError, convertXml, readXmlFile } from '@/lib/converter-client';
-import type { AuditEntry, BlockedIssue, ConvertResult } from '@/lib/converter-client';
+import { RepairerClientError, convertXml, readXmlFile } from '@/lib/repairer-client';
+import type { AuditEntry, BlockedIssue, ConvertResult } from '@/lib/repairer-client';
 
 type WorkspaceState =
   | { phase: 'idle' }
@@ -91,7 +91,7 @@ function reasonText(reason?: string): string {
   }
 }
 
-export function ConverterWorkspace(): React.ReactElement {
+export function RepairerWorkspace(): React.ReactElement {
   const [state, setState] = useState<WorkspaceState>({ phase: 'idle' });
   const [pasteMode, setPasteMode] = useState(false);
   const [documentText, setDocumentText] = useState('');
@@ -113,12 +113,12 @@ export function ConverterWorkspace(): React.ReactElement {
   }, []);
 
   function trackInput(method: InputMethod) {
-    trackEvent('converter_input_selected', { method });
+    trackEvent('repairer_input_selected', { method });
   }
 
   function showError(message: string, status: number | null, fileName?: string) {
     setState({ phase: 'error', message, status, fileName });
-    trackEvent('converter_error', { status: String(status) });
+    trackEvent('repairer_error', { status: String(status) });
   }
 
   async function runConvert(xml: string, fileName?: string) {
@@ -127,19 +127,19 @@ export function ConverterWorkspace(): React.ReactElement {
     abortRef.current = controller;
 
     setState({ phase: 'converting', fileName });
-    trackEvent('converter_submitted', { mode });
+    trackEvent('repairer_submitted', { mode });
 
     try {
       const result = await convertXml(xml, mode, controller.signal);
       setState({ phase: 'result', data: result.result, fileName });
-      trackEvent('converter_result', {
+      trackEvent('repairer_result', {
         status: result.result.status,
         auditCount: result.result.audit.length,
         blockedCount: result.result.blocked.length,
       });
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
-      if (e instanceof ConverterClientError) {
+      if (e instanceof RepairerClientError) {
         showError(e.message, e.status, fileName);
       } else {
         showError('Could not reach the converter. Your XML is still here — try again.', null, fileName);
@@ -172,7 +172,7 @@ export function ConverterWorkspace(): React.ReactElement {
         setDocumentText(xml);
         setState({ phase: 'ready', fileName: file.name });
       })
-      .catch((e) => showError(e instanceof ConverterClientError ? e.message : 'Could not read file.', null));
+      .catch((e) => showError(e instanceof RepairerClientError ? e.message : 'Could not read file.', null));
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -185,7 +185,7 @@ export function ConverterWorkspace(): React.ReactElement {
           setDocumentText(xml);
           setState({ phase: 'ready', fileName: e.dataTransfer.files[0].name });
         })
-        .catch((err) => showError(err instanceof ConverterClientError ? err.message : 'Could not read file.', null));
+        .catch((err) => showError(err instanceof RepairerClientError ? err.message : 'Could not read file.', null));
     }
   }
 
