@@ -44,6 +44,21 @@ export function ValidatorWorkspace({ context = 'tool' }: {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
+  useEffect(() => {
+    if (context !== 'tool') return;
+    try {
+      const raw = sessionStorage.getItem('einvoicecheck:converter-handoff');
+      if (!raw) return;
+      sessionStorage.removeItem('einvoicecheck:converter-handoff');
+      const parsed = JSON.parse(raw) as { source?: string; xml?: string };
+      if (parsed?.source === 'xml-repairer' && typeof parsed.xml === 'string' && parsed.xml.trim()) {
+        setDocumentText(parsed.xml);
+        void validate(parsed.xml, 'repaired.xml');
+      }
+    } catch { /* malformed/stale — silently ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context]);
+
   function trackInput(method: InputMethod) {
     trackEvent('validator_input_selected', { context, method });
   }
