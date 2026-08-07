@@ -19,6 +19,8 @@
 5. One issue gets one owner and one next action.
 6. If evidence conflicts, status becomes `blocked` until conflict is resolved.
 7. Keep this file short. Put detailed reasoning in separate docs or code comments.
+8. The repository monitor section records the last scanned main SHA. This is bookkeeping only, not deployment or live-verification evidence.
+9. Commits that only change `critic-loop.md` are state-sync commits and must not trigger another state update.
 
 ## Status meanings
 
@@ -37,6 +39,17 @@
 **Status:** `blocked` — live verification required  
 **Priority:** P0  
 **Owner:** Backend + deployment
+
+**Repository evidence**
+
+The implementation fix is present on `main` in commit `f9bce804c58af0e6b39c71c215a36d30fa8d7945`:
+
+- `XMLValidator.validate()` is called before `XMLParser.parse()` in the XML parsing path;
+- the commit identifies the canonical rule source as `packages/rules/src/xml.js`;
+- the commit reports synced copies in `app/api/src/rules/xml.js` and `app/web/src/lib/rules/xml.js`;
+- the commit reports API tests `105/105`, web tests `101/101`, and five malformed/valid ad-hoc cases.
+
+This confirms repository-level implementation evidence only. It does not confirm Railway deployment or live UI/API behavior.
 
 **Reported fix**
 
@@ -69,11 +82,10 @@ This is the wrong diagnosis. A parser must reject the document before semantic c
 
 **Unknown**
 
-- Whether Hermes fix exists on the current branch.
-- Whether the fix was deployed to Railway.
-- Whether web/API are using different rule copies.
-- Whether the live test reached a different validation path.
-- Whether production is still running an older commit.
+- Whether commit `f9bce804c58af0e6b39c71c215a36d30fa8d7945` is deployed to Railway.
+- Whether the live UI/API are using the same parser path and rule copies.
+- Whether the live test reaches the corrected parser gate.
+- Whether production is still running an older deployed commit.
 
 **Acceptance test**
 
@@ -138,6 +150,15 @@ After CL-001 is live-verified:
 4. Resolve CL-002 wording/capability decision.
 5. Implement CL-003 frontend fixes.
 6. Run full fixture pack and production smoke test.
+
+## Repository monitor
+
+- **Last scanned main commit:** `9a8918d5f50dd45d089f4e6ccdde0d8ab945daa8` — `docs: add shared critic loop state`
+- **Scanned:** 2026-08-07
+- The next scan must inspect commits after this SHA, ignore state-only `critic-loop.md` commits, and advance this baseline only when a product/code commit has been evaluated.
+- The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
+
+---
 
 ## Update template
 
