@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variant 002 — Guided Wizard — XML Repairer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: #087f6b; --accent-hover: #066b5a; --accent-subtle: #e7f5f1;
+    --navy: #102a43; --ink: #18324a; --ink-secondary: #48647a; --ink-muted: #5b7183;
+    --bg: #f7f8f5; --bg-card: #ffffff; --bg-elevated: #f0f3ef;
+    --border: #d7dfdc; --border-solid: #bdc9c5;
+    --success: #087f5b; --success-subtle: #e8f7ef;
+    --error: #b42318; --error-subtle: #fff0ee;
+    --warn: #9a6700; --warn-subtle: #fff7df;
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-heading: 'DM Sans', system-ui, sans-serif;
+    --font-code: 'JetBrains Mono', ui-monospace, monospace;
+    --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-full: 9999px;
+    --shadow: 0 1px 2px rgba(16,42,67,.06), 0 8px 24px rgba(16,42,67,.08);
+  }
+  body { font-family: var(--font-sans); color: var(--ink); background: var(--bg); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .navbar { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 28px; }
+  .nav-brand { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .nav-brand .mark { width: 24px; height: 24px; border-radius: 7px; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: .8rem; font-weight: 700; }
+  .nav-links { display: flex; gap: 20px; }
+  .nav-links a { color: var(--ink-secondary); text-decoration: none; font-size: .9rem; font-weight: 500; }
+  .nav-links a.active { color: var(--accent); }
+  .nav-spacer { flex: 1; }
+  .btn { font: 500 .92rem var(--font-sans); border-radius: var(--radius-md); padding: 10px 18px; cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s, color .15s, transform .05s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; border-color: var(--border-solid); color: var(--ink-secondary); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .badge { display: inline-block; background: var(--accent-subtle); color: var(--accent); font-size: .75rem; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-full); letter-spacing: .02em; }
+  .section { max-width: 860px; margin: 0 auto; padding: 40px 24px 56px; }
+  h1 { font-family: var(--font-heading); font-size: 1.9rem; line-height: 1.15; color: var(--navy); margin-bottom: 8px; font-weight: 700; letter-spacing: -.02em; }
+  .lead { color: var(--ink-secondary); font-size: 1rem; margin-bottom: 24px; max-width: 640px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow); }
+  .muted { color: var(--ink-muted); font-size: .88rem; }
+
+  /* ---- stepper ---- */
+  .stepper { display: flex; gap: 0; margin: 0 0 26px; }
+  .step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
+  .step::after { content: ''; position: absolute; top: 17px; left: calc(50% + 22px); width: calc(100% - 44px); height: 2px; background: var(--border); }
+  .step:last-child::after { display: none; }
+  .step.done::after { background: var(--accent); }
+  .step .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border); display: grid; place-items: center; font-weight: 600; font-size: .85rem; color: var(--ink-muted); z-index: 1; transition: all .2s; }
+  .step.active .dot { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
+  .step.done .dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .step .label { font-size: .8rem; color: var(--ink-muted); font-weight: 500; }
+  .step.active .label { color: var(--accent); font-weight: 600; }
+  .step.done .label { color: var(--ink-secondary); }
+
+  /* ---- drop zone ---- */
+  .dropzone { border: 2px dashed var(--border-solid); border-radius: var(--radius-lg); background: var(--bg-card); padding: 30px 24px; text-align: center; transition: border-color .15s, background .15s; cursor: pointer; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: var(--accent-subtle); }
+  .dropzone .dz-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .dropzone .dz-title { font-weight: 600; color: var(--navy); font-family: var(--font-heading); }
+  .dropzone .dz-hint { color: var(--ink-muted); font-size: .85rem; margin-top: 4px; }
+  .paste-box { width: 100%; margin-top: 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font: 400 .82rem/1.55 var(--font-code); padding: 14px; min-height: 150px; color: var(--ink); resize: vertical; background: var(--bg-elevated); }
+  .paste-box:focus { outline: 2px solid var(--accent-subtle); border-color: var(--accent); }
+  .actions { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+  .sample-link { font-size: .85rem; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---- progress ---- */
+  .progress-list { display: flex; flex-direction: column; gap: 10px; padding: 6px 0 10px; }
+  .progress-item { display: flex; align-items: center; gap: 12px; font-size: .92rem; color: var(--ink-secondary); }
+  .progress-item .picon { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; border: 2px solid var(--border); color: var(--ink-muted); flex-shrink: 0; }
+  .progress-item.pending .picon { border-color: var(--border); }
+  .progress-item.running .picon { border-color: var(--accent); }
+  .progress-item.done .picon { background: var(--success); border-color: var(--success); color: #fff; }
+  .progress-item.done { color: var(--ink); }
+  .progress-item .pstep { font-family: var(--font-code); font-size: .78rem; color: var(--ink-muted); width: 84px; flex-shrink: 0; }
+
+  /* ---- result ---- */
+  .verdict { display: flex; align-items: center; gap: 14px; border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 18px; }
+  .verdict.ok { background: var(--success-subtle); border: 1px solid #bfe8d3; }
+  .verdict.warn { background: var(--warn-subtle); border: 1px solid #f0e2ae; }
+  .verdict.err { background: var(--error-subtle); border: 1px solid #f3c9c4; }
+  .verdict .vicon { font-size: 1.5rem; }
+  .verdict .vtitle { font-family: var(--font-heading); font-weight: 700; font-size: 1.02rem; }
+  .verdict .vsub { font-size: .88rem; color: var(--ink-secondary); }
+  .change-list { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 16px; }
+  .change-row { display: flex; align-items: center; gap: 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 14px; font-size: .85rem; }
+  .change-row .crule { font-family: var(--font-code); font-size: .76rem; color: var(--accent); font-weight: 600; width: 84px; flex-shrink: 0; }
+  .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .fade-in { animation: fade .35s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  details { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); margin-top: 14px; }
+  details summary { cursor: pointer; padding: 12px 16px; font-size: .88rem; font-weight: 600; color: var(--ink-secondary); list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details[open] summary { border-bottom: 1px solid var(--border); }
+  .details-body { padding: 14px 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  th { text-align: left; color: var(--ink-muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  td { padding: 6px 8px; border-bottom: 1px solid var(--bg-elevated); font-family: var(--font-code); font-size: .76rem; vertical-align: top; }
+  .hash-row { font-family: var(--font-code); font-size: .76rem; color: var(--ink-muted); word-break: break-all; }
+  .footnote { margin-top: 28px; color: var(--ink-muted); font-size: .8rem; border-top: 1px solid var(--border); padding-top: 16px; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(8,127,107,.25); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 11px 20px; border-radius: var(--radius-md); font-size: .88rem; box-shadow: var(--shadow); opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 50; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .hidden { display: none; }
+  .center { text-align: center; }
+  .next-panel { margin-top: 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius-md); background: var(--bg-card); padding: 16px 18px; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-brand"><span class="mark">e</span> einvoicecheck.ae</div>
+  <div class="nav-links"><a href="#">Tools</a><a href="#">API</a><a href="#">Pricing</a><a href="#">Docs</a></div>
+  <div class="nav-spacer"></div>
+  <a class="btn btn-ghost" href="#">Sign in</a>
+</nav>
+
+<div class="section">
+  <span class="badge">Free tool · no signup</span>
+  <h1>XML Repairer</h1>
+  <p class="lead">Two steps: repair the file, then check it in the validator. Format defects only — data values are never touched.</p>
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="step active" id="step1"><div class="dot">1</div><div class="label">Repair format</div></div>
+    <div class="step" id="step2"><div class="dot">2</div><div class="label">Validate</div></div>
+  </div>
+
+  <!-- Step 1 body -->
+  <div id="step1Body">
+    <div class="card">
+      <div id="dropzone" class="dropzone">
+        <div class="dz-icon">📄</div>
+        <div class="dz-title">Drop your XML here</div>
+        <div class="dz-hint">or click to choose · paste works too · max 256 KB</div>
+        <textarea id="paste" class="paste-box hidden" placeholder="Paste UBL 2.1 / PINT AE XML here..."></textarea>
+      </div>
+      <div class="actions">
+        <button id="repairBtn" class="btn btn-primary" disabled>Start repair</button>
+        <button id="sampleBtn" class="btn btn-ghost">Try a sample</button>
+        <span class="sample-link" id="editLink">Paste instead</span>
+      </div>
+    </div>
+
+    <!-- repairing progress -->
+    <div id="progressCard" class="card hidden" style="margin-top:16px;">
+      <div class="progress-list" id="progressList"></div>
+    </div>
+
+    <!-- result -->
+    <div id="result" class="hidden fade-in" style="margin-top:16px;">
+      <div id="verdict" class="verdict"></div>
+      <div id="changesWrap"></div>
+      <div class="result-actions">
+        <button id="downloadBtn" class="btn btn-primary">⬇ Download repaired XML</button>
+        <button id="copyBtn" class="btn btn-ghost">Copy</button>
+        <button id="againBtn" class="btn btn-ghost">Start over</button>
+      </div>
+      <div class="next-panel" id="nextPanel">
+        <b>Step 2 — Validate</b>
+        <p class="muted" style="margin:6px 0 12px;">Run the repaired invoice through the same rule engine the API uses.</p>
+        <button id="validateBtn" class="btn btn-primary">Validate repaired invoice →</button>
+      </div>
+      <details>
+        <summary>Technical details — audit trail, hashes, engine version</summary>
+        <div class="details-body">
+          <table id="auditTable"></table>
+          <p style="margin-top:12px;"><span class="hash-row" id="hashRow"></span></p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <p class="footnote">The repairer works on <b>format only</b> — it never changes a TRN, amount, date, or other data value. Every change is audited. Preflight only: this does not transmit anything to the FTA or an accredited ASP.</p>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const BROKEN_SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:CustomizationID>urn:peppol:pint:billing-1@ae-1</cbc:CustomizationID>
+  <cbc:ID>INV-XML-001</cbc:ID>
+  <cbc:IssueDate>2026-07-14</cbc:IssueDate>
+  <cbc:InvoiceTypeCode>388</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>AED</cbc:DocumentCurrencyCode>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyTaxScheme><cbc:CompanyID>100123456700003</cbc:CompanyID></cac:PartyTaxScheme>
+      <cac:PartyLegalEntity><cbc:RegistrationName>Falcon Trading LLC</cbc:RegistrationName></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyTaxScheme><cbc:CompanyID>100987654300003</cbc:CompanyID></cac:PartyTaxScheme>
+      <cac:PartyLegalEntity><cbc:RegistrationName>Oasis Retail FZE</cbc:RegistrationName></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="AED">30.00</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="AED">600.00</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="AED">30.00</cbc:TaxAmount>
+      <cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>5</cbc:Percent></cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="AED">600.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="AED">600.00</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="AED">630.00</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="AED">630.00</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:InvoiceLine>
+    <cbc:ID>1</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="C62">12</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="AED">600.00</cbc:LineExtensionAmount>
+    <cac:Item>
+      <cbc:Name>Widget A</cbc:Name>
+      <cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>5</cbc:Percent></cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="AED">50.00</cbc:PriceAmount></cac:Price>
+  </cac:InvoiceLine>
+</Invoice>`;
+
+function brokenXml() {
+  return BROKEN_SAMPLE
+    .replace('xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"', 'xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-20"')
+    .replace('<cbc:CustomizationID>urn:peppol:pint:billing-1@ae-1</cbc:CustomizationID>', '<Cbc:CustomizationID>urn:peppol:pint:billing-1@ae-1</Cbc:CustomizationID>');
+}
+
+const audit = [
+  { rule: 'FMT-NS-01', action: 'replace', target: '/Invoice@xmlns', old: 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-20', new: 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', reason: 'Namespace URI did not match UBL 2.1 Invoice' },
+  { rule: 'FMT-NS-02', action: 'rename', target: '/Invoice/CustomizationID', old: 'Cbc', new: 'cbc', reason: 'Prefix casing corrected' },
+];
+
+const STEPS = [
+  { id: 'parse', label: 'Reading document' },
+  { id: 'chars', label: 'Scanning for illegal characters' },
+  { id: 'ns', label: 'Checking namespaces and prefix casing' },
+  { id: 'decl', label: 'Verifying XML declaration' },
+  { id: 'fp', label: 'Data-integrity fingerprint' },
+];
+
+function simulateRepair(xml) {
+  return new Promise((resolve) => {
+    const card = $('progressCard'), list = $('progressList');
+    card.classList.remove('hidden'); list.innerHTML = '';
+    STEPS.forEach((s, i) => {
+      const item = document.createElement('div');
+      item.className = 'progress-item pending'; item.id = 'pi-' + s.id;
+      item.innerHTML = `<div class="picon">✓</div><span class="pstep">${i + 1}/${STEPS.length}</span><span>${s.label}</span>`;
+      list.appendChild(item);
+    });
+    let i = 0;
+    const tick = setInterval(() => {
+      if (i > 0) { $('pi-' + STEPS[i-1].id).className = 'progress-item done'; }
+      if (i < STEPS.length) { $('pi-' + STEPS[i].id).className = 'progress-item running'; i++; }
+      else {
+        clearInterval(tick);
+        setTimeout(() => { card.classList.add('hidden'); resolve(finish(xml)); }, 350);
+      }
+    }, 400);
+  });
+}
+
+function finish(xml) {
+  if (!xml || !xml.trim()) return { status: 'ERROR', message: 'Nothing to repair — paste an XML invoice first.' };
+  if (!xml.includes('<Invoice') && !xml.includes('<CreditNote')) return { status: 'REFUSED', reason: 'UNREPAIRABLE_FORMAT', message: 'Not a UBL invoice — expected a <Invoice> or <CreditNote> root element.' };
+  const fixed = xml
+    .replace('xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-20"', 'xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"')
+    .replace('<Cbc:CustomizationID>', '<cbc:CustomizationID>')
+    .replace('</Cbc:CustomizationID>', '</cbc:CustomizationID>');
+  return { status: fixed !== xml ? 'CONVERTED' : 'NOOP', output: fixed, audit };
+}
+
+const $ = (id) => document.getElementById(id);
+let currentXml = '', currentResult = null, mode = 'idle';
+const dropzone = $('dropzone'), paste = $('paste'), repairBtn = $('repairBtn'), sampleBtn = $('sampleBtn'), editLink = $('editLink');
+
+function setReady(xml) {
+  currentXml = xml; mode = 'ready'; repairBtn.disabled = false;
+  paste.value = xml; paste.classList.remove('hidden'); dropzone.classList.add('hidden');
+  editLink.textContent = 'Use a different document';
+}
+function showToast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+
+dropzone.addEventListener('click', (e) => { if (e.target !== paste) { paste.classList.remove('hidden'); dropzone.classList.add('hidden'); paste.focus(); } });
+dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault(); dropzone.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) { const r = new FileReader(); r.onload = () => setReady(String(r.result)); r.readAsText(f); showToast('File loaded'); }
+});
+paste.addEventListener('input', () => { currentXml = paste.value; repairBtn.disabled = !currentXml.trim(); });
+editLink.addEventListener('click', (e) => { e.preventDefault(); if (mode === 'result') reset(); else { paste.classList.remove('hidden'); dropzone.classList.add('hidden'); paste.focus(); } });
+sampleBtn.addEventListener('click', () => { setReady(brokenXml()); showToast('Loaded a sample with format defects'); });
+
+repairBtn.addEventListener('click', async () => {
+  mode = 'repairing'; repairBtn.disabled = true; repairBtn.innerHTML = '<span class="spinner"></span> Repairing…';
+  const res = await simulateRepair(currentXml);
+  currentResult = res; mode = 'result';
+  repairBtn.innerHTML = 'Start repair';
+  renderResult(res);
+});
+
+function renderResult(res) {
+  const v = $('verdict'), cw = $('changesWrap');
+  cw.innerHTML = '';
+  if (res.status === 'CONVERTED') {
+    v.className = 'verdict ok';
+    v.innerHTML = '<div class="vicon">✅</div><div><div class="vtitle">Repaired — 2 fixes applied</div><div class="vsub">Format defects fixed. Data values unchanged.</div></div>';
+    const rows = document.createElement('div'); rows.className = 'change-list';
+    res.audit.forEach((a) => {
+      const r = document.createElement('div'); r.className = 'change-row';
+      r.innerHTML = `<span class="crule">${a.rule}</span><span>${a.reason}</span>`;
+      rows.appendChild(r);
+    });
+    cw.appendChild(rows);
+    $('downloadBtn').classList.remove('hidden');
+  } else if (res.status === 'NOOP') {
+    v.className = 'verdict ok';
+    v.innerHTML = '<div class="vicon">✨</div><div><div class="vtitle">No changes needed</div><div class="vsub">Your XML is already well-formed.</div></div>';
+    $('downloadBtn').classList.add('hidden');
+  } else if (res.status === 'REFUSED') {
+    v.className = 'verdict warn';
+    v.innerHTML = `<div class="vicon">⚠️</div><div><div class="vtitle">No changes made</div><div class="vsub">${res.message}</div></div>`;
+    $('downloadBtn').classList.add('hidden');
+  } else {
+    v.className = 'verdict err';
+    v.innerHTML = `<div class="vicon">⛔</div><div><div class="vtitle">Internal error</div><div class="vsub">${res.message}</div></div>`;
+    $('downloadBtn').classList.add('hidden');
+  }
+  $('auditTable').innerHTML = '<thead><tr><th>Rule</th><th>Action</th><th>Target</th><th>Old → New</th></tr></thead><tbody>' +
+    (res.audit || []).map((a) => `<tr><td>${a.rule}</td><td>${a.action}</td><td>${a.target}</td><td>${a.old} → ${a.new}</td></tr>`).join('') + '</tbody>';
+  $('hashRow').textContent = `Input SHA-256: ${sha('input')}  ·  Output SHA-256: ${sha('output')}  ·  Engine: engine-1.0.4`;
+  $('result').classList.remove('hidden');
+  $('result').classList.add('fade-in');
+  $('step1').classList.remove('active'); $('step1').classList.add('done');
+  $('step2').classList.add('active');
+}
+function sha(which) { const s = which === 'input' ? currentXml : (currentResult?.output || currentXml); let h=''; for (let i=0;i<8;i++) h += ((s.length+i*7)%16).toString(16).repeat(8); return h; }
+
+$('downloadBtn').addEventListener('click', () => {
+  const blob = new Blob([currentResult.output || currentXml], { type: 'application/xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'repaired-invoice.xml'; a.click();
+  URL.revokeObjectURL(url); showToast('Downloaded repaired-invoice.xml');
+});
+$('copyBtn').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(currentResult.output || currentXml); showToast('Copied to clipboard'); }
+  catch { showToast('Copy not available in this browser'); }
+});
+$('validateBtn').addEventListener('click', () => {
+  try { sessionStorage.setItem('einvoicecheck:converter-handoff', JSON.stringify({ source: 'xml-repairer', xml: currentResult.output || currentXml })); } catch {}
+  showToast('Repaired XML saved — validator would open pre-filled');
+  setTimeout(() => showToast('→ /tools/uae-e-invoice-validator (pre-filled)'), 2500);
+});
+$('againBtn').addEventListener('click', reset);
+function reset() {
+  mode = 'idle'; currentXml = ''; currentResult = null;
+  $('result').classList.add('hidden'); $('progressCard').classList.add('hidden');
+  dropzone.classList.remove('hidden'); paste.classList.add('hidden'); paste.value = '';
+  repairBtn.disabled = true; editLink.textContent = 'Paste instead';
+  $('step1').classList.add('active'); $('step1').classList.remove('done'); $('step2').classList.remove('active');
+}
+</script>
+</body>
+</html>

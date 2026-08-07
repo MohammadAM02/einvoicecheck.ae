@@ -56,18 +56,21 @@ The user reported the XML converter page (`/tools/xml-converter`) is "too confus
 ## 5. Component Changes (web)
 
 ### 5.1 `app/web/src/components/ConverterWorkspace.tsx` — rewrite
+**Approved visual direction (owner, 2026-08-07): variant 004 "Guided Diff"** — see `sketches/xml-repairer/004-guided-diff/index.html`. Layout = stepper (Repair format → Validate) → input card → animated repair progress → verdict + split before/after diff → validate panel. The other three sketches (001 one-job-calm, 002 guided-wizard, 003 diff-centric) remain under `sketches/xml-repairer/` for reference.
+
 - **Remove the mode toggle** (`full` / `format` radio). Engine always runs the safe full behavior (format repair + refusal on data errors). The `mode` parameter is dropped from the client; the route keeps accepting it for API compat but the page never sends it.
 - **Single input zone**: one drop-anywhere area that handles paste, drag-drop, and file upload; plus a "Try a sample" link. Replaces the separate upload button + drag handlers + paste textarea as distinct affordances.
-- **Result view, verdict first**:
-  - `CONVERTED` → "Repaired — N fixes" (green)
-  - `NOOP` → "No changes needed" (neutral)
-  - `REFUSED` → "No changes made" + plain reason (e.g. "The invoice has data errors (TRN, amounts, VAT) that a converter must not fix." / "The XML is not well-formed and the converter refuses to guess.")
-  - `ERROR` → "Internal error" + retry
+- **Two-step stepper** (from 002): step 1 "Repair format" active during input+progress; flips to done + step 2 "Validate" active when the result renders.
+- **Animated repair progress** (from 002): checklist of engine phases (read document → scan illegal chars → check namespaces/prefix case → verify declaration → data-integrity fingerprint), each ticking done as the repair runs.
+- **Result view, verdict first** (from 003's payoff):
+  - `CONVERTED` → "Repaired — N fixes applied" (green) + **split before/after diff** with per-line red-strikethrough (removed) / green (added) highlighting, toolbar showing "N changes" + rule IDs, byte-size badges per column.
+  - `NOOP` → "No changes needed" (neutral) — no diff.
+  - `REFUSED` → "No changes made" + plain reason (e.g. "The invoice has data errors (TRN, amounts, VAT) that a converter must not fix." / "The XML is not well-formed and the converter refuses to guess.") — no diff.
+  - `ERROR` → "Internal error" + retry.
   - Remove the "Refused" label — reads as an external rejection.
-- **Plain-language change summary** replacing the raw audit table as the primary detail: "Fixed namespace URIs, prefix casing, missing declaration" (derived from `audit[].action` + rule names).
-- **Download repaired XML** button (Blob + `<a download>`), **Copy** button (clipboard API). Shown for `CONVERTED` / `NOOP`.
-- **"Validate repaired invoice →"** primary CTA (shown on `CONVERTED` / `NOOP`): writes `{ source: 'xml-converter', xml: <output> }` to `sessionStorage`, then `router.push('/tools/uae-e-invoice-validator')`.
-- **"Technical details" accordion** (collapsed by default): audit trail table, SHA-256 hashes, engine version. Compliance evidence on demand.
+- **Download repaired XML** button (Blob + `<a download>`), **Copy** button (clipboard API), **Start over**. Shown per state per the sketch.
+- **"Validate repaired invoice →"** primary CTA in a "Step 2 — Validate" panel (shown on `CONVERTED` / `NOOP`): writes `{ source: 'xml-converter', xml: <output> }` to `sessionStorage`, then `router.push('/tools/uae-e-invoice-validator')`.
+- **"Technical details" accordion** (collapsed by default): audit trail table (rule/action/target/old→new), SHA-256 hashes, engine version.
 
 ### 5.2 `app/web/src/lib/converter-client.ts`
 - Keep `convertXml` and `readXmlFile` (route contract unchanged).
@@ -139,6 +142,7 @@ Old slug `/tools/xml-converter` 404s after deploy (no redirect, per owner decisi
 | New: `app/web/test/engine-parity.test.ts` | Parity guard §9.4 (currently missing despite validation.ts claim) |
 | `app/api/test/*` | Engine fix tests §9.5 |
 | `app/web/test/*` | Extend per §10 |
+| `sketches/xml-repairer/001..004-*` | Approved direction = 004 Guided Diff; kept as reference (not built) |
 
 ## 8. Security & Privacy
 
