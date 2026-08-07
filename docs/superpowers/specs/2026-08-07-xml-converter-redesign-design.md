@@ -141,6 +141,8 @@ Old slug `/tools/xml-converter` 404s after deploy (no redirect, per owner decisi
 | `app/api/scripts/generate-codelists.mjs` | Engine fix §9.3 — AE rate source of truth; re-derive both codelists.js |
 | New: `app/web/test/engine-parity.test.ts` | Parity guard §9.4 (currently missing despite validation.ts claim) |
 | `app/api/test/*` | Engine fix tests §9.5 |
+| `app/api/src/rules/checks/invoiceType.js` + web copy | 389 self-billing warning §11.1 (BOTH trees) |
+| `app/web/src/components/validation/ValidationSummary.tsx` + workspace | 389 coverage notice §11.1 |
 | `app/web/test/*` | Extend per §10 |
 | `sketches/xml-repairer/001..004-*` | Approved direction = 004 Guided Diff; kept as reference (not built) |
 
@@ -219,7 +221,25 @@ The `validation.ts` header claims a parity test (`test/tool-engine-parity.test.t
 
 ## 11. Out of Scope / Follow-ups
 
-- **Repo divergence** (local `main` vs `origin/main`): reconcile after this feature lands. Decide whether local `main` should be reset to `origin/main` or the compliance-manifest work (untracked `src/compliance/pint-ae-1.0.3/`) is merged in intentionally.
+- **Repo divergence (local `main` vs `origin/main`) — RESOLVED by owner decision (2026-08-07):** `origin/main` (deployed) is the source of truth; local `main` is abandoned, not merged. The local-main-only work (untracked `src/compliance/pint-ae-1.0.3/`, stale vs deployed 1.0.4; the local "unlink converter" commits) is intentionally dropped. All work continues on `feat/xml-converter-redesign` based on `origin/main`.
 - **Old slug `/tools/xml-converter`** — intentionally left to 404 (no redirect, per owner decision; see §7.3).
 - **Monthly quota enforcement, `/usage` rate limit, UsageEvent TTL** — existing open items in `docs/PRODUCTION_STATUS.md`; untouched by this feature.
 - **Other PINT-AE rule gaps** (e.g. IBR-073 date format, IBR-CO-11 prepaid ≤ payable from PRODUCTION_STATUS.md) — separate workstreams, not part of the false-positive fixes in §9.
+
+### 11.1 Self-billing (389) — explicitly NOT supported, surfaced as such
+
+**Owner decision (2026-08-07):** self-billed invoices (type `389`) are **not supported** by this validator — and that must be **obvious**, not silently pass. Today the engine lists `389: 'Self-billed invoice'` in `codelists.js` (both trees) but has **zero** self-billing checks: no PINT-AE Self-Billing 1.0.4 Schematron bundle is vendored, and the engine treats 389 like any known code. A 389 document can return `valid: true` today with no self-billing coverage — false confidence.
+
+**What the deployed lineage does have:** the UBL 2.1 XSDs `UBL-SelfBilledInvoice-2.1.xsd` and `UBL-SelfBilledCreditNote-2.1.xsd` under `app/api/pint-ae-resources/ubl-2.1/xsd/maindoc/` (so the XSD gate accepts the documents structurally) — but the jurisdiction Schematron, codelists, and semantic rules for the self-billing profile are absent.
+
+**Required change — engine (both trees, `app/api/src/rules/` + `app/web/src/lib/rules/`):**
+- In `checks/invoiceType.js`, when `code === '389'`, emit a **warning** (not error — the document is a known type, just uncovered):
+  - rule `ENG-TYPE-01/SELF-BILLING`, message: `"Self-billed invoice (389) is not yet supported by this validator. Structural checks ran, but self-billing business rules (PINT-AE Self-Billing 1.0.4) are not vendored, so results are incomplete."`
+  - fix: `"Use an accredited ASP for self-billed invoices, or validate a supplier-issued invoice (388) instead."`
+- The warning rides through the existing `errors[]` array with `severity: 'warning'`, so `valid` stays `true` (warnings don't invalidate) — but the caller sees the limitation explicitly.
+
+**Required change — web UI:**
+- `ValidatorWorkspace` / `ValidationSummary`: render an obvious notice when any `ENG-TYPE-01/SELF-BILLING` warning is present (distinct banner: "Self-billed invoices are not fully validated" + explanation), so a user pasting a 389 document cannot miss the coverage gap.
+- Repairer (`RepairerWorkspace`): a 389 document that reaches the repair flow shows the same coverage notice on the result view.
+
+**Explicitly NOT planned:** vendoring the PINT-AE Self-Billing 1.0.4 bundle, wiring a self-billing document profile, or adding self-billing rules. This is a scoped-out capability, made honest. If buyers who self-bill become a target segment later, it becomes its own spec.
