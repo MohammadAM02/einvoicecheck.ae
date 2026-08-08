@@ -37,9 +37,8 @@ const NAV_LINKS: readonly NavigationLink[] = [
   { href: '/#validate', label: 'Validate an invoice', primary: true },
   { href: '/tools/xml-generator', label: 'XML Generator' },
   { href: '/tools/xml-repairer', label: 'XML Repairer' },
-  { href: '/docs', label: 'API' },
+  { href: '/docs', label: 'API Docs' },
   { href: '/pricing', label: 'Pricing' },
-  { href: '/docs', label: 'Documentation' },
   { href: '/login', label: 'Sign in' },
 ];
 
@@ -81,7 +80,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
   // This component lives in the root layout, so it never remounts during
   // client-side navigation — a mount-once fetch would leave the nav's
   // auth state stale after login/logout. Re-fetch the session on every
-  // route change (login -> /dashboard, logout -> /login) so the 5th nav
+  // route change (login -> /dashboard, logout -> /login) so the final nav
   // link flips between "Dashboard" and "Sign in" without a hard reload.
   useEffect(() => {
     let cancelled = false;

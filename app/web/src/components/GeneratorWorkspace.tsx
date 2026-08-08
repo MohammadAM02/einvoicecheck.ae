@@ -493,18 +493,19 @@ export function GeneratorWorkspace(): React.ReactElement {
 
         /* ---- Document Section ---- */
         h(
-          'div',
+          'fieldset',
           { className: 'generator-section' },
-          h('h3', { className: 'generator-section-title' }, 'Document'),
+          h('legend', { className: 'generator-section-title' }, 'Document'),
 
           /* Template select */
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Template'),
+            h('label', { className: 'generator-label-text', htmlFor: 'template-select' }, 'Template'),
             h(
               'select',
               {
+                id: 'template-select',
                 className: 'generator-select',
                 value: form.template,
                 onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -536,8 +537,9 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Invoice number'),
+            h('label', { className: 'generator-label-text', htmlFor: 'invoice-number' }, 'Invoice number'),
             h('input', {
+              id: 'invoice-number',
               className: 'generator-input',
               type: 'text',
               value: form.invoiceNumber,
@@ -555,8 +557,9 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Issue date'),
+            h('label', { className: 'generator-label-text', htmlFor: 'issue-date' }, 'Issue date'),
             h('input', {
+              id: 'issue-date',
               className: 'generator-input',
               type: 'date',
               value: form.issueDate,
@@ -573,8 +576,9 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Due date (optional)'),
+            h('label', { className: 'generator-label-text', htmlFor: 'due-date' }, 'Due date (optional)'),
             h('input', {
+              id: 'due-date',
               className: 'generator-input',
               type: 'date',
               value: form.dueDate,
@@ -588,7 +592,7 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Currency'),
+            h('span', { className: 'generator-label-text' }, 'Currency'),
             h('span', { className: 'generator-chip' }, 'AED'),
           ),
 
@@ -596,7 +600,7 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Profile'),
+            h('span', { className: 'generator-label-text' }, 'Profile'),
             h(
               'span',
               { className: 'generator-chip generator-chip--readonly' },
@@ -607,16 +611,17 @@ export function GeneratorWorkspace(): React.ReactElement {
 
         /* ---- Parties Section ---- */
         h(
-          'div',
+          'fieldset',
           { className: 'generator-section' },
-          h('h3', { className: 'generator-section-title' }, 'Parties'),
+          h('legend', { className: 'generator-section-title' }, 'Parties'),
 
           /* Supplier TRN */
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Supplier TRN'),
+            h('label', { className: 'generator-label-text', htmlFor: 'supplier-trn' }, 'Supplier TRN'),
             h('input', {
+              id: 'supplier-trn',
               className: 'generator-input' + (!supplierTrnOk ? ' generator-input--error' : ''),
               type: 'text',
               value: form.supplierTrn,
@@ -643,8 +648,9 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Supplier name'),
+            h('label', { className: 'generator-label-text', htmlFor: 'supplier-name' }, 'Supplier name'),
             h('input', {
+              id: 'supplier-name',
               className: 'generator-input',
               type: 'text',
               value: form.supplierName,
@@ -659,8 +665,9 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Customer TRN'),
+            h('label', { className: 'generator-label-text', htmlFor: 'customer-trn' }, 'Customer TRN'),
             h('input', {
+              id: 'customer-trn',
               className: 'generator-input' + (!customerTrnOk ? ' generator-input--error' : ''),
               type: 'text',
               value: form.customerTrn,
@@ -687,8 +694,9 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'div',
             { className: 'generator-field' },
-            h('label', { className: 'generator-label-text' }, 'Customer name'),
+            h('label', { className: 'generator-label-text', htmlFor: 'customer-name' }, 'Customer name'),
             h('input', {
+              id: 'customer-name',
               className: 'generator-input',
               type: 'text',
               value: form.customerName,
@@ -702,31 +710,38 @@ export function GeneratorWorkspace(): React.ReactElement {
 
         /* ---- Lines Section ---- */
         h(
-          'div',
+          'fieldset',
           { className: 'generator-section' },
-          h('h3', { className: 'generator-section-title' }, 'Lines'),
+          h('legend', { className: 'generator-section-title' }, 'Lines'),
           h(
             'div',
             { className: 'generator-lines', 'data-testid': 'lines-section' },
             form.lines.map((line, idx) => {
               const ext = computeLineExt(line);
+              const descriptionId = `line-description-${line.key}`;
+              const quantityId = `line-quantity-${line.key}`;
+              const unitPriceId = `line-unit-price-${line.key}`;
+              const categoryId = `line-category-${line.key}`;
               return h(
                 'div',
                 { key: line.key, className: 'generator-row', 'data-testid': `line-row-${idx}` },
                 h(
                   'div',
                   { className: 'generator-row-fields' },
+                  h('label', { className: 'sr-only', htmlFor: descriptionId }, `Line ${idx + 1} description`),
                   h('input', {
+                    id: descriptionId,
                     className: 'generator-input',
                     type: 'text',
                     value: line.description,
                     onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                       updateLine(line.key, { description: e.target.value }),
                     placeholder: 'Description',
-                    'aria-label': 'Line description',
                     'data-testid': `line-description-${idx}`,
                   }),
+                  h('label', { className: 'sr-only', htmlFor: quantityId }, `Line ${idx + 1} quantity`),
                   h('input', {
+                    id: quantityId,
                     className: 'generator-input generator-input--narrow',
                     type: 'number',
                     value: line.quantity,
@@ -735,10 +750,11 @@ export function GeneratorWorkspace(): React.ReactElement {
                     placeholder: 'Qty',
                     min: '0',
                     step: 'any',
-                    'aria-label': 'Quantity',
                     'data-testid': `line-quantity-${idx}`,
                   }),
+                  h('label', { className: 'sr-only', htmlFor: unitPriceId }, `Line ${idx + 1} unit price`),
                   h('input', {
+                    id: unitPriceId,
                     className: 'generator-input generator-input--narrow',
                     type: 'number',
                     value: line.unitPrice,
@@ -747,17 +763,17 @@ export function GeneratorWorkspace(): React.ReactElement {
                     placeholder: 'Unit price',
                     min: '0',
                     step: 'any',
-                    'aria-label': 'Unit price',
                     'data-testid': `line-unit-price-${idx}`,
                   }),
+                  h('label', { className: 'sr-only', htmlFor: categoryId }, `Line ${idx + 1} VAT category`),
                   h(
                     'select',
                     {
+                      id: categoryId,
                       className: 'generator-select',
                       value: line.category,
                       onChange: (e: React.ChangeEvent<HTMLSelectElement>) =>
                         updateLine(line.key, { category: e.target.value }),
-                      'aria-label': 'VAT category',
                       'data-testid': `line-category-${idx}`,
                     },
                     currentTemplate.categories.map((cat) => {
@@ -787,7 +803,7 @@ export function GeneratorWorkspace(): React.ReactElement {
                           className: 'btn btn-ghost generator-remove-line',
                           type: 'button',
                           onClick: () => removeLine(line.key),
-                          'aria-label': 'Remove line',
+                          'aria-label': `Remove line ${idx + 1}`,
                           'data-testid': `line-remove-${idx}`,
                         },
                         '✕',

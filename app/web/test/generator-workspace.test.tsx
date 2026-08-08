@@ -114,6 +114,28 @@ describe('GeneratorWorkspace', () => {
     expect(screen.queryByText(/Preflight passed/)).toBeNull();
   });
 
+  it('associates generator controls with semantic groups and labels', () => {
+    render(h(GeneratorWorkspace));
+
+    expect(screen.getByRole('group', { name: 'Document' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Parties' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Lines' })).toBeTruthy();
+
+    expect(screen.getByLabelText('Template').id).toBe('template-select');
+    expect(screen.getByLabelText('Invoice number').id).toBe('invoice-number');
+    expect(screen.getByLabelText('Issue date').id).toBe('issue-date');
+    expect(screen.getByLabelText('Due date (optional)').id).toBe('due-date');
+    expect(screen.getByLabelText('Supplier TRN').id).toBe('supplier-trn');
+    expect(screen.getByLabelText('Supplier name').id).toBe('supplier-name');
+    expect(screen.getByLabelText('Customer TRN').id).toBe('customer-trn');
+    expect(screen.getByLabelText('Customer name').id).toBe('customer-name');
+
+    expect(screen.getByLabelText('Line 1 description')).toBeTruthy();
+    expect(screen.getByLabelText('Line 1 quantity')).toBeTruthy();
+    expect(screen.getByLabelText('Line 1 unit price')).toBeTruthy();
+    expect(screen.getByLabelText('Line 1 VAT category')).toBeTruthy();
+  });
+
   // (2) summary template shows AE category option
   it('summary template shows AE category option', () => {
     render(h(GeneratorWorkspace));

@@ -15,9 +15,8 @@ import { Chrome } from '@/components/Chrome';
 
 const REQUIRED_LINKS = [
   ['Validate an invoice', '/#validate'],
-  ['API', '/docs'],
+  ['API Docs', '/docs'],
   ['Pricing', '/pricing'],
-  ['Documentation', '/docs'],
   ['Sign in', '/login'],
 ] as const;
 
@@ -67,6 +66,14 @@ describe('Chrome navigation', () => {
       const link = screen.getAllByRole('link', { name: label }).find((candidate) => menu?.contains(candidate));
       expect(link?.getAttribute('href')).toBe(href);
     }
+  });
+
+  it('uses one API Docs destination instead of duplicate API and Documentation links', () => {
+    renderChrome();
+
+    expect(screen.getByRole('link', { name: 'API Docs' }).getAttribute('href')).toBe('/docs');
+    expect(screen.queryByRole('link', { name: 'API' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Documentation' })).toBeNull();
   });
 
   it('closes the mobile menu when a mobile link is clicked', () => {

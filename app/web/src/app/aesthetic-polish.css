@@ -66,6 +66,35 @@ html::-webkit-scrollbar-thumb:hover {
     radial-gradient(ellipse 40% 35% at 85% 15%, rgba(14, 165, 196, 0.05), transparent 60%);
 }
 
+/* --- Focused validation results on desktop -------------------- */
+@media (min-width: 1024px) {
+  .compliance-hero:has(.validator-result) > .container {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 920px;
+  }
+
+  .compliance-hero:has(.validator-result) .hero-intro {
+    display: none;
+  }
+
+  .compliance-hero:has(.validator-result) .validator-result {
+    grid-column: 1;
+    width: 100%;
+    max-width: 920px;
+    margin-inline: auto;
+  }
+}
+
+/* --- Generator semantic fieldsets ----------------------------- */
+.generator-section {
+  min-width: 0;
+  margin: 0;
+}
+
+.generator-section > legend.generator-section-title {
+  padding: 0;
+}
+
 /* --- Dark problem-section glow -------------------------------- */
 .problem-section {
   position: relative;
