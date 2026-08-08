@@ -37,6 +37,7 @@ const NAV_LINKS: readonly NavigationLink[] = [
   { href: '/#validate', label: 'Validate an invoice', primary: true },
   { href: '/tools/xml-generator', label: 'XML Generator' },
   { href: '/tools/xml-repairer', label: 'XML Repairer' },
+  { href: '/what-we-check', label: 'What We Check' },
   { href: '/docs', label: 'API Docs' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/login', label: 'Sign in' },
