@@ -35,20 +35,22 @@
 
 | # | Finding | Severity | Status | Hermes note |
 |---|---|---|---|---|
-| F-01 / CL-001 | Malformed XML returns semantic errors instead of parse error | P0 | ✅ RESOLVED / live-verified | Deployed `f9bce80` 2026-08-07 21:09 UTC+4 (Railway). Live API + free tool: `<Invoice>...</Invoicee>` → 1 ENG-PARSE-01, 0 semantic. Regression tests locked: API + web + packages. |
-| F-02 | Wrong UBL namespace URIs pass validation | P1 | 🔄 IN PROGRESS | Strict XSD gate design+plan: `docs/superpowers/specs/2026-08-07-strict-ubl-xsd-validation-design.md`, `docs/superpowers/plans/2026-08-07-strict-ubl-xsd-validation.md`. |
+| F-01 / CL-001 | Malformed XML returns semantic errors instead of parse error | P0 | ✅ RESOLVED / live-verified | Deployed `f9bce80` 2026-08-07 21:09 UTC+4 (Railway). Live API + free tool: `<Invoice>...</Invoicee>` → 1 ENG-PARSE-01, 0 semantic. New layered path in `a2dafd9` + tests in `3b22f0e` preserve the format gate in code; this batch is not deployed/live-verified, so production evidence remains tied to `f9bce80`. |
+| F-02 | Wrong UBL namespace URIs pass validation | P1 | inspected | `0bdd555` centralizes Invoice/CreditNote XSD; `a2dafd9` adds layered validation; `6e6b1c0` adds `/v2/validate` and a wrong-namespace regression test expecting Structure/XSD failure. Implementation inspected; test execution, deployment, and live verification still required. |
 | F-03 | Reverse-charge (AE) + non-zero VAT passes | P1 | unresolved | No cross-check between taxCategory code and taxAmount. |
 | F-04 | Invalid dates like 2026-02-30 pass format check | P2 | unresolved | ibr-073 checks format pattern, not calendar validity. |
 | F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | Engine's price extraction assumes simple PriceAmount shape. |
 | F-06 | Generator fields lack programmatic labels | P2 | unresolved | CL-003. id + `<label for>` missing; `<fieldset>`/`<legend>` missing. |
 | F-07 | Legal pages are indexable drafts with paid-plan language | P1 | unresolved | /contact, /legal/* say draft + unprovisioned; pricing says PayPal. |
-| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | unresolved | Live docs say "XSD not included"; Google result says "official Schematron gate runs first." Strict XSD work resolves the capability side; docs wording must be re-checked after deploy. |
+| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | `6e6b1c0`, `345451a`, `8106742`, and `05fee5f` align API, free tool, result UI, and docs around layered XML validation. Repository wording is aligned; deployment, live page check, and Google re-index evidence are still missing. |
 | F-09 | Homepage missing canonical tag | P2 | unresolved | CL-003. |
 | F-10 | Results panel wastes desktop space (452px on 1363px viewport) | P3 | unresolved | CL-003. |
 | F-11 | Generator wastes desktop width (single column) | P3 | unresolved | CL-003. |
 | F-12 | Rate limit quota shown after submit, not before | P3 | unresolved | |
 | F-13 | "API" and "Documentation" nav links both go to /docs | P3 | unresolved | CL-003. |
 | F-14 | Existing XML Repairer still named Converter in API and backend contracts | P1 | 🔄 IN PROGRESS | Hard-rename design approved: `docs/superpowers/specs/2026-08-07-xml-repairer-hard-rename-design.md`. Implementation pending plan. |
+| F-15 | Batch validator charges one free-tool quota unit for up to 50 upstream validations | P2 | open | `345451a` checks `checkToolRateLimit` once before a loop of up to 50 documents, although its contract says each invoice consumes one unit. This permits quota amplification and can exhaust the shared upstream API key. |
+| F-16 | `/v1/validate` stops accepting canonical JSON without a compatibility window | P2 | open | `6e6b1c0` moves JSON to `/v1/preflight` and makes existing `/v1/validate` JSON calls return 400. This is a breaking v1 contract change; add compatibility/deprecation or a documented migration gate before deployment. |
 
 ## Resolved
 
@@ -58,10 +60,13 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `3014209906d9f279d1a72c447f75762451aec8ad` — `chore: consolidate critic-loop to single .hermes state file`
+- **Last scanned main commit:** `7664e881ea43dc040febc20687a6c6e99ef79fa9` — `fix(web): align validation fixtures with layered XML result`
 - **Scanned:** 2026-08-08
-- Commits `1ffaaef`, `5af5cfc`, and `0408568` add approved design/implementation plans only. F-14 and F-02 remain in progress; no product implementation was claimed.
-- Commit `3014209` consolidated state here, corrected the deployed parser-fix SHA to `f9bce80`, and recorded live API + free-tool reproduction. No product code changed in this commit.
+- Commits `0bdd555`, `a2dafd9`, `6e6b1c0`, and `b4426ae` add the centralized Invoice/CreditNote XSD authority, layered XML core, strict v2/legacy v1/preflight contracts, response schemas, and regression tests.
+- Commits `345451a`, `8106742`, `3b22f0e`, `05fee5f`, and `7664e88` proxy the free tool to v2, render/test layered results, align docs, add repairer result navigation, and update fixtures.
+- F-02 and F-08 have repository implementation evidence only. No deployment or live-test evidence was present, so neither is live-verified.
+- New risks: F-15 batch quota amplification; F-16 breaking JSON callers of `/v1/validate`.
+- Commits `b86556c` and `0726dcc` are design/cleanup evidence; no additional finding change.
 - The next scan must inspect commits after this SHA, ignore state-only critic-loop commits, and advance this baseline only when a product/code or material evidence commit has been evaluated.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
 
