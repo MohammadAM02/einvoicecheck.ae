@@ -122,7 +122,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <div className="app-card">
-        <nav className="navbar" aria-label="Primary navigation">
+        <nav className="navbar" aria-label="Primary navigation" style={{ zIndex: 30 }}>
           <Link href="/" className="nav-brand" aria-label="einvoicecheck.ae home">
             <img
               src="/brand/einvoicecheck-lockup.svg"
