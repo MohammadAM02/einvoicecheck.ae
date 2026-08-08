@@ -40,14 +40,14 @@
 | F-03 | Reverse-charge (AE) + non-zero VAT passes | P1 | unresolved | No new live evidence recorded here. |
 | F-04 | Invalid dates like 2026-02-30 pass format check | P2 | unresolved | No new live evidence recorded here. |
 | F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | Engine behavior still requires separate verification. |
-| F-06 | Generator fields lack programmatic labels | P2 | unresolved | Frontend audit branch is intended to add ids, associated labels and fieldset/legend semantics; do not mark fixed until verification passes. |
+| F-06 | Generator fields lack programmatic labels | P2 | inspected | `2a77a7a` / merge `7d7cad5` add unique ids, associated labels, fieldset/legend groups, hidden line-item labels, and component tests. Repository evidence only; test execution, deployment, and live accessibility verification remain required. |
 | F-07 | Legal pages are indexable drafts with paid-plan language | P1 | fixed-local | `/contact` and `/legal/*` are noindexed and removed from sitemap on current main. Draft/support/operator placeholders remain pending founder inputs and live deployment verification. |
 | F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | Repository copy was tightened in `4b20348`; live page and search re-index evidence are still required. |
-| F-09 | Homepage missing canonical tag | P2 | unresolved | Frontend audit branch is intended to restore the canonical/schema change; verification pending. |
-| F-10 | Results panel wastes desktop space (452px on 1363px viewport) | P3 | unresolved | Frontend audit branch is intended to restore focused desktop results mode; verification pending. |
+| F-09 | Homepage missing canonical tag | P2 | inspected | `2a77a7a` / merge `7d7cad5` route homepage metadata through `pageMetadata({ path: '/' })` and add conservative website/organization/software schema. Deployment and live source verification remain required. |
+| F-10 | Results panel wastes desktop space (452px on 1363px viewport) | P3 | inspected | `2a77a7a` / merge `7d7cad5` add desktop focused-results CSS: hide intro and expand result container to 920px. Deployment and live 1024/1440px visual verification remain required. |
 | F-11 | Generator wastes desktop width (single column) | P3 | unresolved | Generator currently has a two-column desktop layout; visual verification is still separate from this state record. |
 | F-12 | Rate limit quota shown after submit, not before | P3 | unresolved | No change in this audit pass. |
-| F-13 | "API" and "Documentation" nav links both go to /docs | P3 | unresolved | Frontend audit branch is intended to replace them with one `API Docs` link; verification pending. |
+| F-13 | "API" and "Documentation" nav links both go to /docs | P3 | inspected | `2a77a7a` / merge `7d7cad5` replace both links with one `API Docs` entry and add a navigation regression test. Deployment and live navigation verification remain required. |
 | F-14 | Existing XML Repairer still named Converter in API and backend contracts | P1 | 🔄 IN PROGRESS | Backend/API naming is outside the frontend audit pass. |
 | F-15 | Batch validator charges one free-tool quota unit for up to 50 upstream validations | P2 | open | Backend/rate-limit issue; outside the frontend audit pass. |
 | F-16 | `/v1/validate` stops accepting canonical JSON without a compatibility window | P2 | open | API contract issue; outside the frontend audit pass. |
@@ -60,10 +60,15 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `44dd1158a4e287c3100d8d01db913f149c54804d` — `fix(web): soften generator legend copy`
-- **Scanned:** 2026-08-08
-- `4b20348` tightened public claims, noindexed draft contact/legal pages, and removed those pages from the sitemap.
-- `44dd115` accidentally deleted this canonical state file while softening generator legend copy; this audit branch restores it from clean history without conflict markers.
+- **Last scanned main commit:** `7d7cad5b58daa37a1ea13e65f414703bc1aa41b6` — `Frontend audit work (#15)`
+- **Scanned:** 2026-08-09
+- `2a77a7a` restored the audited frontend state; merge `7d7cad5` brought the same net changes to `main`.
+- F-06: generator controls now have programmatic labels and semantic groups, with repository tests.
+- F-09: homepage canonical metadata and conservative structured data restored.
+- F-10: desktop result state expands to a focused 920px layout.
+- F-13: duplicate `/docs` navigation entries replaced with one `API Docs` link and test.
+- All four remain repository-inspected only. No deployment, live browser, accessibility-tool, or live-source evidence was present.
+- No new material validation, auth, payment, legal, SEO, accessibility, or deployment risk was found in this diff.
 - F-01 remains live-verified only against the recorded `f9bce80` deployment evidence. No later deployment/live status is inferred.
 - Exact official XSD/Schematron artifact/version parity and InvoiceTypeCode provenance remain AMG verification items.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
