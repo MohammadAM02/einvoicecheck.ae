@@ -42,7 +42,7 @@
 | F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | Engine behavior still requires separate verification. |
 | F-06 | Generator fields lack programmatic labels | P2 | inspected | `2a77a7a` / merge `7d7cad5` add unique ids, associated labels, fieldset/legend groups, hidden line-item labels, and component tests. Repository evidence only; test execution, deployment, and live accessibility verification remain required. |
 | F-07 | Legal pages are indexable drafts with paid-plan language | P1 | fixed-local | `/contact` and `/legal/*` are noindexed and removed from sitemap on current main. Draft/support/operator placeholders remain pending founder inputs and live deployment verification. |
-| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | Repository copy was tightened in `4b20348`; live page and search re-index evidence are still required. |
+| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | `4b20348` tightened claims; `52c69da` adds a dedicated, caveated What We Check page; `2ed4553`, `5d8de34`, `864fedd`, and `7abf2b4` wire navigation, homepage scope, sitemap, and tests. Repository scope wording is now consistent; deployment, live-page, and search re-index evidence remain required. |
 | F-09 | Homepage missing canonical tag | P2 | inspected | `2a77a7a` / merge `7d7cad5` route homepage metadata through `pageMetadata({ path: '/' })` and add conservative website/organization/software schema. Deployment and live source verification remain required. |
 | F-10 | Results panel wastes desktop space (452px on 1363px viewport) | P3 | inspected | `2a77a7a` / merge `7d7cad5` add desktop focused-results CSS: hide intro and expand result container to 920px. Deployment and live 1024/1440px visual verification remain required. |
 | F-11 | Generator wastes desktop width (single column) | P3 | unresolved | Generator currently has a two-column desktop layout; visual verification is still separate from this state record. |
@@ -60,15 +60,12 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `7d7cad5b58daa37a1ea13e65f414703bc1aa41b6` — `Frontend audit work (#15)`
+- **Last scanned main commit:** `1d9ef55d91a7871792288caa1e325c711047643f` — `fix(web): keep mobile menu above page content`
 - **Scanned:** 2026-08-09
-- `2a77a7a` restored the audited frontend state; merge `7d7cad5` brought the same net changes to `main`.
-- F-06: generator controls now have programmatic labels and semantic groups, with repository tests.
-- F-09: homepage canonical metadata and conservative structured data restored.
-- F-10: desktop result state expands to a focused 920px layout.
-- F-13: duplicate `/docs` navigation entries replaced with one `API Docs` link and test.
-- All four remain repository-inspected only. No deployment, live browser, accessibility-tool, or live-source evidence was present.
-- No new material validation, auth, payment, legal, SEO, accessibility, or deployment risk was found in this diff.
+- `52c69da` adds the caveated What We Check scope page. `2ed4553`, `5d8de34`, `864fedd`, and `7abf2b4` expose it through navigation, homepage scope, sitemap, and tests.
+- F-08 gains repository evidence: the new page avoids guaranteed acceptance, complete official artifact parity, exact rule-count, and ASP/FTA claims. Deployment, live-page, and search re-index checks are still missing.
+- `1d9ef55` raises the mobile navigation stacking level and adds a regression test. No tracked accessibility/SEO/legal/validation risk changed.
+- No new material parsing, validation, authentication, payment, legal, accessibility, SEO, or deployment risk was found in these diffs.
 - F-01 remains live-verified only against the recorded `f9bce80` deployment evidence. No later deployment/live status is inferred.
 - Exact official XSD/Schematron artifact/version parity and InvoiceTypeCode provenance remain AMG verification items.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
