@@ -166,6 +166,7 @@ describe('POST /v1/validate', () => {
     const body = res.json();
     expect(body.valid).toBe(false);
     expect(body.errors.map((e) => e.rule)).toContain('ENG-PARSE-01');
+    expect(body.errors).toHaveLength(1);
     expect(body.errors[0].message).toMatch(/Invocie|well.formed|closing tag/i);
   });
 

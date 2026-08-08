@@ -56,6 +56,14 @@ describe('@einvoicecheck/rules — migration parity', () => {
     expect(r.errors[0].rule).toBe('ENG-PARSE-01');
   });
 
+  it('rejects mismatched XML before semantic checks run', () => {
+    const xml = validUblXml().replace('</Invoice>', '</Invocie>');
+    const r = validateInvoice(xml, 'application/xml');
+    expect(r.valid).toBe(false);
+    expect(r.errors).toHaveLength(1);
+    expect(r.errors[0].rule).toBe('ENG-PARSE-01');
+  });
+
   it('requires AED tax accounting currency for a foreign-currency invoice', () => {
     const inv = validInvoice();
     inv.currency = 'USD';

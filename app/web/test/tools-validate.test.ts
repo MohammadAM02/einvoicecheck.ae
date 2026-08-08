@@ -132,6 +132,22 @@ describe('free tool runs the REAL rule engine', () => {
     expect(body.result.errors[0].rule).toBe('ENG-PARSE-01');
   });
 
+  it('rejects mismatched XML before semantic checks run', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ID>INV-1</cbc:ID>
+  <cbc:InvoiceTypeCode>388</cbc:InvoiceTypeCode>
+</Invocie>`;
+    const res = await post(xml);
+    const body = await res.json();
+
+    expect(body.ok).toBe(true);
+    expect(body.result.valid).toBe(false);
+    expect(body.result.errors).toHaveLength(1);
+    expect(body.result.errors[0].rule).toBe('ENG-PARSE-01');
+  });
+
   it('rejects an empty document', async () => {
     const res = await post('   ');
     expect(res.status).toBe(400);
