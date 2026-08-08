@@ -59,4 +59,31 @@ describe('validateXsd (UBL 2.1 structural gate)', () => {
     expect(r.issues.some((i) => i.rule === 'XSD-ERR')).toBe(false);
     expect(r.evalErrors).toEqual([]);
   });
+
+  it('accepts a valid CreditNote against the CreditNote schema', () => {
+    const xml = fs.readFileSync(path.join(import.meta.dirname, 'fixtures/validate/valid-credit-note.xml'), 'utf8');
+    const result = validateXsd(xml);
+    expect(result.documentType).toBe('CreditNote');
+    expect(result.evalErrors).toEqual([]);
+    expect(result.issues.filter((issue) => issue.rule === 'XSD-01')).toHaveLength(0);
+  });
+
+  it('rejects an Invoice with the wrong default namespace', () => {
+    const result = validateXsd(STANDARD.replace(
+      'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
+      'urn:oasis:names:specification:ubl:schema:xsd:NotInvoice-2',
+    ));
+    expect(result.issues.some((issue) => issue.rule === 'XSD-01')).toBe(true);
+  });
+
+  it('rejects a CreditNote with the wrong default namespace', () => {
+    const xml = fs.readFileSync(path.join(import.meta.dirname, 'fixtures/validate/valid-credit-note.xml'), 'utf8');
+    const result = validateXsd(xml.replace(
+      'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2',
+      'urn:oasis:names:specification:ubl:schema:xsd:NotCreditNote-2',
+    ));
+    expect(result.issues.some((issue) => issue.rule === 'XSD-01')).toBe(true);
+    expect(result.issues.some((issue) => issue.rule === 'XSD-ERR')).toBe(false);
+    expect(result.evalErrors).toEqual([]);
+  });
 });
