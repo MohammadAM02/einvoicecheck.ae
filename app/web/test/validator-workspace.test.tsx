@@ -32,7 +32,16 @@ import { ValidatorWorkspace } from '@/components/validation/ValidatorWorkspace';
 
 const success = {
   ok: true as const,
-  result: { valid: true, invoiceType: '388', schemaVersion: 'PINT AE 1.0', errors: [] },
+  result: {
+    valid: true,
+    inputFormat: 'xml',
+    validationScope: 'pint-ae-ubl-xml',
+    invoiceType: '388',
+    schemaVersion: 'PINT AE 1.0',
+    format: { status: 'passed', issues: [] },
+    structure: { status: 'passed', issues: [] },
+    semantic: { status: 'passed', issues: [] },
+  },
   rateLimit: { limit: 10, remaining: 9, resetSeconds: 60, degraded: false },
 };
 

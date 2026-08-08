@@ -25,6 +25,9 @@ const EXAMPLE_ISSUE = {
   severity: 'error' as const,
   message: 'Buyer TRN is not a valid 15-digit UAE TRN.',
   fix: 'Use exactly 15 numeric digits.',
+  line: null,
+  column: null,
+  xmlPath: null,
 };
 
 const FAQS = [
