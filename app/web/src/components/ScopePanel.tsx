@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const INCLUDED = [
   'Invoice type and required terms',
   'Supplier and buyer UAE TRN format',
@@ -27,6 +29,7 @@ export function ScopePanel() {
         <details className="disclosure-item">
           <summary>What we check</summary>
           <DisclosureList items={INCLUDED} />
+          <p><Link href="/what-we-check">See the full validation scope and limitations →</Link></p>
         </details>
         <details className="disclosure-item">
           <summary>Current limitations</summary>
