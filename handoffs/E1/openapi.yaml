@@ -1,0 +1,659 @@
+openapi: 3.1.0
+info:
+  title: UAE e-invoice preflight validation API
+  version: 1.0.0
+  description: >-
+    Deterministic preflight validation for UAE PINT AE / UBL 2.1 invoices: TRN,
+    required tax fields, line-item and document total arithmetic, VAT
+    category/rate consistency, currency/code-list membership, and invoice-type
+    detection.
+
+
+    **Positioning guardrail — preflight validation only.** This API is NOT
+    FTA-accredited, does NOT transmit legal e-invoices, does NOT replace an
+    accredited ASP, and does NOT provide statutory archival.
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    def-0:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+      title: ErrorReply
+    def-1:
+      type: object
+      properties:
+        status:
+          type: string
+        live:
+          type: boolean
+        checks:
+          type: object
+          properties:
+            mongo:
+              type: string
+              enum:
+                - up
+                - down
+            redis:
+              type: string
+              enum:
+                - up
+                - down
+        timestamp:
+          type: string
+      title: HealthReply
+    def-2:
+      type: object
+      properties:
+        path:
+          type: string
+        rule:
+          type: string
+        severity:
+          type: string
+          enum:
+            - error
+            - warning
+        message:
+          type: string
+        fix:
+          type: string
+        line:
+          type:
+            - integer
+            - "null"
+        column:
+          type:
+            - integer
+            - "null"
+        xmlPath:
+          type:
+            - string
+            - "null"
+      required:
+        - path
+        - rule
+        - severity
+        - message
+      title: ValidationIssue
+    def-3:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - passed
+            - failed
+            - skipped
+        issues:
+          type: array
+          items:
+            $ref: "#/components/schemas/def-2"
+      required:
+        - status
+        - issues
+      title: LayerResult
+    def-4:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        inputFormat:
+          type: string
+          enum:
+            - xml
+        validationScope:
+          type: string
+          enum:
+            - pint-ae-ubl-xml
+        invoiceType:
+          type:
+            - string
+            - "null"
+        schemaVersion:
+          type: string
+        format:
+          $ref: "#/components/schemas/def-3"
+        structure:
+          $ref: "#/components/schemas/def-3"
+        semantic:
+          $ref: "#/components/schemas/def-3"
+      required:
+        - valid
+        - inputFormat
+        - validationScope
+        - invoiceType
+        - schemaVersion
+        - format
+        - structure
+        - semantic
+      title: XmlValidationResult
+    def-5:
+      type: object
+      properties:
+        keyPrefix:
+          type: string
+        keyName:
+          type: string
+        totals:
+          type: object
+          properties:
+            allTime:
+              type: integer
+            today:
+              type: integer
+            last30Days:
+              type: integer
+        outcomes:
+          type: object
+          properties:
+            valid:
+              type: integer
+            invalid:
+              type: integer
+            error:
+              type: integer
+        recent:
+          type: array
+          items:
+            type: object
+            properties:
+              endpoint:
+                type: string
+              method:
+                type: string
+              outcome:
+                type: string
+              statusCode:
+                type: integer
+              timestamp:
+                type: string
+      title: UsageReply
+    def-6:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+      required:
+        - error
+        - message
+      title: GenerateErrorReply
+paths:
+  /health:
+    get:
+      summary: Liveness/readiness probe (checks Mongo + Redis connectivity).
+      tags:
+        - ops
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-1"
+        "503":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-1"
+  /v2/validate:
+    post:
+      summary: Strict UBL 2.1 / PINT AE XML validation (layered result).
+      tags:
+        - validation
+      description: 'Runs the full strict UBL validation pipeline against UBL 2.1 /
+        PINT AE XML: format (well-formedness), structure (XSD), and semantic
+        (rules + Schematron) layers. Deterministic preflight validation only.
+        Does NOT transmit a legal e-invoice, is NOT FTA-accredited, and does not
+        replace an accredited ASP or provide statutory archival. Send raw XML
+        with Content-Type application/xml, or an envelope { "document":
+        "<Invoice>..." }.'
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+  /v1/validate:
+    post:
+      summary: Legacy flat UBL 2.1 / PINT AE XML validation.
+      tags:
+        - validation
+      description: 'Legacy XML-only contract: validates UBL 2.1 / PINT AE XML and
+        flattens the format / structure / semantic layers into the flat errors[]
+        shape. For canonical JSON invoice data preflight, use POST
+        /v1/preflight. Deterministic preflight validation only. Does NOT
+        transmit a legal e-invoice, is NOT FTA-accredited, and does not replace
+        an accredited ASP or provide statutory archival. Send raw XML with
+        Content-Type application/xml, or an envelope { "document":
+        "<Invoice>..." }.'
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  invoiceType:
+                    type:
+                      - "null"
+                      - string
+                  schemaVersion:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                        rule:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                            - warning
+                        message:
+                          type: string
+                        fix:
+                          type: string
+                      required:
+                        - path
+                        - rule
+                        - severity
+                        - message
+                required:
+                  - valid
+                  - invoiceType
+                  - schemaVersion
+                  - errors
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "429":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v1/preflight:
+    post:
+      summary: Canonical JSON invoice data preflight.
+      tags:
+        - validation
+      description: Runs the deterministic semantic rule engine against a canonical
+        JSON invoice DTO. Deterministic preflight validation only. Does NOT
+        transmit a legal e-invoice, is NOT FTA-accredited, and does not replace
+        an accredited ASP or provide statutory archival. Send canonical JSON
+        only; UBL 2.1 / PINT AE XML goes to POST /v1/validate or POST
+        /v2/validate.
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  invoiceType:
+                    type:
+                      - "null"
+                      - string
+                  schemaVersion:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                        rule:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                            - warning
+                        message:
+                          type: string
+                        fix:
+                          type: string
+                      required:
+                        - path
+                        - rule
+                        - severity
+                        - message
+                  validationScope:
+                    type: string
+                required:
+                  - valid
+                  - invoiceType
+                  - schemaVersion
+                  - errors
+                  - validationScope
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "429":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v1/convert:
+    post:
+      summary: Format-only repair of a UAE invoice XML with audit trail and refusal
+        guardrails.
+      tags:
+        - convert
+      description: 'Repairs FORMAT defects only (illegal characters, prefix case,
+        namespace URIs, missing namespace declarations, encoding declaration).
+        Never invents or alters data: invoices with data-semantic errors are
+        refused (full mode) or returned as warnings (format mode), and a
+        data-integrity fingerprint aborts with ERROR if any repairer changed a
+        value. Preflight only — not FTA-accredited, does not transmit legal
+        e-invoices, and does not provide statutory archival. Send { "xml":
+        "<Invoice>..." } (JSON) or raw UBL/PINT AE XML with Content-Type
+        application/xml.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type:
+                - object
+                - string
+              properties:
+                xml:
+                  type: string
+                  minLength: 1
+                  description: UBL 2.1 / PINT AE invoice XML.
+                mode:
+                  type: string
+                  enum:
+                    - format
+                    - full
+                  default: full
+              required:
+                - xml
+              additionalProperties: false
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - CONVERTED
+                      - NOOP
+                      - REFUSED
+                      - ERROR
+                  reason:
+                    type: string
+                    enum:
+                      - UNREPAIRABLE_FORMAT
+                      - DATA_SEMANTIC
+                      - DATA_CHANGED
+                  detail:
+                    type: string
+                  parseHint:
+                    type: string
+                  inputHash:
+                    type: string
+                  outputHash:
+                    type: string
+                  audit:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rule:
+                          type: string
+                        action:
+                          type: string
+                          enum:
+                            - rename
+                            - replace
+                            - add
+                            - remove
+                        target:
+                          type: string
+                        old:
+                          type: string
+                        new:
+                          type: string
+                        reason:
+                          type: string
+                      required:
+                        - rule
+                        - action
+                        - target
+                        - old
+                        - new
+                        - reason
+                  blocked:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rule:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - rule
+                        - path
+                        - message
+                  dataIssues:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rule:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - rule
+                        - path
+                        - message
+                  wouldFix:
+                    type: array
+                    items:
+                      type: string
+                  output:
+                    type: string
+                  engineVersion:
+                    type: string
+                  convertedAt:
+                    type: string
+                required:
+                  - status
+                  - inputHash
+                  - audit
+                  - blocked
+                  - dataIssues
+                  - engineVersion
+                  - convertedAt
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "429":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v1/generate:
+    post:
+      summary: Generate a PINT-AE UBL XML invoice from form data.
+      tags:
+        - generate
+      description: Builds a PINT-AE 1.0.4 UBL XML invoice from structured form data
+        using an official-sample skeleton. Structure is XSD-guaranteed at
+        generation time. Totals are computed with the same money.js semantics as
+        the validation engine — generated documents cannot fail arithmetic
+        preflight rules. Preflight only — not FTA-accredited, does not transmit
+        legal e-invoices, and does not provide statutory archival.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                template:
+                  type: string
+                data:
+                  type: object
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  xml:
+                    type: string
+                  template:
+                    type: string
+                  engineVersion:
+                    type: string
+                required:
+                  - ok
+                  - xml
+                  - template
+                  - engineVersion
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-6"
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "429":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /usage:
+    get:
+      summary: Usage metering for the calling API key.
+      tags:
+        - usage
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-5"
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+tags:
+  - name: validation
+    description: Invoice preflight validation
+  - name: convert
+    description: "Format-only converter: repair + audit + refusal guardrails"
+  - name: generate
+    description: PINT-AE XML invoice generation from form data
+  - name: usage
+    description: Per-key usage metering
+  - name: ops
+    description: Operational probes

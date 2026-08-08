@@ -1,5 +1,5 @@
 import { validateInvoice } from '../rules/engine.js';
-import { validateSchematron } from '../schematron-interpreter.js';
+import { validateXmlDocument } from '../rules/xml-validation.js';
 import { looksLikeXml } from '../rules/xml.js';
 import { authenticate, makeRateLimiter } from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
@@ -15,6 +15,24 @@ function xmlPayload(body) {
     return body.document;
   }
   return null;
+}
+
+/** Flatten the three layered issue arrays into the legacy flat errors[]. */
+function flattenIssues(result) {
+  return [
+    ...result.format.issues,
+    ...result.structure.issues,
+    ...result.semantic.issues,
+  ];
+}
+
+/** Parse-failure outcome accounting, shared by all three routes. */
+function outcomeFor(errors, valid) {
+  return errors.some((e) => e.rule === 'ENG-PARSE-01')
+    ? 'error'
+    : valid
+      ? 'valid'
+      : 'invalid';
 }
 
 const errorObjectSchema = {
@@ -40,15 +58,34 @@ const resultSchema = {
   required: ['valid', 'invoiceType', 'schemaVersion', 'errors'],
 };
 
+const preflightSchema = {
+  type: 'object',
+  properties: {
+    ...resultSchema.properties,
+    validationScope: { type: 'string' },
+  },
+  required: ['valid', 'invoiceType', 'schemaVersion', 'errors', 'validationScope'],
+};
+
+const NOT_XML_V1 =
+  'POST /v1/validate accepts UBL 2.1 / PINT AE XML only. For canonical JSON invoice data preflight, use POST /v1/preflight.';
+const NOT_XML_V2 =
+  'POST /v2/validate accepts UBL 2.1 / PINT AE XML only. For canonical JSON invoice data preflight, use POST /v1/preflight.';
+const NOT_JSON_PREFLIGHT =
+  'POST /v1/preflight is a canonical-JSON data-preflight endpoint only: it accepts canonical JSON invoice data, not XML. For UBL 2.1 / PINT AE XML validation, use POST /v1/validate.';
+
+const GUARDRAIL =
+  'Deterministic preflight validation only. Does NOT transmit a legal e-invoice, is NOT FTA-accredited, and does not replace an accredited ASP or provide statutory archival.';
+
 /**
  * Write a best-effort usage-metering event. Never throws into the request path.
  */
-async function meter(request, statusCode, outcome) {
+async function meter(request, statusCode, outcome, endpoint) {
   try {
     if (!request.apiKey) return;
     await UsageEvent.create({
       keyId: request.apiKey._id,
-      endpoint: '/v1/validate',
+      endpoint,
       method: 'POST',
       statusCode,
       outcome,
@@ -60,23 +97,104 @@ async function meter(request, statusCode, outcome) {
 
 export async function validateRoutes(fastify) {
   const rateLimit = makeRateLimiter(fastify);
+  const xmlOnly = {
+    preHandler: [authenticate, rateLimit],
+    // Accept an { document: "<xml>" } envelope or raw XML (see the text/xml
+    // content-type parser in app.js).
+    config: { rawBody: false },
+    response: {
+      200: { $ref: 'XmlValidationResult#' },
+      400: { $ref: 'ErrorReply#' },
+      401: { $ref: 'ErrorReply#' },
+      429: { $ref: 'ErrorReply#' },
+    },
+  };
+
+  fastify.post(
+    '/v2/validate',
+    {
+      ...xmlOnly,
+      schema: {
+        tags: ['validation'],
+        summary: 'Strict UBL 2.1 / PINT AE XML validation (layered result).',
+        description:
+          'Runs the full strict UBL validation pipeline against UBL 2.1 / PINT AE XML: ' +
+          'format (well-formedness), structure (XSD), and semantic (rules + Schematron) layers. ' +
+          `${GUARDRAIL} Send raw XML with Content-Type application/xml, or an envelope { "document": "<Invoice>..." }.`,
+        security: [{ apiKey: [] }, { bearerAuth: [] }],
+      },
+    },
+    async (request, reply) => {
+      const xml = xmlPayload(request.body);
+      if (!xml) {
+        return reply.code(400).send({ error: 'invalid_request', message: NOT_XML_V2 });
+      }
+
+      const result = validateXmlDocument(xml);
+      await meter(request, 200, outcomeFor(flattenIssues(result), result.valid), '/v2/validate');
+      return reply.code(200).send(result);
+    }
+  );
 
   fastify.post(
     '/v1/validate',
     {
       preHandler: [authenticate, rateLimit],
-      // Accept JSON canonical invoices, an { document: "<xml>" } envelope,
-      // or raw XML (see the text/xml content-type parser in app.js).
       config: { rawBody: false },
       schema: {
         tags: ['validation'],
-        summary: 'Preflight-validate a UAE invoice (JSON or UBL 2.1 / PINT AE XML).',
+        summary: 'Legacy flat UBL 2.1 / PINT AE XML validation.',
         description:
-          'Deterministic preflight validation only. Does NOT transmit a legal e-invoice, is NOT FTA-accredited, and does not replace an accredited ASP or provide statutory archival. ' +
-          'Send a canonical JSON invoice, an envelope { "document": "<Invoice>..." }, or raw UBL/PINT AE XML with Content-Type application/xml.',
+          'Legacy XML-only contract: validates UBL 2.1 / PINT AE XML and flattens the ' +
+          'format / structure / semantic layers into the flat errors[] shape. ' +
+          'For canonical JSON invoice data preflight, use POST /v1/preflight. ' +
+          `${GUARDRAIL} Send raw XML with Content-Type application/xml, or an envelope { "document": "<Invoice>..." }.`,
         security: [{ apiKey: [] }, { bearerAuth: [] }],
         response: {
           200: resultSchema,
+          400: { $ref: 'ErrorReply#' },
+          401: { $ref: 'ErrorReply#' },
+          429: { $ref: 'ErrorReply#' },
+        },
+      },
+    },
+    async (request, reply) => {
+      const xml = xmlPayload(request.body);
+      if (!xml) {
+        return reply.code(400).send({ error: 'invalid_request', message: NOT_XML_V1 });
+      }
+
+      // validateXmlDocument owns the whole XML flow (format + structure +
+      // semantic); the route never runs Schematron itself, so v1 and v2
+      // cannot diverge.
+      const result = validateXmlDocument(xml);
+      const errors = flattenIssues(result);
+      const payload = {
+        valid: result.valid,
+        invoiceType: result.invoiceType,
+        schemaVersion: result.schemaVersion,
+        errors,
+      };
+      await meter(request, 200, outcomeFor(errors, payload.valid), '/v1/validate');
+      return reply.code(200).send(payload);
+    }
+  );
+
+  fastify.post(
+    '/v1/preflight',
+    {
+      preHandler: [authenticate, rateLimit],
+      config: { rawBody: false },
+      schema: {
+        tags: ['validation'],
+        summary: 'Canonical JSON invoice data preflight.',
+        description:
+          'Runs the deterministic semantic rule engine against a canonical JSON invoice DTO. ' +
+          `${GUARDRAIL} Send canonical JSON only; UBL 2.1 / PINT AE XML goes to POST /v1/validate or POST /v2/validate.`,
+        security: [{ apiKey: [] }, { bearerAuth: [] }],
+        response: {
+          200: preflightSchema,
+          400: { $ref: 'ErrorReply#' },
           401: { $ref: 'ErrorReply#' },
           429: { $ref: 'ErrorReply#' },
         },
@@ -84,47 +202,14 @@ export async function validateRoutes(fastify) {
     },
     async (request, reply) => {
       const contentType = request.headers['content-type'] || '';
-      const result = validateInvoice(request.body, contentType);
-
-      // Raw UBL / PINT AE XML payloads: also run the full Schematron
-      // interpreter on the XML string. The canonical adapter (ENG-SCH-01)
-      // always checks the date too, so when the interpreter reports its
-      // ibr-073 assert the route dedupes the adapter's ENG-SCH-01/IBR-073
-      // (one defect, one rule id). Its IBR-CO-11 check has no .sch
-      // equivalent and still runs on the canonical model. Documents that
-      // failed to parse have nothing for the interpreter to check.
-      const xml = xmlPayload(request.body);
-      if (xml && !result.errors.some((e) => e.rule === 'ENG-PARSE-01')) {
-        const sch = validateSchematron(xml);
-        if (sch.evalErrors.length > 0) {
-          request.log.warn(
-            { count: sch.evalErrors.length, evalErrors: sch.evalErrors },
-            'schematron assert evaluation errors');
-        }
-        result.errors.push(...sch.errors);
-        // The interpreter's ibr-073 assert covers the same defect as the
-        // adapter's ENG-SCH-01/IBR-073 date check. The adapter always runs
-        // (the free web tool has no interpreter), so dedup here when the
-        // interpreter did report it — one defect, one rule id on the API path.
-        if (sch.errors.some((e) => e.rule === 'ibr-073')) {
-          const kept = [];
-          for (const e of result.errors) {
-            if (e.rule.includes('IBR-073') && !e.rule.includes('ibr-073')) continue;
-            kept.push(e);
-          }
-          result.errors = kept;
-        }
-        // Warnings must not invalidate the document — only severity 'error'.
-        result.valid = result.valid && !sch.errors.some((e) => e.severity === 'error');
+      if (xmlPayload(request.body)) {
+        return reply.code(400).send({ error: 'invalid_request', message: NOT_JSON_PREFLIGHT });
       }
 
-      const outcome = result.errors.some((e) => e.rule === 'ENG-PARSE-01')
-        ? 'error'
-        : result.valid
-          ? 'valid'
-          : 'invalid';
-      await meter(request, 200, outcome);
-      return reply.code(200).send(result);
+      const result = validateInvoice(request.body, contentType);
+      const payload = { ...result, validationScope: 'canonical-json-data-preflight' };
+      await meter(request, 200, outcomeFor(result.errors, result.valid), '/v1/preflight');
+      return reply.code(200).send(payload);
     }
   );
 }

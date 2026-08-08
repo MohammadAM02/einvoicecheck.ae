@@ -63,6 +63,57 @@ export async function buildApp({ redis, logger = false } = {}) {
   });
 
   app.addSchema({
+    $id: 'ValidationIssue',
+    type: 'object',
+    properties: {
+      path: { type: 'string' },
+      rule: { type: 'string' },
+      severity: { type: 'string', enum: ['error', 'warning'] },
+      message: { type: 'string' },
+      fix: { type: 'string' },
+      line: { type: ['integer', 'null'] },
+      column: { type: ['integer', 'null'] },
+      xmlPath: { type: ['string', 'null'] },
+    },
+    required: ['path', 'rule', 'severity', 'message'],
+  });
+
+  app.addSchema({
+    $id: 'LayerResult',
+    type: 'object',
+    properties: {
+      status: { type: 'string', enum: ['passed', 'failed', 'skipped'] },
+      issues: { type: 'array', items: { $ref: 'ValidationIssue#' } },
+    },
+    required: ['status', 'issues'],
+  });
+
+  app.addSchema({
+    $id: 'XmlValidationResult',
+    type: 'object',
+    properties: {
+      valid: { type: 'boolean' },
+      inputFormat: { type: 'string', enum: ['xml'] },
+      validationScope: { type: 'string', enum: ['pint-ae-ubl-xml'] },
+      invoiceType: { type: ['string', 'null'] },
+      schemaVersion: { type: 'string' },
+      format: { $ref: 'LayerResult#' },
+      structure: { $ref: 'LayerResult#' },
+      semantic: { $ref: 'LayerResult#' },
+    },
+    required: [
+      'valid',
+      'inputFormat',
+      'validationScope',
+      'invoiceType',
+      'schemaVersion',
+      'format',
+      'structure',
+      'semantic',
+    ],
+  });
+
+  app.addSchema({
     $id: 'UsageReply',
     type: 'object',
     properties: {
