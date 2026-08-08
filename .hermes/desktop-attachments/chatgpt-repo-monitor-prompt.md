@@ -19,7 +19,7 @@ A scheduled task on my Windows machine that:
    - If a change resolves an open finding → mark it as potentially resolved, add a note with the commit SHA and ask me to verify.
    - If a change introduces a new risk (new code touching validation, parsing, auth, payment, legal pages, accessibility) → add a new finding entry.
    - If a change is purely cosmetic/styling and touches nothing in the findings table → no action.
-3. **Updates `.hermes/critic-loop.md`** in the working tree with its observations. Uses the same format as the existing file (table rows for new findings, status updates for resolved ones).
+3. **Updates ONLY `.hermes/critic-loop.md`** in the working tree with its observations. Uses the same format as the existing file (table rows for new findings, status updates for resolved ones). The root `critic-loop.md` was deleted — do NOT recreate it. There is exactly one state file: `.hermes/critic-loop.md`.
 4. **Leaves a git diff** so I can review what changed before committing its updates.
 
 ## Technical constraints
