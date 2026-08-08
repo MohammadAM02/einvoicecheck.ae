@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { MAX_DOCUMENT_BYTES, validateDocument } from '@/lib/validation';
+import { MAX_DOCUMENT_BYTES, looksLikeXml, validateDocument } from '@/lib/validation';
+import type { XmlValidationResult } from '@/lib/validation';
 import { checkToolRateLimit, clientIp } from '@/lib/toolRateLimit';
 
 export const runtime = 'nodejs';
@@ -8,22 +9,24 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/tools/validate/batch
  *
- * Batch validation endpoint — validates an array of invoices in one request.
- * Accepts the same document formats as the single-document endpoint (canonical
- * JSON, UBL 2.1 / PINT AE XML) and runs the same rule engine on each.
+ * Batch validation endpoint — validates an array of UBL 2.1 / PINT AE XML
+ * invoices in one request. Each document is proxied sequentially to the paid
+ * strict `POST /v2/validate` (see src/lib/validation.ts); non-XML documents
+ * are rejected per-index without calling the API. Canonical JSON preflight is
+ * available through the API (POST /v1/preflight), not here.
  *
  * Requests are subject to the same IP rate limit as the single-document
  * endpoint; each invoice in the batch consumes one unit of the hourly budget.
  *
  * Example request body:
- *   { "invoices": ["<Invoice>…</Invoice>", "{\"invoiceType\":\"388\",…}"] }
+ *   { "invoices": ["<Invoice>…</Invoice>", "<Invoice>…</Invoice>"] }
  *
  * Response shape:
  *   {
  *     "ok": true,
  *     "results": [
- *       { "index": 0, "valid": false, "errors": [...] },
- *       { "index": 1, "valid": true,  "errors": []    }
+ *       { "index": 0, "valid": false, "format": {…}, "structure": {…}, "semantic": {…} },
+ *       { "index": 1, "valid": true,  "format": {…}, "structure": {…}, "semantic": {…} }
  *     ],
  *     "rateLimit": { ... }
  *   }
@@ -32,19 +35,7 @@ const TOOL = 'uae-e-invoice-validator';
 
 type BatchRequestBody = { invoices?: unknown };
 
-type BatchItemResult = {
-  index: number;
-  valid: boolean;
-  invoiceType: string | null;
-  schemaVersion: string;
-  errors: {
-    path: string;
-    rule: string;
-    severity: 'error' | 'warning';
-    message: string;
-    fix?: string;
-  }[];
-};
+type BatchItemResult = { index: number } & XmlValidationResult;
 
 type BatchItemError = {
   index: number;
@@ -123,7 +114,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Validate each invoice sequentially (can optimise with Promise.all later)
+  // Validate each invoice sequentially against the API.
   const results: (BatchItemResult | BatchItemError)[] = [];
 
   for (let i = 0; i < invoices.length; i++) {
@@ -139,22 +130,27 @@ export async function POST(request: Request) {
       continue;
     }
 
-    try {
-      const result = validateDocument(doc);
+    if (!looksLikeXml(doc)) {
       results.push({
         index: i,
-        valid: result.valid,
-        invoiceType: result.invoiceType,
-        schemaVersion: result.schemaVersion,
-        errors: result.errors,
+        valid: false,
+        invoiceType: null,
+        schemaVersion: '',
+        error: `Document at index ${i} is not XML. The free validator accepts UBL 2.1 / PINT AE XML only; canonical JSON preflight is available through the API (POST /v1/preflight).`,
       });
+      continue;
+    }
+
+    try {
+      const result = await validateDocument(doc);
+      results.push({ index: i, ...result });
     } catch (e) {
       results.push({
         index: i,
         valid: false,
         invoiceType: null,
         schemaVersion: '',
-        error: `Validation engine error: ${e instanceof Error ? e.message : 'Unknown error'}`,
+        error: e instanceof Error ? e.message : 'Validation failed.',
       });
     }
   }

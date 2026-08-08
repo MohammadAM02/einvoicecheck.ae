@@ -6,6 +6,7 @@ import RedisMock from 'ioredis-mock';
 import { setRedisForTests } from '@/lib/redis';
 
 const route = await import('@/app/api/tools/validate/route');
+const batchRoute = await import('@/app/api/tools/validate/batch/route');
 const { validateDocument } = await import('@/lib/validation');
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
@@ -21,7 +22,69 @@ beforeAll(() => {
 afterEach(async () => {
   await redis.flushall();
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
+
+/** Layered result the strict POST /v2/validate returns (see app/api/src/app.js). */
+const VALID_XML_RESULT = {
+  valid: true,
+  inputFormat: 'xml',
+  validationScope: 'pint-ae-ubl-xml',
+  invoiceType: '388',
+  schemaVersion: 'PINT AE 1.0',
+  format: { status: 'passed', issues: [] },
+  structure: { status: 'passed', issues: [] },
+  semantic: { status: 'passed', issues: [] },
+};
+
+const INVALID_XML_RESULT = {
+  ...VALID_XML_RESULT,
+  valid: false,
+  format: {
+    status: 'failed',
+    issues: [
+      {
+        path: '/Invoice',
+        rule: 'ENG-PARSE-01',
+        severity: 'error',
+        message: 'Mismatched closing tag: expected </Invoice> but found </Invocie>',
+        fix: 'Fix the closing tag.',
+        line: 7,
+        column: null,
+        xmlPath: null,
+      },
+    ],
+  },
+};
+
+const VALID_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ID>INV-1</cbc:ID>
+  <cbc:InvoiceTypeCode>388</cbc:InvoiceTypeCode>
+</Invoice>`;
+
+const MISMATCHED_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ID>INV-1</cbc:ID>
+  <cbc:InvoiceTypeCode>388</cbc:InvoiceTypeCode>
+</Invocie>`;
+
+/** Stub the server-side API call: env key + global fetch returning a JSON response. */
+function stubApi(response: Response | (() => Promise<Response>), key = 'test-api-key') {
+  vi.stubEnv('EINVOICECHECK_API_KEY', key);
+  const fetchMock = vi.fn().mockImplementation(typeof response === 'function' ? response : async () => response);
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+}
+
+function apiJson(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
 
 function post(document: unknown, ip = '203.0.113.10') {
   return route.POST(
@@ -29,6 +92,16 @@ function post(document: unknown, ip = '203.0.113.10') {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-forwarded-for': ip },
       body: JSON.stringify({ document }),
+    }),
+  );
+}
+
+function postBatch(invoices: unknown[], ip = '203.0.113.10') {
+  return batchRoute.POST(
+    new Request('https://einvoicecheck.ae/api/tools/validate/batch', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-forwarded-for': ip },
+      body: JSON.stringify({ invoices }),
     }),
   );
 }
@@ -61,16 +134,16 @@ function validInvoice() {
   };
 }
 
-describe('free tool runs the REAL rule engine', () => {
+describe('free tool proxies to the strict XML API', () => {
   it('the vendored engine is byte-identical to app/api/src/rules', async () => {
-    async function hashTree(dir: string, skipDirs: Set<string> = new Set()) {
+    async function hashTree(dir: string, skip: Set<string> = new Set()) {
       const out: Record<string, string> = {};
       for (const entry of await readdir(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
-          if (skipDirs.has(entry.name)) continue;
-          for (const [k, v] of Object.entries(await hashTree(full, skipDirs))) out[`${entry.name}/${k}`] = v;
-        } else if (entry.name.endsWith('.js')) {
+          if (skip.has(entry.name)) continue;
+          for (const [k, v] of Object.entries(await hashTree(full, skip))) out[`${entry.name}/${k}`] = v;
+        } else if (entry.name.endsWith('.js') && !skip.has(entry.name)) {
           out[entry.name] = createHash('sha256').update(await readFile(full)).digest('hex');
         }
       }
@@ -78,79 +151,155 @@ describe('free tool runs the REAL rule engine', () => {
     }
     // If this fails, re-copy app/api/src/rules -> app/web/src/lib/rules. The free
     // tool must never diverge from the paid API's engine.
-    // 'convert' and 'generate' are API-only pipeline code — not vendored rule logic.
-    expect(await hashTree(WEB_RULES)).toEqual(await hashTree(API_RULES, new Set(['convert', 'generate'])));
+    //
+    // Excluded (API-only or superseded since the free tool became a proxy in
+    // Task 4 of the strict-UBL plan — the vendored tree is frozen and removed
+    // in Task 5):
+    //  - dirs 'convert', 'generate': API-only pipeline code, never vendored.
+    //  - 'xml-validation.js', 'xsd.js': strict XSD pipeline, server-side only.
+    //  - 'engine.js': rewritten by Task 3 (layered XML core); the free tool no
+    //    longer runs the vendored copy, so re-syncing it here would be churn.
+    const SKIP = new Set(['convert', 'generate', 'xml-validation.js', 'xsd.js', 'engine.js']);
+    expect(await hashTree(WEB_RULES, SKIP)).toEqual(await hashTree(API_RULES, SKIP));
   });
 
-  it('accepts a valid canonical JSON invoice with no errors', async () => {
-    const res = await post(JSON.stringify(validInvoice()));
+  it('sends the document to POST /v2/validate with content-type application/xml and the server x-api-key', async () => {
+    const fetchMock = stubApi(apiJson(VALID_XML_RESULT));
+
+    const res = await post(VALID_XML);
     expect(res.status).toBe(200);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://api.einvoicecheck.ae/v2/validate');
+    expect(init.method).toBe('POST');
+    expect(init.headers).toEqual({ 'content-type': 'application/xml', 'x-api-key': 'test-api-key' });
+    expect(init.body).toBe(VALID_XML);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('returns the layered API result unchanged', async () => {
+    stubApi(apiJson(VALID_XML_RESULT));
+
+    const res = await post(VALID_XML);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.result.valid).toBe(true);
-    expect(body.result.invoiceType).toBe('388');
-    expect(body.result.errors.filter((e: { severity: string }) => e.severity === 'error')).toHaveLength(0);
+    expect(body.result).toEqual(VALID_XML_RESULT);
     expect(body.rateLimit.limit).toBeGreaterThan(0);
   });
 
-  it('returns normalized field-level errors for a broken invoice', async () => {
-    const broken = validInvoice();
-    broken.customer.trn = '123'; // wrong TRN shape
-    broken.totals.payableAmount = 999; // totals no longer reconcile
+  it('validateDocument rejects a missing API key without calling the network', async () => {
+    vi.stubEnv('EINVOICECHECK_API_KEY', '');
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
 
-    const res = await post(JSON.stringify(broken));
-    const body = await res.json();
-    expect(body.result.valid).toBe(false);
-
-    for (const e of body.result.errors) {
-      expect(e).toHaveProperty('path');
-      expect(e).toHaveProperty('rule');
-      expect(['error', 'warning']).toContain(e.severity);
-      expect(typeof e.message).toBe('string');
-    }
-    expect(body.result.errors.some((e: { path: string }) => e.path.includes('customer'))).toBe(true);
+    await expect(validateDocument(VALID_XML)).rejects.toMatchObject({
+      name: 'ValidationApiError',
+      status: 503,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('accepts UBL / PINT AE XML and matches direct engine output exactly', async () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-  <cbc:ID>INV-1</cbc:ID>
-  <cbc:InvoiceTypeCode>388</cbc:InvoiceTypeCode>
-</Invoice>`;
-    const res = await post(xml);
-    const body = await res.json();
-    expect(body.ok).toBe(true);
-    // Identical to calling the engine directly - the route adds nothing.
-    expect(body.result).toEqual(JSON.parse(JSON.stringify(validateDocument(xml))));
+  it('rejects canonical JSON instead of evaluating it locally', async () => {
+    const fetchMock = stubApi(apiJson(VALID_XML_RESULT));
+
+    const res = await post(JSON.stringify(validInvoice()));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.toLowerCase()).toContain('xml');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('reports a parse error instead of fabricating a result', async () => {
+  it('rejects plain text that is not XML', async () => {
+    const fetchMock = stubApi(apiJson(VALID_XML_RESULT));
+
     const res = await post('this is not an invoice');
-    const body = await res.json();
-    expect(body.result.valid).toBe(false);
-    expect(body.result.errors[0].rule).toBe('ENG-PARSE-01');
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('rejects mismatched XML before semantic checks run', async () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-  <cbc:ID>INV-1</cbc:ID>
-  <cbc:InvoiceTypeCode>388</cbc:InvoiceTypeCode>
-</Invocie>`;
-    const res = await post(xml);
-    const body = await res.json();
+  it('forwards the layered failure for mismatched XML', async () => {
+    stubApi(apiJson(INVALID_XML_RESULT));
 
+    const res = await post(MISMATCHED_XML);
+    expect(res.status).toBe(200);
+    const body = await res.json();
     expect(body.ok).toBe(true);
     expect(body.result.valid).toBe(false);
-    expect(body.result.errors).toHaveLength(1);
-    expect(body.result.errors[0].rule).toBe('ENG-PARSE-01');
+    expect(body.result.format.status).toBe('failed');
+    expect(body.result.format.issues[0].rule).toBe('ENG-PARSE-01');
+  });
+
+  it('maps a non-2xx upstream response to a truthful 503 with the safe message', async () => {
+    stubApi(apiJson({ error: 'internal_error', message: 'XSD schema cache is unavailable.' }, 500));
+
+    const res = await post(VALID_XML);
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toBe('XSD schema cache is unavailable.');
+  });
+
+  it('falls back to a generic message when the upstream error body is not JSON', async () => {
+    stubApi(new Response('boom', { status: 502 }));
+
+    const res = await post(VALID_XML);
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toContain('HTTP 502');
+  });
+
+  it('returns 503 when the upstream API is unreachable', async () => {
+    stubApi(async () => {
+      throw new TypeError('fetch failed');
+    });
+
+    const res = await post(VALID_XML);
+    expect(res.status).toBe(503);
+    expect((await res.json()).error.toLowerCase()).toContain('reach');
   });
 
   it('rejects an empty document', async () => {
     const res = await post('   ');
     expect(res.status).toBe(400);
+  });
+});
+
+describe('batch route', () => {
+  it('validates each XML document sequentially through the API', async () => {
+    // Factory: each sequential call needs a fresh Response (bodies are single-use).
+    const fetchMock = stubApi(() => apiJson(VALID_XML_RESULT));
+
+    const res = await postBatch([VALID_XML, VALID_XML]);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(body.results).toHaveLength(2);
+    expect(body.results[0]).toEqual({ index: 0, ...VALID_XML_RESULT });
+    expect(body.results[1]).toEqual({ index: 1, ...VALID_XML_RESULT });
+  });
+
+  it('rejects a non-XML document with an index-specific error without calling the API for it', async () => {
+    const fetchMock = stubApi(apiJson(VALID_XML_RESULT));
+
+    const res = await postBatch([VALID_XML, JSON.stringify(validInvoice())]);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(body.results[0]).toEqual({ index: 0, ...VALID_XML_RESULT });
+    expect(body.results[1].index).toBe(1);
+    expect(body.results[1].valid).toBe(false);
+    expect(body.results[1].error).toContain('1');
+    expect(body.results[1].error.toLowerCase()).toContain('xml');
+  });
+
+  it('maps an upstream failure for one document into that result, not the whole batch', async () => {
+    const fetchMock = stubApi(() => apiJson({ error: 'internal_error', message: 'XSD schema cache is unavailable.' }, 500));
+
+    const res = await postBatch([VALID_XML, VALID_XML]);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(body.results[0].valid).toBe(false);
+    expect(body.results[0].error).toBe('XSD schema cache is unavailable.');
+    expect(body.results[1].error).toBe('XSD schema cache is unavailable.');
   });
 });
 
@@ -161,14 +310,14 @@ describe('IP rate limit (Redis)', () => {
     const fresh = await import('@/app/api/tools/validate/route');
     const { setRedisForTests: setR } = await import('@/lib/redis');
     setR(redis as never);
+    stubApi(apiJson(VALID_XML_RESULT));
 
-    const doc = JSON.stringify(validInvoice());
     const call = (ip: string) =>
       fresh.POST(
         new Request('https://einvoicecheck.ae/api/tools/validate', {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-forwarded-for': ip },
-          body: JSON.stringify({ document: doc }),
+          body: JSON.stringify({ document: VALID_XML }),
         }),
       );
 
@@ -194,8 +343,9 @@ describe('IP rate limit (Redis)', () => {
       expire: async () => null,
       ttl: async () => -1,
     } as never);
+    stubApi(apiJson(VALID_XML_RESULT));
 
-    const res = await post(JSON.stringify(validInvoice()), '203.0.113.99');
+    const res = await post(VALID_XML, '203.0.113.99');
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
@@ -217,7 +367,7 @@ describe('IP rate limit (Redis)', () => {
       ttl: async () => -1,
     } as never);
 
-    const res = await post(JSON.stringify(validInvoice()), '203.0.113.55');
+    const res = await post(VALID_XML, '203.0.113.55');
     expect(res.status).toBe(503);
 
     setRedisForTests(redis as never);

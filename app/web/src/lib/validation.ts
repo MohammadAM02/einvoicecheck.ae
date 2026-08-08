@@ -1,43 +1,122 @@
-// engine.js is the rule engine vendored verbatim from app/api (plain JS, untyped).
-// Kept in sync with packages/rules/src/ — the canonical source of truth.
-import { validateInvoice as runEngine } from './rules/engine.js';
-
 /**
- * Typed wrapper around the REAL rule engine.
+ * Server-side client for the strict validation API.
  *
- * `src/lib/rules/**` is a byte-for-byte copy of `app/api/src/rules/**` - the same
- * engine.js / registry.js / checks/* the paid `POST /v1/validate` endpoint runs.
- * It is vendored (not imported across packages) because the web Dockerfile only
- * copies `app/web/src`, so a cross-package relative import would not survive the
- * container build. `test/tool-engine-parity.test.ts` hashes both trees and fails
- * the build if they ever drift, so the free tool and the paid API cannot diverge.
+ * The free tool no longer runs a vendored engine: `validateDocument` proxies
+ * to the paid `POST /v2/validate` (XML-only, layered result). The server-side
+ * `x-api-key` is read from `process.env.EINVOICECHECK_API_KEY` at call time —
+ * never shipped to the browser, never echoed back in error messages.
  *
- * Do not add rules here. Rules live in app/api/src/rules and are copied down.
+ * Env is read at call time (not module scope) so tests can stub it without
+ * re-importing modules.
  */
 
-export type ValidationError = {
+export type XmlValidationIssue = {
   path: string;
   rule: string;
   severity: 'error' | 'warning';
   message: string;
   fix?: string;
+  line: number | null;
+  column: number | null;
+  xmlPath: string | null;
 };
 
-export type ValidationResult = {
+export type XmlValidationLayer = {
+  status: 'passed' | 'failed' | 'skipped';
+  issues: XmlValidationIssue[];
+};
+
+/** Layered result of the strict XML pipeline (mirrors app/api XmlValidationResult). */
+export type XmlValidationResult = {
   valid: boolean;
+  inputFormat: 'xml';
+  validationScope: 'pint-ae-ubl-xml';
   invoiceType: string | null;
   schemaVersion: string;
-  errors: ValidationError[];
+  format: XmlValidationLayer;
+  structure: XmlValidationLayer;
+  semantic: XmlValidationLayer;
 };
 
 /** Max payload the free tool accepts (bytes of UTF-8 text). */
 export const MAX_DOCUMENT_BYTES = 256 * 1024;
 
+/** Same sniff the API uses: a document is XML if it starts with '<'. */
+export function looksLikeXml(text: string): boolean {
+  return text.trimStart().startsWith('<');
+}
+
 /**
- * Validate a pasted document. The engine's normalizeInput() already accepts a
- * raw string and decides XML vs JSON, so we hand it the text untouched: same
- * input -> same output as the API.
+ * Resolve the API base URL and normalize it to an absolute http(s) URL.
+ * NEXT_PUBLIC_API_BASE_URL may be stored without a scheme (e.g.
+ * "api-production-09ce.up.railway.app") — fetch() rejects scheme-less
+ * URLs with a TypeError, which surfaces as a confusing error.
  */
-export function validateDocument(text: string): ValidationResult {
-  return runEngine(text) as ValidationResult;
+function apiBaseUrl(): string {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.einvoicecheck.ae';
+  if (/^https?:\/\//i.test(base)) return base;
+  return `https://${base}`;
+}
+
+/**
+ * Upstream/config failure. `message` is always safe to show end users:
+ * it is either our own copy or a message forwarded verbatim from the API
+ * (the API's error bodies are user-facing text, never credentials).
+ */
+export class ValidationApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ValidationApiError';
+  }
+}
+
+const UPSTREAM_TIMEOUT_MS = 30_000;
+
+/**
+ * Validate a pasted XML document against the strict API pipeline.
+ *
+ * @throws ValidationApiError — 503 when the key is missing, the upstream is
+ *   unreachable/times out, or the upstream answers non-2xx (safe message
+ *   forwarded). Never includes the API key.
+ */
+export async function validateDocument(text: string): Promise<XmlValidationResult> {
+  const key = process.env.EINVOICECHECK_API_KEY;
+  if (!key) {
+    throw new ValidationApiError('Validation is not configured on the server yet. Please try again later.', 503);
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${apiBaseUrl()}/v2/validate`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/xml', 'x-api-key': key },
+      body: text,
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    });
+  } catch {
+    throw new ValidationApiError('Could not reach the validation API. Try again shortly.', 503);
+  }
+
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+
+  if (!res.ok) {
+    const message =
+      data !== null && typeof data === 'object' && 'message' in data && typeof data.message === 'string'
+        ? data.message
+        : `Validation failed with HTTP ${res.status}.`;
+    // The upstream status is OUR infrastructure status, not the caller's: the
+    // free tool carries no credentials, so any upstream failure is a service
+    // problem, not the user's. Forward the safe message, always as 503.
+    throw new ValidationApiError(message, 503);
+  }
+
+  return data as XmlValidationResult;
 }

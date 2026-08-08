@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { MAX_DOCUMENT_BYTES, validateDocument } from '@/lib/validation';
+import { MAX_DOCUMENT_BYTES, ValidationApiError, looksLikeXml, validateDocument } from '@/lib/validation';
+import type { XmlValidationResult } from '@/lib/validation';
 import { checkToolRateLimit, clientIp } from '@/lib/toolRateLimit';
 
 export const runtime = 'nodejs';
@@ -8,10 +9,13 @@ export const dynamic = 'force-dynamic';
 /**
  * Free-tool validation endpoint - ZERO LOGIN. No API key, no email, no cookie.
  *
- * It runs the SAME rule engine as the paid `POST /v1/validate` (see
- * src/lib/validation.ts), so the errors shown in the browser are the errors the
- * API returns - never a fabricated or simplified result. Preflight only: this
- * does not transmit anything to the FTA or to an accredited ASP.
+ * It proxies to the paid strict `POST /v2/validate` (see src/lib/validation.ts),
+ * so the errors shown in the browser are the errors the API returns - never a
+ * fabricated or simplified result. Preflight only: this does not transmit
+ * anything to the FTA or to an accredited ASP.
+ *
+ * The free tool is XML-only: canonical JSON preflight is available through the
+ * API (POST /v1/preflight), not here.
  *
  * Abuse control is an IP rate limit in the shared Redis (src/lib/toolRateLimit.ts).
  * Nothing about the submitted invoice is persisted here.
@@ -30,7 +34,18 @@ export async function POST(request: Request) {
 
   if (!document) {
     return NextResponse.json(
-      { ok: false, error: 'Paste an invoice (canonical JSON, or UBL 2.1 / PINT AE XML) first.' },
+      { ok: false, error: 'Paste a UBL 2.1 / PINT AE XML invoice first.' },
+      { status: 400 },
+    );
+  }
+
+  if (!looksLikeXml(document)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          'The free validator is XML-only: paste a UBL 2.1 / PINT AE XML invoice. Canonical JSON preflight is available through the API (POST /v1/preflight).',
+      },
       { status: 400 },
     );
   }
@@ -69,7 +84,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = validateDocument(document);
+  let result: XmlValidationResult;
+  try {
+    result = await validateDocument(document);
+  } catch (e) {
+    if (e instanceof ValidationApiError) {
+      return NextResponse.json({ ok: false, error: e.message }, { status: e.status });
+    }
+    return NextResponse.json({ ok: false, error: 'Validation failed. Please try again shortly.' }, { status: 500 });
+  }
 
   return NextResponse.json({
     ok: true,
