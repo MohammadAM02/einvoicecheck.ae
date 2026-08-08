@@ -4,17 +4,28 @@ import userEvent from '@testing-library/user-event';
 import { createElement as h } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ValidationSummary } from '@/components/validation/ValidationSummary';
-import type { ValidationRateLimit, ValidationResult } from '@/lib/validation-ui';
+import type { ValidationIssue, ValidationRateLimit, XmlValidationResult } from '@/lib/validation-ui';
 
 afterEach(() => cleanup());
 
 const rateLimit: ValidationRateLimit = { limit: 10, remaining: 7, resetSeconds: 300, degraded: false };
 
-const failedResult: ValidationResult = {
+function issue(overrides: Partial<ValidationIssue>): ValidationIssue {
+  return { path: '/', rule: 'R-01', severity: 'error', message: 'msg', line: null, column: null, xmlPath: null, ...overrides };
+}
+
+const failedResult: XmlValidationResult = {
   valid: false,
+  inputFormat: 'xml',
+  validationScope: 'pint-ae-ubl-xml',
   invoiceType: '388',
   schemaVersion: 'PINT AE 1.0',
-  errors: [{ path: '/customer/trn', rule: 'TRN-01', severity: 'error', message: 'Buyer TRN is invalid.', fix: 'Enter a 15-digit TRN.' }],
+  format: {
+    status: 'failed',
+    issues: [issue({ path: '/customer/trn', rule: 'TRN-01', message: 'Buyer TRN is invalid.', fix: 'Enter a 15-digit TRN.' })],
+  },
+  structure: { status: 'passed', issues: [] },
+  semantic: { status: 'passed', issues: [] },
 };
 
 describe('ValidationSummary', () => {
@@ -39,17 +50,33 @@ describe('ValidationSummary', () => {
     expect(screen.getByText('TRN-01')).toBeTruthy();
   });
 
-  it('renders blocking issues before warnings when API order is reversed', () => {
-    render(h(ValidationSummary, { result: { ...failedResult, errors: [
-      { path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Check currency.' },
-      failedResult.errors[0],
-    ] }, rateLimit, onReset: vi.fn() }));
+  it('renders blocking issues before warnings when layer order is reversed', () => {
+    render(h(ValidationSummary, {
+      result: {
+        ...failedResult,
+        semantic: {
+          status: 'failed',
+          issues: [issue({ path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Check currency.' })],
+        },
+      },
+      rateLimit,
+      onReset: vi.fn(),
+    }));
 
     expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(['Buyer TRN', 'Invoice currency']);
   });
 
   it('renders passing copy and warnings on a valid preflight', () => {
-    render(h(ValidationSummary, { result: { ...failedResult, valid: true, errors: [{ path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Check currency.' }] }, rateLimit, onReset: vi.fn() }));
+    render(h(ValidationSummary, {
+      result: {
+        ...failedResult,
+        valid: true,
+        format: { status: 'passed', issues: [] },
+        semantic: { status: 'passed', issues: [issue({ path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Check currency.' })] },
+      },
+      rateLimit,
+      onReset: vi.fn(),
+    }));
 
     expect(screen.getByRole('heading', { name: 'Preflight passed' })).toBeTruthy();
     expect(screen.getByText('No blocking issues were found by the checks currently included in this preflight engine.')).toBeTruthy();
@@ -96,19 +123,20 @@ describe('ValidationSummary', () => {
     expect(screen.queryByText('Would be rejected')).toBeNull();
   });
 
-  it('renders layer badges with counts', () => {
-    const result: ValidationResult = {
-      valid: false,
-      invoiceType: '388',
-      schemaVersion: 'PINT AE 1.0',
-      errors: [
-        { path: '/', rule: 'ENG-PARSE-01', severity: 'error', message: 'parse' },
-        { path: '/', rule: 'XSD-01', severity: 'error', message: 'structure' },
-        { path: '/', rule: 'ibr-073', severity: 'error', message: 'semantic' },
-        { path: '/', rule: 'ENG-VAT-01', severity: 'error', message: 'semantic 2' },
-      ],
+  it('renders three layer badges with statuses and counts from the v2 layers', () => {
+    const result: XmlValidationResult = {
+      ...failedResult,
+      format: { status: 'failed', issues: [issue({ rule: 'ENG-PARSE-01', message: 'parse' })] },
+      structure: { status: 'failed', issues: [issue({ rule: 'XSD-01', message: 'structure' })] },
+      semantic: {
+        status: 'failed',
+        issues: [
+          issue({ rule: 'ibr-073', message: 'semantic' }),
+          issue({ rule: 'ENG-VAT-01', message: 'semantic 2' }),
+        ],
+      },
     };
-    render(h(ValidationSummary, { result, rateLimit, onReset: vi.fn() }));
+    const { container } = render(h(ValidationSummary, { result, rateLimit, onReset: vi.fn() }));
 
     expect(screen.getByText('Format')).toBeTruthy();
     expect(screen.getByText('Structure')).toBeTruthy();
@@ -117,18 +145,71 @@ describe('ValidationSummary', () => {
     expect(screen.getByText('1 Format')).toBeTruthy();
     expect(screen.getByText('1 Structure')).toBeTruthy();
     expect(screen.getByText('2 Semantic')).toBeTruthy();
+    // all three failed in this fixture -> three failed status badges
+    expect(container.querySelectorAll('.validation-layer-badge.is-failed')).toHaveLength(3);
+  });
+
+  it('renders skipped layers visibly distinct from passed layers', () => {
+    const result: XmlValidationResult = {
+      ...failedResult,
+      format: { status: 'failed', issues: failedResult.format.issues },
+      structure: { status: 'passed', issues: [] },
+      semantic: { status: 'skipped', issues: [] },
+    };
+    const { container } = render(h(ValidationSummary, { result, rateLimit, onReset: vi.fn() }));
+
+    const badges = Array.from(container.querySelectorAll('.validation-layer-badge')) as HTMLElement[];
+    const byLabel = (label: string) => badges.find((badge) => badge.textContent?.includes(label))!;
+    expect(byLabel('Format').className).toContain('is-failed');
+    expect(byLabel('Format').textContent).toContain('1 Format');
+    expect(byLabel('Structure').className).toContain('is-passed');
+    expect(byLabel('Structure').textContent).toContain('0 Structure');
+    // skipped layers show an em dash instead of a count
+    expect(byLabel('Semantic').className).toContain('is-skipped');
+    expect(byLabel('Semantic').textContent).toContain('— Semantic');
+    expect(byLabel('Semantic').textContent).not.toContain('0 Semantic');
+  });
+
+  it('renders line/column and XML path locations only when supplied', () => {
+    const result: XmlValidationResult = {
+      ...failedResult,
+      format: {
+        status: 'failed',
+        issues: [issue({ path: '/Invoice', rule: 'ENG-PARSE-01', message: 'Mismatched closing tag.', line: 7, column: 2 })],
+      },
+      structure: {
+        status: 'failed',
+        issues: [issue({ path: '/Invoice/cbc:ID', rule: 'XSD-01', message: 'Not allowed here.', line: 3, xmlPath: '/Invoice/cbc:ID' })],
+      },
+      semantic: {
+        status: 'failed',
+        issues: [issue({ path: '/totals/payableAmount', rule: 'ibr-073', message: 'Amount mismatch.' })],
+      },
+    };
+    const { container } = render(h(ValidationSummary, { result, rateLimit, onReset: vi.fn() }));
+
+    const issues = Array.from(container.querySelectorAll('.validation-issue')) as HTMLElement[];
+    expect(issues[0].textContent).toContain('Line 7, column 2');
+    expect(issues[1].textContent).toContain('Line 3');
+    expect(issues[1].textContent).toContain('XML path: /Invoice/cbc:ID');
+    // no line/column/xmlPath on the third issue
+    expect(issues[2].querySelector('.validation-issue__location')).toBeNull();
+    expect(issues[2].querySelector('.validation-issue__xml-path')).toBeNull();
+  });
+
+  it('omits location lines entirely when no issue has them', () => {
+    render(h(ValidationSummary, { result: failedResult, rateLimit, onReset: vi.fn() }));
+
+    expect(screen.queryByText(/Line \d/)).toBeNull();
+    expect(screen.queryByText(/XML path/)).toBeNull();
   });
 
   it('filters the issue list when a layer badge is clicked', async () => {
     const user = userEvent.setup();
-    const result: ValidationResult = {
-      valid: false,
-      invoiceType: '388',
-      schemaVersion: 'PINT AE 1.0',
-      errors: [
-        { path: '/a', rule: 'XSD-01', severity: 'error', message: 'structure issue' },
-        { path: '/b', rule: 'ibr-073', severity: 'error', message: 'semantic issue' },
-      ],
+    const result: XmlValidationResult = {
+      ...failedResult,
+      structure: { status: 'failed', issues: [issue({ path: '/a', rule: 'XSD-01', message: 'structure issue' })] },
+      semantic: { status: 'failed', issues: [issue({ path: '/b', rule: 'ibr-073', message: 'semantic issue' })] },
     };
     render(h(ValidationSummary, { result, rateLimit, onReset: vi.fn() }));
 

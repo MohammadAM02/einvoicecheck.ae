@@ -1,5 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { fieldLabel, layerOf, sortValidationIssues, toReportText, type ValidationIssue, type ValidationResult } from '@/lib/validation-ui';
+import {
+  fieldLabel,
+  flattenValidationIssues,
+  layerOf,
+  sortValidationIssues,
+  toReportText,
+  type ValidationIssue,
+  type XmlValidationResult,
+} from '@/lib/validation-ui';
+
+const baseResult: XmlValidationResult = {
+  valid: false,
+  inputFormat: 'xml',
+  validationScope: 'pint-ae-ubl-xml',
+  invoiceType: '388',
+  schemaVersion: 'PINT AE 1.0',
+  format: { status: 'failed', issues: [] },
+  structure: { status: 'failed', issues: [] },
+  semantic: { status: 'failed', issues: [] },
+};
+
+function issue(overrides: Partial<ValidationIssue>): ValidationIssue {
+  return { path: '/', rule: 'R-01', severity: 'error', message: 'msg', line: null, column: null, xmlPath: null, ...overrides };
+}
 
 describe('fieldLabel', () => {
   it('uses finance-readable labels for known paths', () => {
@@ -17,15 +40,15 @@ describe('fieldLabel', () => {
 describe('sortValidationIssues', () => {
   it('puts errors before warnings without mutating the input', () => {
     const issues: ValidationIssue[] = [
-      { path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Check currency.' },
-      { path: '/customer/trn', rule: 'TRN-01', severity: 'error', message: 'TRN is invalid.' },
+      issue({ path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Check currency.' }),
+      issue({ path: '/customer/trn', rule: 'TRN-01', severity: 'error', message: 'TRN is invalid.' }),
     ];
 
     const sorted = sortValidationIssues(issues);
 
     expect(sorted).toEqual([issues[1], issues[0]]);
     expect(sorted).not.toBe(issues);
-    expect(issues.map((issue) => issue.severity)).toEqual(['warning', 'error']);
+    expect(issues.map((i) => i.severity)).toEqual(['warning', 'error']);
   });
 });
 
@@ -50,18 +73,44 @@ describe('layerOf', () => {
   });
 });
 
+describe('flattenValidationIssues', () => {
+  it('returns issues in Format, Structure, Semantic order', () => {
+    const formatIssue = issue({ rule: 'ENG-PARSE-01', message: 'parse' });
+    const structureIssue = issue({ rule: 'XSD-01', message: 'xsd' });
+    const semanticIssue = issue({ rule: 'ibr-073', message: 'semantic' });
+
+    const issues = flattenValidationIssues({
+      ...baseResult,
+      format: { status: 'failed', issues: [formatIssue] },
+      structure: { status: 'failed', issues: [structureIssue] },
+      semantic: { status: 'failed', issues: [semanticIssue] },
+    });
+
+    expect(issues.map((i) => i.rule)).toEqual(['ENG-PARSE-01', 'XSD-01', 'ibr-073']);
+  });
+
+  it('omits empty layers', () => {
+    const issues = flattenValidationIssues({
+      ...baseResult,
+      valid: true,
+      format: { status: 'passed', issues: [] },
+      structure: { status: 'skipped', issues: [] },
+      semantic: { status: 'passed', issues: [] },
+    });
+
+    expect(issues).toEqual([]);
+  });
+});
+
 describe('toReportText', () => {
   it('renders a failed preflight with readable issues and fixes', () => {
-    const result: ValidationResult = {
-      valid: false,
-      invoiceType: '388',
-      schemaVersion: 'PINT AE 1.0',
-      errors: [
-        { path: '/customer/trn', rule: 'TRN-01', severity: 'error', message: 'TRN is invalid.', fix: 'Enter a 15-digit TRN.' },
-      ],
-    };
-
-    const report = toReportText(result);
+    const report = toReportText({
+      ...baseResult,
+      format: {
+        status: 'failed',
+        issues: [issue({ path: '/customer/trn', rule: 'TRN-01', message: 'TRN is invalid.', fix: 'Enter a 15-digit TRN.' })],
+      },
+    });
 
     expect(report).toContain('einvoicecheck.ae - PREFLIGHT FAILED');
     expect(report).toContain('Invoice type: 388');
@@ -72,7 +121,14 @@ describe('toReportText', () => {
   });
 
   it('renders a passing preflight without rejection language', () => {
-    const report = toReportText({ valid: true, invoiceType: null, schemaVersion: 'PINT AE 1.0', errors: [] });
+    const report = toReportText({
+      ...baseResult,
+      valid: true,
+      invoiceType: null,
+      format: { status: 'passed', issues: [] },
+      structure: { status: 'passed', issues: [] },
+      semantic: { status: 'passed', issues: [] },
+    });
 
     expect(report.split('\n')[0]).toBe('einvoicecheck.ae - PREFLIGHT PASSED');
     expect(report).toContain('Invoice type: Not identified');
@@ -82,10 +138,14 @@ describe('toReportText', () => {
 
   it('includes warnings even when the preflight passes', () => {
     const report = toReportText({
+      ...baseResult,
       valid: true,
-      invoiceType: '388',
-      schemaVersion: 'PINT AE 1.0',
-      errors: [{ path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Confirm the currency code.' }],
+      format: { status: 'passed', issues: [] },
+      structure: { status: 'passed', issues: [] },
+      semantic: {
+        status: 'passed',
+        issues: [issue({ path: '/currency', rule: 'CUR-01', severity: 'warning', message: 'Confirm the currency code.' })],
+      },
     });
 
     expect(report).toContain('No blocking issues were found by the checks currently included in this preflight engine.');

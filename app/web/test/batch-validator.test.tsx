@@ -7,6 +7,34 @@ import { BatchValidator } from '@/components/BatchValidator';
 
 const twoDocuments = '<Invoice>one</Invoice>\n---\n<Invoice>two</Invoice>';
 
+const validResult = {
+  index: 0,
+  valid: true,
+  inputFormat: 'xml' as const,
+  validationScope: 'pint-ae-ubl-xml' as const,
+  invoiceType: '388',
+  schemaVersion: 'PINT AE 1.0',
+  format: { status: 'passed', issues: [] },
+  structure: { status: 'passed', issues: [] },
+  semantic: { status: 'passed', issues: [] },
+};
+
+const invalidResult = {
+  ...validResult,
+  index: 1,
+  valid: false,
+  invoiceType: '381',
+  format: { status: 'passed', issues: [] },
+  structure: {
+    status: 'failed',
+    issues: [{ path: '/', rule: 'XSD-01', severity: 'error', message: 'Element not allowed.', line: null, column: null, xmlPath: null }],
+  },
+  semantic: {
+    status: 'failed',
+    issues: [{ path: '/', rule: 'ibr-073', severity: 'warning', message: 'Amount mismatch.', line: null, column: null, xmlPath: null }],
+  },
+};
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -49,10 +77,7 @@ describe('BatchValidator', () => {
       ok: true,
       json: async () => ({
         ok: true,
-        results: [
-          { index: 0, valid: true, invoiceType: '388', schemaVersion: 'PINT AE 1.0', errors: [] },
-          { index: 1, valid: false, invoiceType: '381', schemaVersion: 'PINT AE 1.0', errors: [{ severity: 'error' }] },
-        ],
+        results: [validResult, invalidResult],
         rateLimit: { limit: 50, remaining: 48, resetSeconds: 60, degraded: false },
       }),
     });
@@ -92,10 +117,7 @@ describe('BatchValidator', () => {
       ok: true,
       json: async () => ({
         ok: true,
-        results: [
-          { index: 0, valid: true, invoiceType: '388', schemaVersion: 'PINT AE 1.0', errors: [] },
-          { index: 1, valid: false, invoiceType: '381', schemaVersion: 'PINT AE 1.0', errors: [{ severity: 'error' }, { severity: 'warning' }] },
-        ],
+        results: [validResult, invalidResult],
         rateLimit: { limit: 50, remaining: 48, resetSeconds: 60, degraded: false },
       }),
     }));
@@ -109,5 +131,25 @@ describe('BatchValidator', () => {
     expect(screen.getByText('PASS')).toBeTruthy();
     expect(screen.getByText('FAIL')).toBeTruthy();
     expect(screen.queryByText(/Would be rejected/i)).toBeNull();
+  });
+
+  it('counts errors and warnings from flattened v2 layers, not a flat errors array', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        results: [validResult, invalidResult],
+        rateLimit: { limit: 50, remaining: 48, resetSeconds: 60, degraded: false },
+      }),
+    }));
+    renderBatchValidator();
+
+    await user.type(screen.getByLabelText('Batch invoice documents'), twoDocuments);
+    await user.click(screen.getByRole('button', { name: 'Validate batch' }));
+
+    expect(await screen.findByRole('heading', { name: 'Batch results — 2 invoices' })).toBeTruthy();
+    // 1 error + 1 warning spread across structure/semantic layers, no flat errors key
+    expect(screen.getByText('1 error · 1 warning')).toBeTruthy();
   });
 });

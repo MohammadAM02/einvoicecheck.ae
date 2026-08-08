@@ -1,6 +1,3 @@
-import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
-import path from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import RedisMock from 'ioredis-mock';
 import { setRedisForTests } from '@/lib/redis';
@@ -8,10 +5,6 @@ import { setRedisForTests } from '@/lib/redis';
 const route = await import('@/app/api/tools/validate/route');
 const batchRoute = await import('@/app/api/tools/validate/batch/route');
 const { validateDocument } = await import('@/lib/validation');
-
-const REPO_ROOT = path.resolve(__dirname, '../../..');
-const API_RULES = path.join(REPO_ROOT, 'app/api/src/rules');
-const WEB_RULES = path.join(REPO_ROOT, 'app/web/src/lib/rules');
 
 const redis = new RedisMock();
 
@@ -135,34 +128,6 @@ function validInvoice() {
 }
 
 describe('free tool proxies to the strict XML API', () => {
-  it('the vendored engine is byte-identical to app/api/src/rules', async () => {
-    async function hashTree(dir: string, skip: Set<string> = new Set()) {
-      const out: Record<string, string> = {};
-      for (const entry of await readdir(dir, { withFileTypes: true })) {
-        const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          if (skip.has(entry.name)) continue;
-          for (const [k, v] of Object.entries(await hashTree(full, skip))) out[`${entry.name}/${k}`] = v;
-        } else if (entry.name.endsWith('.js') && !skip.has(entry.name)) {
-          out[entry.name] = createHash('sha256').update(await readFile(full)).digest('hex');
-        }
-      }
-      return out;
-    }
-    // If this fails, re-copy app/api/src/rules -> app/web/src/lib/rules. The free
-    // tool must never diverge from the paid API's engine.
-    //
-    // Excluded (API-only or superseded since the free tool became a proxy in
-    // Task 4 of the strict-UBL plan — the vendored tree is frozen and removed
-    // in Task 5):
-    //  - dirs 'convert', 'generate': API-only pipeline code, never vendored.
-    //  - 'xml-validation.js', 'xsd.js': strict XSD pipeline, server-side only.
-    //  - 'engine.js': rewritten by Task 3 (layered XML core); the free tool no
-    //    longer runs the vendored copy, so re-syncing it here would be churn.
-    const SKIP = new Set(['convert', 'generate', 'xml-validation.js', 'xsd.js', 'engine.js']);
-    expect(await hashTree(WEB_RULES, SKIP)).toEqual(await hashTree(API_RULES, SKIP));
-  });
-
   it('sends the document to POST /v2/validate with content-type application/xml and the server x-api-key', async () => {
     const fetchMock = stubApi(apiJson(VALID_XML_RESULT));
 
