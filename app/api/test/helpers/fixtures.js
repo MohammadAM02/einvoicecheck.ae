@@ -2,6 +2,16 @@
  * Test fixtures — a fully valid UAE tax invoice and deliberately broken
  * variants. All amounts are AED, standard-rated at 5%.
  */
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Valid UBL 2.1 CreditNote (vendored official example, fixtures/validate/).
+export function validCreditNoteXml() {
+  return fs.readFileSync(
+    path.join(import.meta.dirname, '..', 'fixtures', 'validate', 'valid-credit-note.xml'),
+    'utf8',
+  );
+}
 
 // Valid: 2 lines, standard rate 5%, totals reconcile exactly.
 export function validInvoice() {

@@ -31,6 +31,38 @@ function numericGuard(invoice) {
 }
 
 /**
+ * Run the semantic rule engine against a canonical invoice model. Shared by
+ * the JSON evaluator (validateInvoice) and the layered XML core
+ * (validateXmlDocument).
+ *
+ * Deterministic: same input -> same output. A rule crash must never take down
+ * the request or leak internals to the client — log the full detail
+ * server-side, surface a fixed safe message.
+ *
+ * @returns {{ valid: boolean, errors: Array<{path, rule, severity, message, fix}> }}
+ */
+export function evaluateInvoiceRules(invoice) {
+  const errors = numericGuard(invoice);
+  for (const rule of RULES) {
+    try {
+      const produced = rule.evaluate(invoice) || [];
+      for (const e of produced) errors.push(e);
+    } catch (e) {
+      console.error(`[validateInvoice] rule ${rule.id} crashed`, e);
+      errors.push({
+        path: '/',
+        rule: `${rule.id}/INTERNAL`,
+        severity: 'error',
+        message: `Rule ${rule.id} could not evaluate this invoice.`,
+        fix: 'Re-submit the invoice. If the error persists, contact support.',
+      });
+    }
+  }
+  const valid = !errors.some((e) => e.severity === 'error');
+  return { valid, errors };
+}
+
+/**
  * Run the full preflight validation. Deterministic: same input -> same output.
  *
  * @returns {{ valid, invoiceType, schemaVersion, errors }}
@@ -55,26 +87,7 @@ export function validateInvoice(body, contentType = '') {
     };
   }
 
-  const errors = numericGuard(invoice);
-  for (const rule of RULES) {
-    try {
-      const produced = rule.evaluate(invoice) || [];
-      for (const e of produced) errors.push(e);
-    } catch (e) {
-      // A rule crash must never take down the request or leak internals to the
-      // client. Log the full detail server-side; surface a fixed, safe message.
-      console.error(`[validateInvoice] rule ${rule.id} crashed`, e);
-      errors.push({
-        path: '/',
-        rule: `${rule.id}/INTERNAL`,
-        severity: 'error',
-        message: `Rule ${rule.id} could not evaluate this invoice.`,
-        fix: 'Re-submit the invoice. If the error persists, contact support.',
-      });
-    }
-  }
-
-  const valid = !errors.some((e) => e.severity === 'error');
+  const { valid, errors } = evaluateInvoiceRules(invoice);
 
   return {
     valid,
