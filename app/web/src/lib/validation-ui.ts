@@ -1,17 +1,14 @@
-export type ValidationIssue = {
-  path: string;
-  rule: string;
-  severity: 'error' | 'warning';
-  message: string;
-  fix?: string;
-};
+import { type XmlValidationIssue, type XmlValidationLayer, type XmlValidationResult } from './validation';
 
-export type ValidationResult = {
-  valid: boolean;
-  invoiceType: string | null;
-  schemaVersion: string;
-  errors: ValidationIssue[];
-};
+/** Issue shape mirrors the API v2 contract exactly (one type source: ./validation). */
+export type ValidationIssue = XmlValidationIssue;
+
+/** Layer result object mirrors the API (status + issues). */
+export type ValidationLayer = XmlValidationLayer;
+
+export type ValidationLayerStatus = XmlValidationLayer['status'];
+
+export type { XmlValidationResult } from './validation';
 
 export type ValidationRateLimit = {
   limit: number;
@@ -20,15 +17,17 @@ export type ValidationRateLimit = {
   degraded: boolean;
 };
 
-export type ValidationLayer = 'format' | 'structure' | 'semantic';
+/** Layer NAMES, for filtering and labels (the response layers are authoritative). */
+export type ValidationLayerName = 'format' | 'structure' | 'semantic';
 
-export const LAYER_LABELS: Record<ValidationLayer, string> = {
+export const LAYER_LABELS: Record<ValidationLayerName, string> = {
   format: 'Format',
   structure: 'Structure',
   semantic: 'Semantic',
 };
 
-export function layerOf(rule: string): ValidationLayer {
+/** @deprecated Rule-prefix inference. The v2 response layer is authoritative. */
+export function layerOf(rule: string): ValidationLayerName {
   if (/^ENG-PARSE-/.test(rule) || /^FMT-/.test(rule)) return 'format';
   if (/^XSD-/.test(rule) || /^ENG-XSD-/.test(rule)) return 'structure';
   return 'semantic';
@@ -36,7 +35,7 @@ export function layerOf(rule: string): ValidationLayer {
 
 export type ValidateApiSuccess = {
   ok: true;
-  result: ValidationResult;
+  result: XmlValidationResult;
   rateLimit: ValidationRateLimit;
 };
 
@@ -59,8 +58,14 @@ export function sortValidationIssues(issues: ValidationIssue[]): ValidationIssue
   return [...issues].sort((a, b) => Number(b.severity === 'error') - Number(a.severity === 'error'));
 }
 
-export function toReportText(result: ValidationResult): string {
+/** All issues in Format, Structure, Semantic order; empty layers are omitted. */
+export function flattenValidationIssues(result: XmlValidationResult): ValidationIssue[] {
+  return [...result.format.issues, ...result.structure.issues, ...result.semantic.issues];
+}
+
+export function toReportText(result: XmlValidationResult): string {
   const status = result.valid ? 'PREFLIGHT PASSED' : 'PREFLIGHT FAILED';
+  const issues = flattenValidationIssues(result);
   const lines = [
     `einvoicecheck.ae - ${status}`,
     `Invoice type: ${result.invoiceType ?? 'Not identified'}`,
@@ -68,13 +73,13 @@ export function toReportText(result: ValidationResult): string {
     '',
   ];
 
-  if (result.valid || result.errors.length === 0) {
+  if (result.valid || issues.length === 0) {
     lines.push('No blocking issues were found by the checks currently included in this preflight engine.');
   }
 
-  if (result.errors.length > 0) {
+  if (issues.length > 0) {
     if (lines.at(-1) !== '') lines.push('');
-    for (const issue of sortValidationIssues(result.errors)) {
+    for (const issue of sortValidationIssues(issues)) {
       lines.push(`${fieldLabel(issue.path)} | ${issue.severity.toUpperCase()} | ${issue.rule}`);
       lines.push(issue.message);
       if (issue.fix) lines.push(`Fix: ${issue.fix}`);

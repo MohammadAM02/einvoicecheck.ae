@@ -1,11 +1,11 @@
 import { createElement as h } from 'react';
 import type React from 'react';
-import { sortValidationIssues, type ValidationIssue as ValidationIssueType, type ValidationLayer } from '@/lib/validation-ui';
+import { sortValidationIssues, type ValidationIssue as ValidationIssueType, type ValidationLayerName } from '@/lib/validation-ui';
 import { ValidationIssue } from './ValidationIssue';
 
 export function ValidationIssueList({ issues, filter = 'all' }: {
   issues: ValidationIssueType[];
-  filter?: ValidationLayer | 'all';
+  filter?: ValidationLayerName | 'all';
 }): React.ReactElement | null {
   if (issues.length === 0) return null;
 

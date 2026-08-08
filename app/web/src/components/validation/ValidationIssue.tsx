@@ -19,6 +19,8 @@ export function ValidationIssue({ issue }: { issue: ValidationIssueType }): Reac
       h('summary', null, 'Technical details'),
       h('p', null, 'Path: ', h('code', null, issue.path)),
       h('p', null, 'Rule: ', h('code', null, issue.rule)),
+      issue.line != null ? h('p', { className: 'validation-issue__location' }, `Line ${issue.line}${issue.column != null ? `, column ${issue.column}` : ''}`) : null,
+      issue.xmlPath != null ? h('p', { className: 'validation-issue__xml-path' }, `XML path: ${issue.xmlPath}`) : null,
     ),
   );
 }

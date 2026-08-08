@@ -2,17 +2,15 @@
 
 import type React from 'react';
 import { createElement as h, useState } from 'react';
-
-type ValidationIssue = { severity: 'error' | 'warning' };
+import { flattenValidationIssues, type ValidationIssue, type XmlValidationResult } from '@/lib/validation-ui';
 
 type BatchResult = {
   index: number;
   valid: boolean;
   invoiceType: string | null;
   schemaVersion: string;
-  errors?: ValidationIssue[];
   error?: string;
-};
+} & Partial<XmlValidationResult>;
 
 type BatchResponse = {
   ok: boolean;
@@ -22,7 +20,8 @@ type BatchResponse = {
 };
 
 function countIssues(result: BatchResult, severity: ValidationIssue['severity']): number {
-  return result.errors?.filter((issue) => issue.severity === severity).length ?? 0;
+  if (!result.format) return 0;
+  return flattenValidationIssues(result as XmlValidationResult).filter((issue) => issue.severity === severity).length;
 }
 
 export function BatchValidator(): React.ReactElement {

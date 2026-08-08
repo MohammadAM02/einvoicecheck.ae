@@ -2,26 +2,26 @@
 
 import type React from 'react';
 import { createElement as h, useEffect, useRef, useState } from 'react';
-import { toReportText, LAYER_LABELS, layerOf, type ValidationLayer, type ValidationRateLimit, type ValidationResult } from '@/lib/validation-ui';
+import { toReportText, LAYER_LABELS, flattenValidationIssues, type ValidationLayerName, type ValidationRateLimit, type XmlValidationResult } from '@/lib/validation-ui';
 import { ValidationIssueList } from './ValidationIssueList';
 
 export function ValidationSummary(props: {
-  result: ValidationResult;
+  result: XmlValidationResult;
   rateLimit: ValidationRateLimit;
   onReset: () => void;
 }): React.ReactElement {
   const { result, rateLimit, onReset } = props;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [copied, setCopied] = useState(false);
-  const [layerFilter, setLayerFilter] = useState<ValidationLayer | 'all'>('all');
-  const counts = { format: 0, structure: 0, semantic: 0 } as Record<ValidationLayer, number>;
-  for (const issue of result.errors) counts[layerOf(issue.rule)]++;
-  const visibleIssues = layerFilter === 'all'
-    ? result.errors
-    : result.errors.filter((issue) => layerOf(issue.rule) === layerFilter);
-  const blockingCount = result.errors.filter((issue) => issue.severity === 'error').length;
-  const warningCount = result.errors.filter((issue) => issue.severity === 'warning').length;
-  const selfBilling = result.errors.some((issue) => issue.rule === 'ENG-TYPE-01/SELF-BILLING');
+  const [layerFilter, setLayerFilter] = useState<ValidationLayerName | 'all'>('all');
+  const counts = { format: 0, structure: 0, semantic: 0 } as Record<ValidationLayerName, number>;
+  for (const layer of Object.keys(LAYER_LABELS) as ValidationLayerName[]) counts[layer] = result[layer].issues.length;
+  const allIssues = flattenValidationIssues(result);
+  // The response layer is authoritative: filter straight from the layer's issues.
+  const visibleIssues = layerFilter === 'all' ? allIssues : result[layerFilter].issues;
+  const blockingCount = allIssues.filter((issue) => issue.severity === 'error').length;
+  const warningCount = allIssues.filter((issue) => issue.severity === 'warning').length;
+  const selfBilling = allIssues.some((issue) => issue.rule === 'ENG-TYPE-01/SELF-BILLING');
   const canCopy = typeof navigator !== 'undefined' && typeof navigator.clipboard?.writeText === 'function';
   const headingId = 'validation-summary-heading';
 
@@ -56,15 +56,15 @@ export function ValidationSummary(props: {
         type: 'button',
         className: `validation-layer-badge${layerFilter === 'all' ? ' is-active' : ''}`,
         onClick: () => setLayerFilter('all'),
-      }, `All (${result.errors.length})`),
-      (Object.keys(LAYER_LABELS) as ValidationLayer[]).map((layer) =>
+      }, `All (${allIssues.length})`),
+      (Object.keys(LAYER_LABELS) as ValidationLayerName[]).map((layer) =>
         h('button', {
           type: 'button',
           key: layer,
-          className: `validation-layer-badge${layerFilter === layer ? ' is-active' : ''}`,
+          className: `validation-layer-badge is-${result[layer].status}${layerFilter === layer ? ' is-active' : ''}`,
           onClick: () => setLayerFilter(layer),
         },
-          `${counts[layer]} ${LAYER_LABELS[layer]}`,
+          result[layer].status === 'skipped' ? `— ${LAYER_LABELS[layer]}` : `${counts[layer]} ${LAYER_LABELS[layer]}`,
           h('span', { className: 'validation-layer-badge__label sr-only', 'aria-hidden': 'true' }, LAYER_LABELS[layer]),
         ),
       ),
