@@ -15,6 +15,9 @@ import { Chrome } from '@/components/Chrome';
 
 const REQUIRED_LINKS = [
   ['Validate an invoice', '/#validate'],
+  ['XML Generator', '/tools/xml-generator'],
+  ['XML Repairer', '/tools/xml-repairer'],
+  ['What We Check', '/what-we-check'],
   ['API Docs', '/docs'],
   ['Pricing', '/pricing'],
   ['Sign in', '/login'],
@@ -66,6 +69,12 @@ describe('Chrome navigation', () => {
       const link = screen.getAllByRole('link', { name: label }).find((candidate) => menu?.contains(candidate));
       expect(link?.getAttribute('href')).toBe(href);
     }
+  });
+
+  it('keeps the dedicated What We Check source-of-truth destination in navigation', () => {
+    renderChrome();
+
+    expect(screen.getByRole('link', { name: 'What We Check' }).getAttribute('href')).toBe('/what-we-check');
   });
 
   it('uses one API Docs destination instead of duplicate API and Documentation links', () => {
