@@ -69,9 +69,9 @@ const TOOLS: Record<ToolSlug, ToolDef> = {
   'xml-generator': {
     title: 'Free UAE e-invoice XML generator — build PINT-AE XML from a form',
     h1: 'XML Generator',
-    description: 'Build a PINT-AE 1.0.4 / UBL 2.1 XML invoice from a form: structure built from the official FTA examples, totals computed, live data-entry checks. Free, no signup, nothing is transmitted.',
+    description: 'Build a PINT-AE 1.0.4 / UBL 2.1 XML invoice from a form: implemented templates, totals computed, live data-entry checks. Free, no signup, nothing is transmitted.',
     targetKeyword: 'UAE e-invoice XML generator',
-    blurb: 'Build a PINT-AE XML invoice from a form instead of hand-writing XML. Structure comes from the official FTA examples, totals are computed, and data-entry checks run as you type — then validate the result before it reaches your provider.',
+    blurb: 'Build a PINT-AE XML invoice from a form instead of hand-writing XML. The generator uses the current template set, computes totals, and runs data-entry checks as you type — then validate the result before it reaches your provider.',
   },
 };
 
@@ -117,10 +117,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             <div className="validator-tool-primary">
               <GeneratorWorkspace />
               <p className="muted validator-tool-context">
-                The generator builds <strong>format-correct</strong> PINT-AE XML from the official FTA
-                examples — structure is guaranteed, only your data can be wrong. It computes totals,
-                checks TRNs as you type, and <strong>never transmits anything</strong> until you choose
-                to validate the result.
+                The generator builds <strong>format-correct</strong> PINT-AE XML from the current
+                template set — with computed totals, supported data-entry checks, and a form-first
+                flow. It <strong>never transmits anything</strong> until you choose to validate the
+                result.
               </p>
             </div>
           ) : slug === 'xml-repairer' ? (

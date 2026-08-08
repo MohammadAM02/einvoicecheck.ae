@@ -6,7 +6,7 @@ import { API_BASE_URL } from '@/lib/site';
 export const metadata = pageMetadata({
   title: 'UAE e-invoicing API docs - POST /v2/validate',
   description:
-    'Developer docs for strict UBL XML validation: POST /v2/validate (layered), POST /v1/validate (legacy flat), POST /v1/preflight (canonical JSON data preflight), GET /usage and GET /health. Auth via x-api-key.',
+    'Developer docs for layered UBL XML validation: POST /v2/validate (format, structure and semantic layers), POST /v1/validate (legacy flat), POST /v1/preflight (canonical JSON data preflight), GET /usage and GET /health. Auth via x-api-key.',
   path: '/docs',
 });
 
@@ -20,8 +20,8 @@ const faqs = [
     a: 'Send your key in the x-api-key header or as a bearer token in the Authorization header. A key is issued when you create an account.',
   },
   {
-    q: 'Is this complete PINT AE conformity validation?',
-    a: 'POST /v2/validate runs the strict UBL validation pipeline: format (XML well-formedness), structure (UBL 2.1 XSD schema validation for Invoice and CreditNote) and semantic (rules + Schematron) layers. Use POST /v1/preflight for canonical JSON data preflight; it checks invoice data but does not validate final UBL XML structure.',
+    q: 'What validation layers are currently included?',
+    a: 'POST /v2/validate runs the currently implemented validation pipeline: format (XML well-formedness), structure (UBL 2.1 XSD checks for Invoice and CreditNote) and semantic (rules + Schematron) layers. It is a supported preflight check, not a guarantee of official artifact parity, ASP acceptance or downstream filing. Use POST /v1/preflight for canonical JSON data preflight; it checks invoice data but does not validate final UBL XML structure.',
   },
   {
     q: 'Does the API submit my invoice to the FTA?',
@@ -47,7 +47,7 @@ export default function DocsPage() {
         <div className="container">
           <h1 style={{ marginBottom: 12 }}>UAE e-invoice preflight API</h1>
           <p className="lead" style={{ marginBottom: 24 }}>
-            Three validation endpoints: strict UBL XML validation (v2), the legacy flat XML
+            Three validation endpoints: layered UBL XML validation (v2), the legacy flat XML
             contract (v1) and canonical JSON data preflight — plus usage and health endpoints.
           </p>
           <GuardrailNotice />
@@ -55,11 +55,12 @@ export default function DocsPage() {
             <strong>Current validation scope</strong>
             <p style={{ marginTop: 4 }}>
               <code>POST /v2/validate</code> and <code>POST /v1/validate</code> accept UBL 2.1 /
-              PINT AE XML only and run the strict pipeline: format (well-formedness), structure
-              (UBL 2.1 XSD for Invoice and CreditNote) and semantic (rules + Schematron) layers.
-              Canonical JSON invoice data is accepted only by <code>POST /v1/preflight</code>,
-              which performs data preflight and does not validate final UBL XML structure.
-            </p>
+                PINT AE XML only and run the currently supported pipeline: format (well-formedness),
+                structure (UBL 2.1 XSD for Invoice and CreditNote) and semantic (rules +
+                Schematron) layers.
+                Canonical JSON invoice data is accepted only by <code>POST /v1/preflight</code>,
+                which performs data preflight and does not validate final UBL XML structure.
+              </p>
           </div>
         </div>
       </div>
@@ -85,7 +86,7 @@ export default function DocsPage() {
         <div className="container">
           <h2 style={{ marginBottom: 12 }}>POST /v2/validate</h2>
           <p className="muted" style={{ marginBottom: 16 }}>
-            Strict UBL 2.1 / PINT AE XML validation for Invoice and CreditNote documents. XML-only:
+            Layered UBL 2.1 / PINT AE XML validation for Invoice and CreditNote documents. XML-only:
             send raw UBL 2.1 / PINT AE XML with <code>Content-Type: application/xml</code>, or an
             envelope <code>{'{ "document": "<Invoice>..." }'}</code>. Returns a layered result so
             you can distinguish passed, failed and skipped layers.
@@ -94,7 +95,9 @@ export default function DocsPage() {
             The pipeline runs three layers: format (XML well-formedness), structure (UBL 2.1 XSD
             schema validation — the document must conform to the Invoice or CreditNote schema, and
             wrong namespaces cannot pass), and semantic (rules + Schematron). If a layer fails, the
-            later layers still run where meaningful and each layer reports its own status.
+            later layers still run where meaningful and each layer reports its own status. These are
+            the currently supported checks; they are not presented as a promise of complete official
+            conformity, exact artifact parity or downstream acceptance.
           </p>
           <pre className="keybox" style={{ marginBottom: 24 }}>
             <code>{`POST ${API_BASE_URL}/v2/validate

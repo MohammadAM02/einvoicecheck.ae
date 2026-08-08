@@ -108,12 +108,12 @@ describe('Homepage', () => {
       'Currency and code-list membership',
       'VAT category and rate consistency',
       'Line arithmetic, tax breakdown and totals',
-      'Complete official XSD or Schematron conformity',
+      'No claim of complete official XSD or Schematron parity/version coverage',
       'FTA registration lookup',
       'Legal transmission, filing or archival',
       'Guaranteed ASP or authority acceptance',
     ]) expect(screen.getByText(item)).toBeTruthy();
-    expect(screen.getByText('Preflight only. Your accredited provider still handles legal transmission.')).toBeTruthy();
+    expect(screen.getByText('Preflight only. Supported checks still include format, structure and semantic layers; your accredited provider still handles legal transmission.')).toBeTruthy();
   });
 
   it('uses a short FAQ and retains footer destinations', () => {

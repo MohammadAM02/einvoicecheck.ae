@@ -62,7 +62,7 @@ export function PricingClient() {
             <div className="section-header"><div className="section-label">Scope</div><h2 className="section-title">A preflight layer, not a replacement for your ASP</h2></div>
           </ScrollReveal>
           <ScrollReveal delay={1}>
-            <p className="muted">Accredited providers handle legal transmission and archival. einvoicecheck.ae checks core fields, TRNs, VAT consistency and arithmetic before the file reaches them. Full official XSD and Schematron conformity validation is not currently included.</p>
+            <p className="muted">Accredited providers handle legal transmission and archival. einvoicecheck.ae provides supported preflight checks for core fields, TRNs, VAT consistency and arithmetic before the file reaches them. Exact official XSD/Schematron artifact parity and version coverage remain AMG-verification.</p>
           </ScrollReveal>
         </div>
       </div>

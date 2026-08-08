@@ -21,7 +21,7 @@ const offerSchema = {
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Any (HTTP API)',
   url: `${SITE_URL}/pricing`,
-  description: 'UAE e-invoice semantic preflight validation API. Not FTA-accredited, not a transmission channel, and not full XSD or Schematron conformity validation.',
+  description: 'UAE e-invoice preflight validation API. Not FTA-accredited, not a transmission channel, and not a guarantee of exact official XSD/Schematron artifact parity or version coverage.',
   offers: {
     '@type': 'AggregateOffer',
     priceCurrency: 'USD',

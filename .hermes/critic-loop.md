@@ -41,8 +41,13 @@
 | F-04 | Invalid dates like 2026-02-30 pass format check | P2 | unresolved | ibr-073 checks format pattern, not calendar validity. |
 | F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | Engine's price extraction assumes simple PriceAmount shape. |
 | F-06 | Generator fields lack programmatic labels | P2 | unresolved | CL-003. id + `<label for>` missing; `<fieldset>`/`<legend>` missing. |
+<<<<<<< HEAD
 | F-07 | Legal pages are indexable drafts with paid-plan language | P1 | unresolved | /contact, /legal/* say draft + unprovisioned; pricing says PayPal. |
 | F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | `6e6b1c0`, `345451a`, `8106742`, and `05fee5f` align API, free tool, result UI, and docs around layered XML validation. Repository wording is aligned; deployment, live page check, and Google re-index evidence are still missing. |
+=======
+| F-07 | Legal pages are indexable drafts with paid-plan language | P1 | fixed-local | /contact and /legal/* are now noindexed and removed from sitemap; draft/support placeholders remain pending operator inputs and live deployment verification. |
+| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | unresolved | Live docs say "XSD not included"; Google result says "official Schematron gate runs first." Strict XSD work resolves the capability side; docs wording must be re-checked after deploy. |
+>>>>>>> 5dc5f02 (fix(web): tighten public claims and draft indexing)
 | F-09 | Homepage missing canonical tag | P2 | unresolved | CL-003. |
 | F-10 | Results panel wastes desktop space (452px on 1363px viewport) | P3 | unresolved | CL-003. |
 | F-11 | Generator wastes desktop width (single column) | P3 | unresolved | CL-003. |

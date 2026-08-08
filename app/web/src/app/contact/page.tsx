@@ -7,6 +7,7 @@ export const metadata = pageMetadata({
   title: 'Contact einvoicecheck.ae - support, billing and legal enquiries',
   description: 'How to reach einvoicecheck.ae for API support, PayPal subscription questions, refunds, privacy and legal enquiries.',
   path: '/contact',
+  noindex: true,
 });
 
 const contactSchema = { '@context': 'https://schema.org', '@type': 'ContactPage', url: `${SITE_URL}/contact`, name: 'Contact einvoicecheck.ae', about: { '@id': `${SITE_URL}/#organization` } };

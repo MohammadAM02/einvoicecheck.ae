@@ -7,6 +7,7 @@ export const metadata = pageMetadata({
   title: 'Privacy Policy',
   description: 'How einvoicecheck.ae handles invoice payloads, API-key hashes, usage events, Redis counters and PayPal subscription identifiers.',
   path: '/legal/privacy',
+  noindex: true,
 });
 
 export default function PrivacyPage() {

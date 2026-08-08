@@ -7,7 +7,7 @@ const INCLUDED = [
 ];
 
 const EXCLUDED = [
-  'Complete official XSD or Schematron conformity',
+  'No claim of complete official XSD or Schematron parity/version coverage',
   'FTA registration lookup',
   'Legal transmission, filing or archival',
   'Guaranteed ASP or authority acceptance',
@@ -31,7 +31,7 @@ export function ScopePanel() {
         <details className="disclosure-item">
           <summary>Current limitations</summary>
           <DisclosureList items={EXCLUDED} />
-          <p>Preflight only. Your accredited provider still handles legal transmission.</p>
+          <p>Preflight only. Supported checks still include format, structure and semantic layers; your accredited provider still handles legal transmission.</p>
         </details>
         <details className="disclosure-item">
           <summary>Privacy and data handling</summary>

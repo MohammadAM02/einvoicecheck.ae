@@ -7,6 +7,7 @@ export const metadata = pageMetadata({
   title: 'Refund Policy',
   description: 'Refund policy for einvoicecheck.ae PayPal subscriptions, including first-payment refunds, renewals, duplicate charges and outages.',
   path: '/legal/refunds',
+  noindex: true,
 });
 
 export default function RefundsPage() {

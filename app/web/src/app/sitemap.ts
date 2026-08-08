@@ -10,19 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/pricing`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${SITE_URL}/docs`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ];
-
-  const legal: MetadataRoute.Sitemap = [
-    '/legal/terms',
-    '/legal/privacy',
-    '/legal/refunds',
-  ].map((path) => ({
-    url: `${SITE_URL}${path}`,
-    lastModified: now,
-    changeFrequency: 'yearly' as const,
-    priority: 0.3,
-  }));
 
   const tools: MetadataRoute.Sitemap = TOOL_SLUGS.map((slug) => ({
     url: `${SITE_URL}/tools/${slug}`,
@@ -47,5 +35,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...core, ...tools, ...alternatives, ...vs, ...legal];
+  return [...core, ...tools, ...alternatives, ...vs];
 }

@@ -7,6 +7,7 @@ export const metadata = pageMetadata({
   title: 'Terms of Service',
   description: 'Terms for the einvoicecheck.ae UAE e-invoice preflight validation API. Paid subscriptions are processed through PayPal.',
   path: '/legal/terms',
+  noindex: true,
 });
 
 export default function TermsPage() {
