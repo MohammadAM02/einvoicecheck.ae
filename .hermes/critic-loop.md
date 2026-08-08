@@ -65,7 +65,11 @@
 
 ## Repository monitor
 
+<<<<<<< HEAD
 - **Last scanned main commit:** `7664e881ea43dc040febc20687a6c6e99ef79fa9` — `fix(web): align validation fixtures with layered XML result`
+=======
+- **Last scanned main commit:** `5dc5f028f200399aeb94523decb95be90e3b6218` — `fix(web): tighten public claims and draft indexing`
+>>>>>>> c090140 (chore(state): advance critic-loop baseline)
 - **Scanned:** 2026-08-08
 - Commits `0bdd555`, `a2dafd9`, `6e6b1c0`, and `b4426ae` add the centralized Invoice/CreditNote XSD authority, layered XML core, strict v2/legacy v1/preflight contracts, response schemas, and regression tests.
 - Commits `345451a`, `8106742`, `3b22f0e`, `05fee5f`, and `7664e88` proxy the free tool to v2, render/test layered results, align docs, add repairer result navigation, and update fixtures.
