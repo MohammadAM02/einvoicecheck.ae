@@ -972,7 +972,7 @@ export function GeneratorWorkspace(): React.ReactElement {
           h(
             'span',
             null,
-            'While you type: data-entry checks · Structure: guaranteed (official template) · Final verdict: the Checker.',
+            'While you type: data-entry checks · Structure: current template set · Final verdict: the Checker.',
           ),
         ),
       ),
