@@ -74,16 +74,16 @@ components:
           type: string
         line:
           type:
-            - integer
             - "null"
+            - integer
         column:
           type:
-            - integer
             - "null"
+            - integer
         xmlPath:
           type:
-            - string
             - "null"
+            - string
       required:
         - path
         - rule
@@ -122,8 +122,8 @@ components:
             - pint-ae-ubl-xml
         invoiceType:
           type:
-            - string
             - "null"
+            - string
         schemaVersion:
           type: string
         format:
@@ -240,6 +240,28 @@ paths:
       responses:
         "200":
           description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-4"
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "429":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
   /v1/validate:
     post:
       summary: Legacy flat UBL 2.1 / PINT AE XML validation.

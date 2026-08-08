@@ -27,7 +27,7 @@ describe('plan-gated rate limits published by the dashboard', () => {
     const call = () =>
       ctx.app.inject({
         method: 'POST',
-        url: '/v1/validate',
+        url: '/v1/preflight',
         headers: { 'x-api-key': ctx.rawKey },
         payload: validInvoice(),
       });

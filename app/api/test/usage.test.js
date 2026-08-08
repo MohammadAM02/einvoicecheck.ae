@@ -18,11 +18,11 @@ describe('GET /usage', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('reports metering events written by /v1/validate', async () => {
+  it('reports metering events written by /v1/preflight', async () => {
     // two valid + one invalid -> 3 metering events
-    await ctx.app.inject({ method: 'POST', url: '/v1/validate', headers: auth(), payload: validInvoice() });
-    await ctx.app.inject({ method: 'POST', url: '/v1/validate', headers: auth(), payload: validInvoice() });
-    await ctx.app.inject({ method: 'POST', url: '/v1/validate', headers: auth(), payload: brokenInvoice() });
+    await ctx.app.inject({ method: 'POST', url: '/v1/preflight', headers: auth(), payload: validInvoice() });
+    await ctx.app.inject({ method: 'POST', url: '/v1/preflight', headers: auth(), payload: validInvoice() });
+    await ctx.app.inject({ method: 'POST', url: '/v1/preflight', headers: auth(), payload: brokenInvoice() });
 
     const res = await ctx.app.inject({ method: 'GET', url: '/usage', headers: auth() });
     expect(res.statusCode).toBe(200);
@@ -31,6 +31,6 @@ describe('GET /usage', () => {
     expect(body.outcomes.valid).toBe(2);
     expect(body.outcomes.invalid).toBe(1);
     expect(body.recent.length).toBeGreaterThan(0);
-    expect(body.recent[0].endpoint).toBe('/v1/validate');
+    expect(body.recent[0].endpoint).toBe('/v1/preflight');
   });
 });

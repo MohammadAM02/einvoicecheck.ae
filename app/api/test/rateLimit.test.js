@@ -16,7 +16,7 @@ describe('per-key rate limiting (Redis sliding window)', () => {
     const call = () =>
       ctx.app.inject({
         method: 'POST',
-        url: '/v1/validate',
+        url: '/v1/preflight',
         headers: { 'x-api-key': ctx.rawKey },
         payload: validInvoice(),
       });

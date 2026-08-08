@@ -102,12 +102,6 @@ export async function validateRoutes(fastify) {
     // Accept an { document: "<xml>" } envelope or raw XML (see the text/xml
     // content-type parser in app.js).
     config: { rawBody: false },
-    response: {
-      200: { $ref: 'XmlValidationResult#' },
-      400: { $ref: 'ErrorReply#' },
-      401: { $ref: 'ErrorReply#' },
-      429: { $ref: 'ErrorReply#' },
-    },
   };
 
   fastify.post(
@@ -122,6 +116,12 @@ export async function validateRoutes(fastify) {
           'format (well-formedness), structure (XSD), and semantic (rules + Schematron) layers. ' +
           `${GUARDRAIL} Send raw XML with Content-Type application/xml, or an envelope { "document": "<Invoice>..." }.`,
         security: [{ apiKey: [] }, { bearerAuth: [] }],
+        response: {
+          200: { $ref: 'XmlValidationResult#' },
+          400: { $ref: 'ErrorReply#' },
+          401: { $ref: 'ErrorReply#' },
+          429: { $ref: 'ErrorReply#' },
+        },
       },
     },
     async (request, reply) => {
