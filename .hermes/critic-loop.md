@@ -58,9 +58,10 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `4a4a920` — `test: lock malformed XML to parser-only errors`
+- **Last scanned main commit:** `3014209906d9f279d1a72c447f75762451aec8ad` — `chore: consolidate critic-loop to single .hermes state file`
 - **Scanned:** 2026-08-08
-- This commit adds regression tests across API, web free-tool, and shared rules paths. It does not prove deployment or live behavior.
+- Commits `1ffaaef`, `5af5cfc`, and `0408568` add approved design/implementation plans only. F-14 and F-02 remain in progress; no product implementation was claimed.
+- Commit `3014209` consolidated state here, corrected the deployed parser-fix SHA to `f9bce80`, and recorded live API + free-tool reproduction. No product code changed in this commit.
 - The next scan must inspect commits after this SHA, ignore state-only critic-loop commits, and advance this baseline only when a product/code or material evidence commit has been evaluated.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
 
