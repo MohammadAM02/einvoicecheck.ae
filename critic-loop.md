@@ -4,7 +4,7 @@
 >
 > Repository: `motivatedc-creator/https-einvoicecheck.ae`
 > Default branch: `main`
-> Last updated: 2026-08-07
+> Last updated: 2026-08-08
 
 ## Operating rules
 
@@ -50,6 +50,14 @@ The implementation fix is present on `main` in commit `f9bce804c58af0e6b39c71c21
 - the commit reports API tests `105/105`, web tests `101/101`, and five malformed/valid ad-hoc cases.
 
 This confirms repository-level implementation evidence only. It does not confirm Railway deployment or live UI/API behavior.
+
+Follow-up regression coverage is present on `main` in commit `4a4a92020cd4ad99143653e21cda084b99ee23b5`:
+
+- API validation now asserts mismatched XML returns exactly one `ENG-PARSE-01` error;
+- the web free-tool validation path now asserts the same parser-only result;
+- the shared rules package now asserts the same parser-only result.
+
+This commit changes tests only. It strengthens repository-level protection against semantic checks running after malformed XML, but provides no deployment or live-test evidence.
 
 **Reported fix**
 
@@ -163,9 +171,9 @@ After CL-001 is live-verified:
 
 ## Repository monitor
 
-- **Last scanned main commit:** `0682ad33ef08de263a3992716e0eb5afe63cf6b6` — `docs: add critic-loop shared state + ChatGPT repo-monitor prompt`
-- **Scanned:** 2026-08-07
-- This commit added cross-agent state evidence but no product code. Its live-verification claim is recorded above as reported and conflicting.
+- **Last scanned main commit:** `4a4a92020cd4ad99143653e21cda084b99ee23b5` — `test: lock malformed XML to parser-only errors`
+- **Scanned:** 2026-08-08
+- This commit adds regression tests across API, web free-tool, and shared rules paths. It does not prove deployment or live behavior.
 - The next scan must inspect commits after this SHA, ignore state-only critic-loop commits, and advance this baseline only when a product/code or material evidence commit has been evaluated.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
 
