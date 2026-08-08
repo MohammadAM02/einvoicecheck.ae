@@ -798,12 +798,73 @@ export function RepairerWorkspace(): React.ReactElement {
             );
           })(),
 
-          /* ---- Result actions (CONVERTED only) ---- */
+          /* ---- Result actions ---- */
           (() => {
             const d = (state as Extract<WorkspaceState, { phase: 'result' }>)
               .data;
-            if (d.status !== 'CONVERTED') return null;
 
+            // CONVERTED: download + copy + start over
+            if (d.status === 'CONVERTED') {
+              return h(
+                'div',
+                { className: 'repairer-result-actions' },
+                h(
+                  'button',
+                  {
+                    className: 'btn btn-primary',
+                    onClick: handleDownload,
+                    type: 'button',
+                  },
+                  '⬇ Download repaired XML',
+                ),
+                h(
+                  'button',
+                  {
+                    className: 'btn btn-ghost',
+                    onClick: handleCopy,
+                    type: 'button',
+                  },
+                  copied ? 'Copied' : 'Copy',
+                ),
+                h(
+                  'button',
+                  {
+                    className: 'btn btn-ghost',
+                    onClick: reset,
+                    type: 'button',
+                  },
+                  'Start over',
+                ),
+              );
+            }
+
+            // NOOP: validate + start over
+            if (d.status === 'NOOP') {
+              return h(
+                'div',
+                { className: 'repairer-result-actions' },
+                h(
+                  'button',
+                  {
+                    className: 'btn btn-ghost',
+                    onClick: handleValidate,
+                    type: 'button',
+                  },
+                  'Validate anyway →',
+                ),
+                h(
+                  'button',
+                  {
+                    className: 'btn btn-ghost',
+                    onClick: reset,
+                    type: 'button',
+                  },
+                  'Start over',
+                ),
+              );
+            }
+
+            // REFUSED: try again + validate anyway
             return h(
               'div',
               { className: 'repairer-result-actions' },
@@ -811,28 +872,19 @@ export function RepairerWorkspace(): React.ReactElement {
                 'button',
                 {
                   className: 'btn btn-primary',
-                  onClick: handleDownload,
-                  type: 'button',
-                },
-                '⬇ Download repaired XML',
-              ),
-              h(
-                'button',
-                {
-                  className: 'btn btn-ghost',
-                  onClick: handleCopy,
-                  type: 'button',
-                },
-                copied ? 'Copied' : 'Copy',
-              ),
-              h(
-                'button',
-                {
-                  className: 'btn btn-ghost',
                   onClick: reset,
                   type: 'button',
                 },
-                'Start over',
+                'Repair another XML',
+              ),
+              h(
+                'button',
+                {
+                  className: 'btn btn-ghost',
+                  onClick: handleValidate,
+                  type: 'button',
+                },
+                'Validate anyway →',
               ),
             );
           })(),
@@ -841,7 +893,7 @@ export function RepairerWorkspace(): React.ReactElement {
           (() => {
             const d = (state as Extract<WorkspaceState, { phase: 'result' }>)
               .data;
-            if (d.status !== 'CONVERTED' && d.status !== 'NOOP') return null;
+            if (d.status !== 'CONVERTED') return null;
 
             return h(
               'div',
