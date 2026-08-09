@@ -119,6 +119,10 @@ export function Chrome({ children }: { children: React.ReactNode }) {
 
   const buttonLabel = mobileOpen ? 'Close navigation' : 'Open navigation';
 
+  if (pathname.startsWith('/dashboard')) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="app-shell">
       <div className="app-card">
