@@ -37,12 +37,12 @@
 |---|---|---|---|---|
 | F-01 / CL-001 | Malformed XML returns semantic errors instead of parse error | P0 | ✅ RESOLVED / live-verified | Deployed `f9bce80` 2026-08-07 21:09 UTC+4 (Railway). Live API + free tool: `<Invoice>...</Invoicee>` → 1 ENG-PARSE-01, 0 semantic. New layered path in `a2dafd9` + tests in `3b22f0e` preserve the format gate in code; later batches are not live-verified, so production evidence remains tied to `f9bce80`. |
 | F-02 | Wrong UBL namespace URIs pass validation | P1 | inspected | `0bdd555` centralizes Invoice/CreditNote XSD; `a2dafd9` adds layered validation; `6e6b1c0` adds `/v2/validate` and a wrong-namespace regression test expecting Structure/XSD failure. Deployment and live verification still required. |
-| F-03 | Reverse-charge (AE) + non-zero VAT passes | P1 | unresolved | No new live evidence recorded here. |
-| F-04 | Invalid dates like 2026-02-30 pass format check | P2 | unresolved | No new live evidence recorded here. |
-| F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | Engine behavior still requires separate verification. |
+| F-03 | Reverse-charge (AE) + non-zero VAT passes | P1 | unresolved | `388b72d` documents that the deterministic engine treats `AE` specially and the summary generator writes a notional 5% value; it calls for a v1.0.4 scenario matrix. Documentation evidence only; no fix, deployment, or live verification. |
+| F-04 | Invalid dates like 2026-02-30 pass format check | P2 | unresolved | `388b72d` confirms the date adapter still relies on `Date.parse()`, which may normalize impossible dates. Documentation evidence only; no implementation or regression-test fix. |
+| F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | `388b72d` records that line arithmetic still uses the normalized `quantity × unitPrice` model and keeps BaseQuantity semantics open. Documentation evidence only; representative PINT AE fixtures remain required. |
 | F-06 | Generator fields lack programmatic labels | P2 | inspected | `2a77a7a` / merge `7d7cad5` add unique ids, associated labels, fieldset/legend groups, hidden line-item labels, and component tests. Repository evidence only; test execution, deployment, and live accessibility verification remain required. |
 | F-07 | Legal pages are indexable drafts with paid-plan language | P1 | fixed-local | `/contact` and `/legal/*` are noindexed and removed from sitemap on current main. Draft/support/operator placeholders remain pending founder inputs and live deployment verification. |
-| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | `4b20348` tightened claims; `52c69da` adds a dedicated, caveated What We Check page; `2ed4553`, `5d8de34`, `864fedd`, and `7abf2b4` wire navigation, homepage scope, sitemap, and tests. Repository scope wording is now consistent; deployment, live-page, and search re-index evidence remain required. |
+| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | `4b20348` tightened claims; `52c69da` adds a caveated What We Check page; `2ed4553`, `5d8de34`, `864fedd`, and `7abf2b4` wire navigation, homepage scope, sitemap, and tests. `388b72d` adds a repository-truth coverage baseline and safe/unsafe claim list. Deployment, live-page, and search re-index evidence remain required. |
 | F-09 | Homepage missing canonical tag | P2 | inspected | `2a77a7a` / merge `7d7cad5` route homepage metadata through `pageMetadata({ path: '/' })` and add conservative website/organization/software schema. Deployment and live source verification remain required. |
 | F-10 | Results panel wastes desktop space (452px on 1363px viewport) | P3 | inspected | `2a77a7a` / merge `7d7cad5` add desktop focused-results CSS: hide intro and expand result container to 920px. Deployment and live 1024/1440px visual verification remain required. |
 | F-11 | Generator wastes desktop width (single column) | P3 | unresolved | Generator currently has a two-column desktop layout; visual verification is still separate from this state record. |
@@ -51,6 +51,7 @@
 | F-14 | Existing XML Repairer still named Converter in API and backend contracts | P1 | 🔄 IN PROGRESS | Backend/API naming is outside the frontend audit pass. |
 | F-15 | Batch validator charges one free-tool quota unit for up to 50 upstream validations | P2 | open | Backend/rate-limit issue; outside the frontend audit pass. |
 | F-16 | `/v1/validate` stops accepting canonical JSON without a compatibility window | P2 | open | API contract issue; outside the frontend audit pass. |
+| F-17 | Generator Invoice templates use type codes rejected by current PINT AE Billing rules and skip full Schematron validation | P1 | reported | `388b72d` reports `standard-tax-invoice` emits `388` and `summary-tax-invoice` emits `386`, while the vendored/current Billing v1.0.4 subset is `380`/`480`. Generation runs UBL 2.1 XSD only, not the full XML/Schematron pipeline. Code correction, full-pipeline tests, deployment, and live verification are absent. |
 
 ## Resolved
 
@@ -60,14 +61,14 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `1d9ef55d91a7871792288caa1e325c711047643f` — `fix(web): keep mobile menu above page content`
+- **Last scanned main commit:** `388b72d345885577648ada28db4210dc72bbf214` — `docs: add validation coverage truth baseline (#16)`
 - **Scanned:** 2026-08-09
-- `52c69da` adds the caveated What We Check scope page. `2ed4553`, `5d8de34`, `864fedd`, and `7abf2b4` expose it through navigation, homepage scope, sitemap, and tests.
-- F-08 gains repository evidence: the new page avoids guaranteed acceptance, complete official artifact parity, exact rule-count, and ASP/FTA claims. Deployment, live-page, and search re-index checks are still missing.
-- `1d9ef55` raises the mobile navigation stacking level and adds a regression test. No tracked accessibility/SEO/legal/validation risk changed.
-- No new material parsing, validation, authentication, payment, legal, accessibility, SEO, or deployment risk was found in these diffs.
-- F-01 remains live-verified only against the recorded `f9bce80` deployment evidence. No later deployment/live status is inferred.
-- Exact official XSD/Schematron artifact/version parity and InvoiceTypeCode provenance remain AMG verification items.
+- `388b72d` adds a 411-line repository-evidence baseline for XML parsing, UBL 2.1 XSD, deterministic checks, PINT AE Billing v1.0.4 Schematron, Generator behavior, and known gaps.
+- F-03, F-04, F-05, and F-08 gain documentation evidence only. Their deployment/live status does not change.
+- F-17 added: two Generator Invoice templates reportedly emit `388`/`386`, outside the documented Billing subset `380`/`480`, and generation does not run the full Schematron path.
+- No product code or tests changed in this commit. The report itself is not proof that any fix is deployed.
+- F-01 remains live-verified only against the recorded `f9bce80` deployment evidence.
+- Fresh official-artifact checksum parity, independent Schematron parity, and live verification remain open.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
 
 ## Commit gate
