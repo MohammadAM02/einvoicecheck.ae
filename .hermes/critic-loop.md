@@ -50,7 +50,7 @@
 | F-13 | "API" and "Documentation" nav links both go to /docs | P3 | inspected | `2a77a7a` / merge `7d7cad5` replace both links with one `API Docs` entry and add a navigation regression test. Deployment and live navigation verification remain required. |
 | F-14 | Existing XML Repairer still named Converter in API and backend contracts | P1 | 🔄 IN PROGRESS | Backend/API naming is outside the frontend audit pass. |
 | F-15 | Batch validator charges one free-tool quota unit for up to 50 upstream validations | P2 | open | Backend/rate-limit issue; outside the frontend audit pass. |
-| F-16 / CL-003 | API/Pricing contract contradiction: `/v1/validate` described as the new API | P0 | blocked | PR #19 merge `36b1c942` resolves the repository contract and keeps legacy compatibility, but the production smoke gate is not clean: browser-facing validator copy/sample still advertises JSON while JSON now rejects, and direct authenticated endpoint semantics could not be run without a production API key. |
+| F-16 / CL-003 | API/Pricing contract contradiction: `/v1/validate` described as the new API | P0 | blocked | PR #20 merge `9a560cb5` closes the live browser copy/sample contradiction and production confirms the XML-only UI plus valid/broken XML samples. Live `/docs` and `/pricing` also show the corrected `/v2/validate`, `/v1/preflight`, and legacy `/v1/validate` contract. The only remaining gate is the authenticated endpoint matrix, which could not run without a production API key. |
 | F-17 | Generator Invoice templates use type codes rejected by current PINT AE Billing rules and skip full Schematron validation | P1 | reported | `388b72d` reports `standard-tax-invoice` emits `388` and `summary-tax-invoice` emits `386`, while the vendored/current Billing v1.0.4 subset is `380`/`480`. Generation runs UBL 2.1 XSD only, not the full XML/Schematron pipeline. Code correction, full-pipeline tests, deployment, and live verification are absent. |
 
 ## Resolved
@@ -61,9 +61,10 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `36b1c942acf536bec314a4df0939b4793d512453` — `Merge pull request #19 from motivatedc-creator/fix/api-contract-truth`
+- **Last scanned main commit:** `9a560cb5b5dfe04bbdb1453ea2980b2fa29960b1` — `Fix browser validator XML-only contract (#20)`
 - **Scanned:** 2026-08-09
 - PR #19 repository contract is recorded as: Browser Validator → XML only; `POST /v2/validate` → new XML; `POST /v1/preflight` → new canonical JSON; `POST /v1/validate` → legacy JSON/XML compatibility.
+- PR #20 deploys that browser contract: XML-only copy, file acceptance and paste flow; a passing UBL/PINT-AE XML sample; and a broken XML sample with two expected semantic TRN findings.
 - `8f3f822` adds shared tool headers, semantic workflow steppers, next-action panels, Generator/Repairer-to-Validator provenance, responsive overflow containment, and focused component tests.
 - F-06 gains accessibility evidence for ordered workflow progress and `aria-current="step"`; status remains `inspected` pending test execution, deployment, and live accessibility verification.
 - F-10 gains mobile containment evidence for long validator headings and repairer audit tables. The tracked desktop-width behavior is not live-verified.
@@ -83,6 +84,16 @@ Before `git push`, Hermes MUST:
 1. Run the available test/type/build suites.
 2. If verification cannot run in the current environment, record that explicitly instead of claiming success.
 3. After deploy, verify production separately and update this file only with evidence.
+
+## Smoke run 2026-08-09T16:30:33Z
+
+- **STATUS: BLOCKED / PARTIALLY LIVE-VERIFIED** — PR #20 merge `9a560cb5b5dfe04bbdb1453ea2980b2fa29960b1` is deployed; Railway reports both WEB and API production services successful.
+- **PR #20 verification:** PASS — 126/126 non-Mongo web tests, focused browser-contract tests, production build, and `git diff --check`. Three unchanged MongoMemoryServer suites remained unavailable in the sandbox because `mongod` exited 100.
+- **API health:** PASS — `GET https://api.einvoicecheck.ae/health` returned HTTP 200 with Mongo and Redis up.
+- **Route reachability:** PASS only at the auth boundary — unauthenticated requests covering raw XML at `/v2/validate`, canonical JSON and XML at `/v1/preflight`, and all four legacy `/v1/validate` forms returned the expected HTTP 401. Authenticated payload semantics remain unverified because no production API key was available.
+- **Browser Validator:** PASS — live copy is XML-only; the valid sample returned `Preflight passed`, 0 blocking issues, 0 warnings, invoice type 380, and 0 findings in format/structure/semantic. The broken sample returned `Preflight failed`, 2 blocking issues, 0 warnings, and exactly 2 semantic TRN findings.
+- **Docs and pricing:** PASS — live `/docs` and `/pricing` present `/v2/validate` for raw XML, `/v1/preflight` for canonical JSON, and `/v1/validate` as legacy JSON/XML compatibility. No stale “`/v1/validate` = new API” wording was found.
+- **Conclusion:** The browser contradiction from the prior smoke is closed in production. Keep CL-003 blocked until an authenticated production API matrix confirms accept/reject semantics for all three endpoints.
 
 ## Smoke run 2026-08-09T15:59:09.692Z
 
