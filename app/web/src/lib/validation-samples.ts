@@ -1,40 +1,132 @@
-const VALID_INVOICE = {
-  invoiceType: '388',
-  invoiceNumber: 'INV-2026-0001',
-  issueDate: '2026-07-14',
-  currency: 'AED',
-  supplier: { trn: '100123456700003', name: 'Falcon Trading LLC' },
-  customer: { trn: '100987654300003', name: 'Oasis Retail FZE' },
-  lines: [
-    { id: '1', quantity: 10, unitPrice: 50, lineExtensionAmount: 500, taxCategory: { code: 'S', rate: 5 }, itemName: 'Widget A' },
-  ],
-  taxSubtotals: [
-    { taxableAmount: 500, taxAmount: 25, category: { code: 'S', rate: 5 } },
-  ],
-  totals: {
-    lineExtensionAmount: 500,
-    taxExclusiveAmount: 500,
-    taxAmount: 25,
-    taxInclusiveAmount: 525,
-    payableAmount: 525,
-  },
-};
+export const VALID_XML_SAMPLE = String.raw`<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd">
+  <cbc:CustomizationID>urn:peppol:pint:billing-1@ae-1</cbc:CustomizationID>
+  <cbc:ProfileID>urn:peppol:bis:billing</cbc:ProfileID>
+  <cbc:ProfileExecutionID>00000000</cbc:ProfileExecutionID>
+  <cbc:ID>AE001-Test</cbc:ID>
+  <cbc:UUID>4b6000ca-0128-4bdc-99a6-406f2909247f</cbc:UUID>
+  <cbc:IssueDate>2025-01-30</cbc:IssueDate>
+  <cbc:DueDate>2025-02-06</cbc:DueDate>
+  <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>AED</cbc:DocumentCurrencyCode>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cbc:EndpointID schemeID="0235">1357902468</cbc:EndpointID>
+      <cac:PostalAddress>
+        <cbc:StreetName>Street Name</cbc:StreetName>
+        <cbc:CityName>City Name</cbc:CityName>
+        <cbc:CountrySubentity>DXB</cbc:CountrySubentity>
+        <cac:Country>
+          <cbc:IdentificationCode>AE</cbc:IdentificationCode>
+        </cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>135790246801003</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>Supplier Legal Name</cbc:RegistrationName>
+        <cbc:CompanyID schemeAgencyID="PAS" schemeAgencyName="ES">112345678900003</cbc:CompanyID>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cbc:EndpointID schemeID="0235">1345678901</cbc:EndpointID>
+      <cac:PostalAddress>
+        <cbc:StreetName>Street Name</cbc:StreetName>
+        <cbc:CityName>CityName</cbc:CityName>
+        <cbc:CountrySubentity>AUH</cbc:CountrySubentity>
+        <cac:Country>
+          <cbc:IdentificationCode>AE</cbc:IdentificationCode>
+        </cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>134567890123003</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>Buyer Legal Name</cbc:RegistrationName>
+        <cbc:CompanyID schemeAgencyID="TL" schemeAgencyName="Trade License issuing Authority">112345679000001</cbc:CompanyID>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:PaymentMeans>
+    <cbc:PaymentMeansCode name="Debit Card">55</cbc:PaymentMeansCode>
+    <cac:CardAccount>
+      <cbc:PrimaryAccountNumberID>XXXXXXXXXXXX1234</cbc:PrimaryAccountNumberID>
+      <cbc:NetworkID>VISA</cbc:NetworkID>
+      <cbc:HolderName>Card Holder Name</cbc:HolderName>
+    </cac:CardAccount>
+  </cac:PaymentMeans>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="AED">50</cbc:TaxAmount>
+    <cbc:TaxIncludedIndicator>false</cbc:TaxIncludedIndicator>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="AED">1000</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="AED">50</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>5</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="AED">1000</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="AED">1000</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="AED">1050</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="AED">1050</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:InvoiceLine>
+    <cbc:ID>1</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="H87">100</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="AED">1000</cbc:LineExtensionAmount>
+    <cac:Item>
+      <cbc:Description>Item Description</cbc:Description>
+      <cbc:Name>Item Name</cbc:Name>
+      <cac:CommodityClassification>
+        <cbc:CommodityCode>G</cbc:CommodityCode>
+        <cbc:ItemClassificationCode listID="HS">aaa</cbc:ItemClassificationCode>
+      </cac:CommodityClassification>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>5</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="AED">10</cbc:PriceAmount>
+      <cbc:BaseQuantity unitCode="H87">1</cbc:BaseQuantity>
+      <cac:AllowanceCharge>
+        <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
+        <cbc:AllowanceChargeReason>Sample discount</cbc:AllowanceChargeReason>
+        <cbc:Amount currencyID="AED">0</cbc:Amount>
+        <cbc:BaseAmount currencyID="AED">10</cbc:BaseAmount>
+      </cac:AllowanceCharge>
+    </cac:Price>
+    <cac:ItemPriceExtension>
+      <cbc:Amount currencyID="AED">1050</cbc:Amount>
+      <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="AED">50</cbc:TaxAmount>
+      </cac:TaxTotal>
+    </cac:ItemPriceExtension>
+  </cac:InvoiceLine>
+</Invoice>`;
 
-const BROKEN_INVOICE = {
-  ...VALID_INVOICE,
-  invoiceNumber: 'INV-2026-0002',
-  supplier: { trn: '12345', name: 'Falcon Trading LLC' },
-  lines: [
-    { id: '1', quantity: 10, unitPrice: 50, lineExtensionAmount: 999, taxCategory: { code: 'S', rate: 8 }, itemName: 'Widget A' },
-  ],
-  totals: {
-    lineExtensionAmount: 500,
-    taxExclusiveAmount: 500,
-    taxAmount: 25,
-    taxInclusiveAmount: 700,
-    payableAmount: 700,
-  },
-};
-
-export const VALID_JSON_SAMPLE = JSON.stringify(VALID_INVOICE, null, 2);
-export const BROKEN_JSON_SAMPLE = JSON.stringify(BROKEN_INVOICE, null, 2);
+export const BROKEN_XML_SAMPLE = VALID_XML_SAMPLE.replace(
+  '<cbc:CompanyID>135790246801003</cbc:CompanyID>',
+  '<cbc:CompanyID>12345</cbc:CompanyID>',
+);

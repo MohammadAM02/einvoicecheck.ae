@@ -4,7 +4,7 @@ import type React from 'react';
 import { createElement as h, useEffect, useRef, useState } from 'react';
 import { trackEvent } from '@/lib/analytics';
 import { ValidationClientError, readInvoiceFile, validateInvoiceDocument } from '@/lib/validation-client';
-import { BROKEN_JSON_SAMPLE, VALID_JSON_SAMPLE } from '@/lib/validation-samples';
+import { BROKEN_XML_SAMPLE, VALID_XML_SAMPLE } from '@/lib/validation-samples';
 import type { ValidateApiSuccess } from '@/lib/validation-ui';
 import { ValidationSummary } from './ValidationSummary';
 
@@ -156,7 +156,7 @@ export function ValidatorWorkspace({ context = 'tool' }: {
 
   return h('section', { className: 'validator-workspace', 'aria-label': 'Invoice validation workspace' },
     h('h2', null, 'Validate an invoice'),
-    h('p', { className: 'validator-formats' }, 'PINT-AE XML or canonical JSON, maximum 256 KB'),
+    h('p', { className: 'validator-formats' }, 'PINT-AE XML, maximum 256 KB'),
     h('p', { className: 'validator-purpose' }, 'Built for testing, implementation and troubleshooting. Not another invoicing system.'),
     h('p', null, 'Validated in memory; not persisted by this application.'),
     h('div', {
@@ -186,12 +186,12 @@ export function ValidatorWorkspace({ context = 'tool' }: {
       },
     },
     h('span', null, 'Drop an invoice here or choose a file'),
-    h('label', { htmlFor: 'invoice-file-input' }, 'Choose an XML or JSON invoice'),
+    h('label', { htmlFor: 'invoice-file-input' }, 'Choose an XML invoice'),
     h('input', {
       id: 'invoice-file-input',
       ref: inputRef,
       type: 'file',
-      accept: '.xml,.json,.txt,application/json,application/xml,text/xml',
+      accept: '.xml,.txt,application/xml,text/xml',
       hidden: true,
       onClick: (event: React.MouseEvent<HTMLInputElement>) => event.stopPropagation(),
       onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,12 +202,12 @@ export function ValidatorWorkspace({ context = 'tool' }: {
     })),
     currentFileName ? h('p', { className: 'selected-file-name' }, currentFileName) : null,
     h('div', { className: 'validator-actions' },
-      h('button', { type: 'button', disabled: validating, onClick: () => setPasteMode(true) }, 'Paste XML or JSON'),
-      h('button', { type: 'button', disabled: validating, onClick: () => validateSample(VALID_JSON_SAMPLE, 'valid_sample') }, 'Try valid sample'),
-      h('button', { type: 'button', disabled: validating, onClick: () => validateSample(BROKEN_JSON_SAMPLE, 'broken_sample') }, 'Try broken sample'),
+      h('button', { type: 'button', disabled: validating, onClick: () => setPasteMode(true) }, 'Paste XML'),
+      h('button', { type: 'button', disabled: validating, onClick: () => validateSample(VALID_XML_SAMPLE, 'valid_sample') }, 'Try valid sample'),
+      h('button', { type: 'button', disabled: validating, onClick: () => validateSample(BROKEN_XML_SAMPLE, 'broken_sample') }, 'Try broken sample'),
     ),
     pasteMode ? h('div', { className: 'validator-paste' },
-      h('label', { htmlFor: 'invoice-paste-input' }, 'Invoice XML or JSON'),
+      h('label', { htmlFor: 'invoice-paste-input' }, 'Invoice XML'),
       h('textarea', {
         id: 'invoice-paste-input',
         value: documentText,

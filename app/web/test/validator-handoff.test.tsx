@@ -130,7 +130,7 @@ describe('ValidatorWorkspace handoff', () => {
     // The component stays in idle state
     expect(screen.getByText('Validate an invoice')).toBeTruthy();
     expect(
-      screen.getByLabelText('Choose an XML or JSON invoice'),
+      screen.getByLabelText('Choose an XML invoice'),
     ).toBeTruthy();
   });
 });

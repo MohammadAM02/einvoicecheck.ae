@@ -34,7 +34,7 @@ const FAQS = [
   ['Are you an accredited ASP?', 'No. einvoicecheck.ae is an independent preflight tool and does not transmit legal e-invoices.'],
   ['What does “preflight passed” mean?', 'The checks currently included found no blocking issue. It does not guarantee ASP or authority acceptance.'],
   ['Is my invoice stored?', 'Submitted content is validated in memory and is not persisted by the application, database or rate-limit store.'],
-  ['Which formats can I upload?', 'UBL/PINT-AE XML and this product’s canonical JSON input.'],
+  ['Which formats can I upload?', 'UBL / PINT-AE XML.'],
   ['What is the free limit?', 'The free validator allows 20 validations per hour per IP address.'],
 ] as const;
 
@@ -71,7 +71,7 @@ export default function HomeClient() {
           <div className="hero-intro">
             <h1>Check your UAE e-invoice before your ASP does</h1>
             <p className="hero-promise">Your ERP creates the invoice. We check whether it will pass.</p>
-            <p className="hero-copy">Upload PINT-AE XML or canonical JSON. Get the exact field and fix.</p>
+            <p className="hero-copy">Upload PINT-AE XML. Get the exact field and fix.</p>
           </div>
           <ValidatorWorkspace context="homepage" />
         </div>

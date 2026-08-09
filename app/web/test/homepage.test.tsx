@@ -27,7 +27,7 @@ describe('Homepage', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Check your UAE e-invoice before your ASP does' })).toBeTruthy();
     expect(screen.getByText('Your ERP creates the invoice. We check whether it will pass.')).toBeTruthy();
-    expect(screen.getByText('Upload PINT-AE XML or canonical JSON. Get the exact field and fix.')).toBeTruthy();
+    expect(screen.getByText('Upload PINT-AE XML. Get the exact field and fix.')).toBeTruthy();
     expect(screen.getByText('Validate an invoice')).toBeTruthy();
     expect(screen.getByTestId('validator-workspace').getAttribute('data-context')).toBe('homepage');
   });
@@ -55,11 +55,12 @@ describe('Homepage', () => {
     renderHomepage();
 
     for (const item of [
-      'PINT-AE XML + canonical JSON',
+      'Browser validator: PINT-AE XML',
       'No signup required',
       'Invoice content not persisted by the app',
       'Independent preflight, not an ASP',
     ]) expect(screen.getByText(item)).toBeTruthy();
+    expect(screen.queryByText(/PINT-AE XML \+ canonical JSON/)).toBeNull();
     expect(screen.queryByText(/99\.7%|Sub-50ms|SHA-256 Key Security/)).toBeNull();
   });
 
@@ -126,6 +127,7 @@ describe('Homepage', () => {
       'Which formats can I upload?',
       'What is the free limit?',
     ]) expect(screen.getByText(question)).toBeTruthy();
+    expect(screen.getByText('UBL / PINT-AE XML.')).toBeTruthy();
     expect(screen.queryByText('Does the API check more rules than the free validator?')).toBeNull();
 
     for (const [name, href] of [

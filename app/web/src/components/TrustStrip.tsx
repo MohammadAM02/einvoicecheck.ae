@@ -1,7 +1,7 @@
 import { createElement as h } from 'react';
 
 const TRUST_FACTS = [
-  'PINT-AE XML + canonical JSON',
+  'Browser validator: PINT-AE XML',
   'No signup required',
   'Invoice content not persisted by the app',
   'Independent preflight, not an ASP',

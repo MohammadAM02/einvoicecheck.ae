@@ -46,12 +46,12 @@ export async function validateInvoiceDocument(document: string, signal?: AbortSi
 
 export async function readInvoiceFile(file: File): Promise<string> {
   if (file.size > MAX_BROWSER_DOCUMENT_BYTES) {
-    throw new ValidationClientError('File is larger than 256 KB. Choose a smaller XML or JSON invoice.', 413);
+    throw new ValidationClientError('File is larger than 256 KB. Choose a smaller XML invoice.', 413);
   }
 
   const extension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-  if (!['.xml', '.json', '.txt'].includes(extension)) {
-    throw new ValidationClientError('Choose an XML or JSON invoice file.');
+  if (!['.xml', '.txt'].includes(extension)) {
+    throw new ValidationClientError('Choose an XML invoice file.');
   }
 
   return file.text();

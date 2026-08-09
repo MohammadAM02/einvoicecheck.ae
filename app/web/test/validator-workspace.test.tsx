@@ -22,8 +22,8 @@ vi.mock('@/lib/validation-client', () => ({
   },
 }));
 vi.mock('@/lib/validation-samples', () => ({
-  VALID_JSON_SAMPLE: '{"sample":"valid"}',
-  BROKEN_JSON_SAMPLE: '{"sample":"broken"}',
+  VALID_XML_SAMPLE: '<Invoice>valid</Invoice>',
+  BROKEN_XML_SAMPLE: '<Invoice>broken</Invoice>',
 }));
 vi.mock('@/lib/analytics', () => analytics);
 
@@ -60,7 +60,7 @@ describe('ValidatorWorkspace', () => {
     renderWorkspace();
 
     expect(screen.getByText('Validate an invoice')).toBeTruthy();
-    expect(screen.getByText('PINT-AE XML or canonical JSON, maximum 256 KB')).toBeTruthy();
+    expect(screen.getByText('PINT-AE XML, maximum 256 KB')).toBeTruthy();
     expect(screen.getByText('Built for testing, implementation and troubleshooting. Not another invoicing system.')).toBeTruthy();
     expect(screen.getByText('Validated in memory; not persisted by this application.')).toBeTruthy();
     expect(screen.queryByText(/sign up|required|signup/i)).toBeNull();
@@ -69,7 +69,9 @@ describe('ValidatorWorkspace', () => {
   it('opens the file picker from the drop zone click and keyboard controls', async () => {
     const user = userEvent.setup();
     renderWorkspace();
-    const input = screen.getByLabelText('Choose an XML or JSON invoice');
+    const input = screen.getByLabelText('Choose an XML invoice');
+    expect(input.getAttribute('accept')).not.toContain('.json');
+    expect(screen.queryByText(/canonical JSON|XML or JSON/i)).toBeNull();
     const click = vi.spyOn(input, 'click');
     const dropZone = screen.getByTestId('invoice-drop-zone');
 
@@ -86,7 +88,7 @@ describe('ValidatorWorkspace', () => {
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
     renderWorkspace();
 
-    await user.upload(screen.getByLabelText('Choose an XML or JSON invoice'), new File(['ignored'], 'invoice.xml', { type: 'application/xml' }));
+    await user.upload(screen.getByLabelText('Choose an XML invoice'), new File(['ignored'], 'invoice.xml', { type: 'application/xml' }));
 
     await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('  <Invoice>upload</Invoice>  ', expect.any(AbortSignal)));
     expect(validationClient.readInvoiceFile).toHaveBeenCalledOnce();
@@ -95,29 +97,29 @@ describe('ValidatorWorkspace', () => {
   });
 
   it('uses the same client flow for a dropped file and shows its name', async () => {
-    validationClient.readInvoiceFile.mockResolvedValue('{"drop":true}');
+    validationClient.readInvoiceFile.mockResolvedValue('<Invoice>drop</Invoice>');
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
     renderWorkspace();
-    const file = new File(['ignored'], 'dropped.json', { type: 'application/json' });
+    const file = new File(['ignored'], 'dropped.xml', { type: 'application/xml' });
 
     fireEvent.drop(screen.getByTestId('invoice-drop-zone'), { dataTransfer: { files: [file] } });
 
-    await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('{"drop":true}', expect.any(AbortSignal)));
+    await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('<Invoice>drop</Invoice>', expect.any(AbortSignal)));
     expect(validationClient.readInvoiceFile).toHaveBeenCalledWith(file);
-    expect(screen.getByText('dropped.json')).toBeTruthy();
+    expect(screen.getByText('dropped.xml')).toBeTruthy();
     expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'homepage', method: 'drop' });
   });
 
   it('links oversize local files to documentation without claiming a larger API limit', async () => {
     const user = userEvent.setup();
     validationClient.readInvoiceFile.mockRejectedValue(
-      new ValidationClientError('File is larger than 256 KB. Choose a smaller XML or JSON invoice.', 413),
+      new ValidationClientError('File is larger than 256 KB. Choose a smaller XML invoice.', 413),
     );
     renderWorkspace();
 
     await user.upload(
-      screen.getByLabelText('Choose an XML or JSON invoice'),
-      new File(['oversize'], 'oversize.json', { type: 'application/json' }),
+      screen.getByLabelText('Choose an XML invoice'),
+      new File(['oversize'], 'oversize.xml', { type: 'application/xml' }),
     );
 
     expect((await screen.findByRole('alert')).textContent).toContain('File is larger than 256 KB.');
@@ -130,18 +132,18 @@ describe('ValidatorWorkspace', () => {
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
     renderWorkspace();
 
-    await user.click(screen.getByRole('button', { name: 'Paste XML or JSON' }));
-    const input = screen.getByLabelText('Invoice XML or JSON');
-    fireEvent.change(input, { target: { value: '  {"invoice":"paste"}  ' } });
+    await user.click(screen.getByRole('button', { name: 'Paste XML' }));
+    const input = screen.getByLabelText('Invoice XML');
+    fireEvent.change(input, { target: { value: '  <Invoice>paste</Invoice>  ' } });
     await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
 
-    await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('  {"invoice":"paste"}  ', expect.any(AbortSignal)));
+    await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('  <Invoice>paste</Invoice>  ', expect.any(AbortSignal)));
     expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'homepage', method: 'paste' });
   });
 
   it.each([
-    ['Try valid sample', '{"sample":"valid"}', 'valid_sample'],
-    ['Try broken sample', '{"sample":"broken"}', 'broken_sample'],
+    ['Try valid sample', '<Invoice>valid</Invoice>', 'valid_sample'],
+    ['Try broken sample', '<Invoice>broken</Invoice>', 'broken_sample'],
   ] as const)('validates the %s without changing it', async (button, document, method) => {
     const user = userEvent.setup();
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
@@ -161,8 +163,8 @@ describe('ValidatorWorkspace', () => {
     validationClient.validateInvoiceDocument.mockRejectedValue(new ValidationClientError(message, status));
     renderWorkspace();
 
-    await user.click(screen.getByRole('button', { name: 'Paste XML or JSON' }));
-    const input = screen.getByLabelText('Invoice XML or JSON');
+    await user.click(screen.getByRole('button', { name: 'Paste XML' }));
+    const input = screen.getByLabelText('Invoice XML');
     await user.type(input, 'retained server document');
     await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
 
@@ -180,8 +182,8 @@ describe('ValidatorWorkspace', () => {
       signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
     }));
     renderWorkspace();
-    fireEvent.click(screen.getByRole('button', { name: 'Paste XML or JSON' }));
-    fireEvent.change(screen.getByLabelText('Invoice XML or JSON'), { target: { value: 'retained timeout document' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Paste XML' }));
+    fireEvent.change(screen.getByLabelText('Invoice XML'), { target: { value: 'retained timeout document' } });
     fireEvent.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
 
     await act(async () => {
@@ -189,15 +191,15 @@ describe('ValidatorWorkspace', () => {
     });
 
     expect(screen.getByRole('alert').textContent).toContain('Validation timed out. Your invoice is still here — try again.');
-    expect((screen.getByLabelText('Invoice XML or JSON') as HTMLTextAreaElement).value).toBe('retained timeout document');
+    expect((screen.getByLabelText('Invoice XML') as HTMLTextAreaElement).value).toBe('retained timeout document');
   });
 
   it('retains pasted input with a generic network message', async () => {
     const user = userEvent.setup();
     validationClient.validateInvoiceDocument.mockRejectedValue(new Error('offline'));
     renderWorkspace();
-    await user.click(screen.getByRole('button', { name: 'Paste XML or JSON' }));
-    const input = screen.getByLabelText('Invoice XML or JSON');
+    await user.click(screen.getByRole('button', { name: 'Paste XML' }));
+    const input = screen.getByLabelText('Invoice XML');
     await user.type(input, 'retained network document');
     await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
 
@@ -211,8 +213,8 @@ describe('ValidatorWorkspace', () => {
       .mockRejectedValueOnce(new ValidationClientError('Retry later.', 429))
       .mockResolvedValueOnce(success);
     renderWorkspace();
-    await user.click(screen.getByRole('button', { name: 'Paste XML or JSON' }));
-    await user.type(screen.getByLabelText('Invoice XML or JSON'), 'retry document');
+    await user.click(screen.getByRole('button', { name: 'Paste XML' }));
+    await user.type(screen.getByLabelText('Invoice XML'), 'retry document');
     await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
     await screen.findByRole('alert');
     await user.click(screen.getByRole('button', { name: 'Retry' }));
@@ -248,8 +250,8 @@ describe('ValidatorWorkspace', () => {
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
     renderWorkspace();
     const privateDocument = 'PRIVATE-INVOICE-DOCUMENT-12345';
-    await user.click(screen.getByRole('button', { name: 'Paste XML or JSON' }));
-    await user.type(screen.getByLabelText('Invoice XML or JSON'), privateDocument);
+    await user.click(screen.getByRole('button', { name: 'Paste XML' }));
+    await user.type(screen.getByLabelText('Invoice XML'), privateDocument);
     await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
     await screen.findByRole('heading', { name: 'Preflight passed' });
 
