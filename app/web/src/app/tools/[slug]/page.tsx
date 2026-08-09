@@ -161,7 +161,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 integrations should send a bare invoice object to <code>POST /v1/preflight</code>.
                 Existing <code>POST /v1/validate</code> clients remain supported as a legacy
                 JSON/XML compatibility path. Authenticated API calls use an{' '}
-                <code>x-api-key</code> header, with plan-based monthly quotas and per-minute rate limits.
+                <code>x-api-key</code> header; usage is metered per key and per-minute rate limits apply.
               </p>
               <pre className="keybox" style={{ marginBottom: 16 }}><code>{CURL_SNIPPET}</code></pre>
               <pre className="keybox" style={{ marginBottom: 24 }}><code>{NODE_SNIPPET}</code></pre>

@@ -124,7 +124,7 @@ content-type: application/xml
               <tr><td>400</td><td>The request body is not raw XML. Canonical JSON goes to <code>/v1/preflight</code>.</td></tr>
               <tr><td>401</td><td>Missing or invalid API key.</td></tr>
               <tr><td>413</td><td>Document exceeds the accepted payload size.</td></tr>
-              <tr><td>429</td><td>Rate limit or monthly quota exceeded.</td></tr>
+              <tr><td>429</td><td>Per-key rate limit exceeded.</td></tr>
             </tbody>
           </table>
         </div>
