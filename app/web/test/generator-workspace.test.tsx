@@ -95,8 +95,9 @@ describe('GeneratorWorkspace', () => {
     render(h(GeneratorWorkspace));
 
     // Stepper
-    expect(screen.getByText('Build')).toBeTruthy();
+    expect(screen.getByText('Create')).toBeTruthy();
     expect(screen.getByText('Validate')).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'Generator progress' })).toBeTruthy();
 
     // Sections
     expect(screen.getByText('Document')).toBeTruthy();
@@ -210,6 +211,7 @@ describe('GeneratorWorkspace', () => {
     const parsed = JSON.parse(handoff!);
     expect(parsed.source).toBe('xml-generator');
     expect(parsed.xml).toBe(MOCK_XML);
+    expect(parsed.fileName).toBe('generated-invoice.xml');
 
     // Check router.push
     expect(routerMock.push).toHaveBeenCalledWith('/tools/uae-e-invoice-validator');

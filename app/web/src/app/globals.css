@@ -1726,6 +1726,18 @@ summary:focus-visible,
   cursor: pointer;
 }
 
+.validation-summary button.btn-primary {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.validation-summary button.btn-ghost {
+  color: var(--ink-muted);
+  background: transparent;
+  border-color: transparent;
+}
+
 .validator-actions button:hover,
 .validator-paste button:hover,
 .validation-summary button:hover,
@@ -1901,6 +1913,12 @@ summary:focus-visible,
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+}
+
+.validation-issue__heading h3 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .validation-issue__heading p {
@@ -2545,21 +2563,42 @@ pre {
 }
 
 /* ============================================================
-   XML REPAIRER — stepper, dropzone, progress, verdict, diff, actions
+   PRODUCT EXPERIENCE SYSTEM — shared tool context and workflow
    ============================================================ */
 
-/* Stepper */
-.repairer-stepper { display: flex; gap: 0; margin: 0 0 26px; }
-.repairer-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
-.repairer-step::after { content: ''; position: absolute; top: 17px; left: calc(50% + 22px); width: calc(100% - 44px); height: 2px; background: var(--border); }
-.repairer-step:last-child::after { display: none; }
-.repairer-step.done::after { background: var(--accent); }
-.repairer-step .repairer-dot { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border); display: grid; place-items: center; font-weight: 600; font-size: .85rem; color: var(--ink-muted); z-index: 1; transition: all .2s; }
-.repairer-step.active .repairer-dot { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
-.repairer-step.done .repairer-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
-.repairer-step .repairer-label { font-size: .8rem; color: var(--ink-muted); font-weight: 500; }
-.repairer-step.active .repairer-label { color: var(--accent); font-weight: 600; }
-.repairer-step.done .repairer-label { color: var(--ink-secondary); }
+.tool-page-header { margin-bottom: 24px; }
+.tool-page-header__eyebrow { display: inline-flex; margin: 0 0 12px; padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius-full); background: var(--bg-elevated); color: var(--ink-secondary); font-size: .78rem; font-weight: 600; }
+.tool-page-header h1 { margin-bottom: 12px; }
+.tool-page-header__description { margin: 0; color: var(--ink-secondary); font-size: clamp(1rem, 1.5vw, 1.15rem); line-height: 1.65; }
+
+.workflow-stepper { display: flex; gap: 0; margin: 0 0 26px; padding: 0; list-style: none; }
+.workflow-stepper__step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
+.workflow-stepper__step::after { content: ''; position: absolute; top: 17px; left: calc(50% + 22px); width: calc(100% - 44px); height: 2px; background: var(--border); }
+.workflow-stepper__step:last-child::after { display: none; }
+.workflow-stepper__step.is-complete::after { background: var(--accent); }
+.workflow-stepper__marker { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border); display: grid; place-items: center; font-weight: 600; font-size: .85rem; color: var(--ink-muted); z-index: 1; transition: border-color .2s, background .2s, color .2s; }
+.workflow-stepper__step.is-current .workflow-stepper__marker { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
+.workflow-stepper__step.is-complete .workflow-stepper__marker { background: var(--accent); border-color: var(--accent); color: #fff; }
+.workflow-stepper__label { font-size: .8rem; color: var(--ink-muted); font-weight: 500; }
+.workflow-stepper__step.is-current .workflow-stepper__label { color: var(--accent); font-weight: 600; }
+.workflow-stepper__step.is-complete .workflow-stepper__label { color: var(--ink-secondary); }
+
+.next-action-panel { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius-md); background: var(--bg-card); padding: 16px 18px; }
+.next-action-panel__body { min-width: 0; }
+.next-action-panel__body strong { font-family: var(--font-heading); font-size: .95rem; color: var(--ink); }
+.next-action-panel__body p { margin: 6px 0 0; color: var(--ink-secondary); font-size: .88rem; }
+.next-action-panel__actions { display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+.validation-result-origin { margin: 0 0 8px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--accent-subtle); color: var(--accent); font-size: .85rem; font-weight: 600; }
+
+@media (max-width: 767px) {
+  .next-action-panel { align-items: stretch; flex-direction: column; }
+  .next-action-panel__actions { flex-direction: column; width: 100%; }
+  .next-action-panel__actions > * { width: 100%; }
+}
+
+/* ============================================================
+   XML REPAIRER — stepper, dropzone, progress, verdict, diff, actions
+   ============================================================ */
 
 /* Dropzone */
 .repairer-dropzone { border: 2px dashed var(--border-solid); border-radius: var(--radius-lg); background: var(--bg-card); padding: 26px 22px; text-align: center; transition: border-color .15s, background .15s; cursor: pointer; }
@@ -2624,9 +2663,6 @@ pre {
 .repairer-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(8,127,107,.25); border-top-color: var(--accent); border-radius: 50%; animation: repairerSpin .7s linear infinite; }
 @keyframes repairerSpin { to { transform: rotate(360deg); } }
 
-/* Next panel */
-.repairer-next-panel { margin-top: 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius-md); background: var(--bg-card); padding: 16px 18px; }
-
 /* Toast */
 .repairer-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 11px 20px; border-radius: var(--radius-md); font-size: .88rem; box-shadow: 0 1px 2px rgba(16,42,67,.06), 0 8px 24px rgba(16,42,67,.08); opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 50; }
 .repairer-toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
@@ -2637,7 +2673,14 @@ pre {
 .repairer-blocked-table td { padding: 6px 8px; border-bottom: 1px solid var(--bg-elevated); font-family: var(--font-code); font-size: .76rem; vertical-align: top; }
 
 /* Audit table inside repairer */
-.repairer-audit-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.repairer-audit-table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: .8rem;
+}
 .repairer-audit-table th { text-align: left; color: var(--ink-muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); }
 .repairer-audit-table td { padding: 6px 8px; border-bottom: 1px solid var(--bg-elevated); font-family: var(--font-code); font-size: .76rem; vertical-align: top; }
 
@@ -2651,19 +2694,6 @@ pre {
 /* ============================================================
    XML GENERATOR — stepper, form, preview, totals, legend, banner
    ============================================================ */
-
-/* Stepper (mirrors .repairer-stepper) */
-.generator-stepper { display: flex; gap: 0; margin: 0 0 26px; }
-.generator-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
-.generator-step::after { content: ''; position: absolute; top: 17px; left: calc(50% + 22px); width: calc(100% - 44px); height: 2px; background: var(--border); }
-.generator-step:last-child::after { display: none; }
-.generator-step.done::after { background: var(--accent); }
-.generator-step .generator-dot { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border); display: grid; place-items: center; font-weight: 600; font-size: .85rem; color: var(--ink-muted); z-index: 1; transition: all .2s; }
-.generator-step.active .generator-dot { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
-.generator-step.done .generator-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
-.generator-step .generator-label { font-size: .8rem; color: var(--ink-muted); font-weight: 500; }
-.generator-step.active .generator-label { color: var(--accent); font-weight: 600; }
-.generator-step.done .generator-label { color: var(--ink-secondary); }
 
 /* Layout: two-column on desktop, stacked on mobile */
 .generator-layout { display: grid; grid-template-columns: 1fr; gap: 24px; }
@@ -2726,9 +2756,6 @@ pre {
 /* Error */
 .generator-error { margin-top: 6px; padding: 10px 14px; background: var(--error-subtle); border: 1px solid #efc2bc; border-radius: var(--radius-md); }
 .generator-error-text { font-size: 13px; color: var(--error); }
-
-/* Next panel (mirrors .repairer-next-panel) */
-.generator-next-panel { margin-top: 4px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius-md); background: var(--bg-card); padding: 16px 18px; }
 
 /* Preview */
 .generator-preview { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; }

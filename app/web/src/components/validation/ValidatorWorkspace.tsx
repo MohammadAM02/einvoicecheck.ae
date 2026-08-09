@@ -11,9 +11,16 @@ import { ValidationSummary } from './ValidationSummary';
 type WorkspaceState =
   | { phase: 'idle' }
   | { phase: 'ready'; fileName?: string }
-  | { phase: 'validating'; fileName?: string }
-  | { phase: 'result'; data: ValidateApiSuccess; fileName?: string }
-  | { phase: 'error'; message: string; status: number | null; fileName?: string };
+  | { phase: 'validating'; fileName?: string; origin?: HandoffSource }
+  | { phase: 'result'; data: ValidateApiSuccess; fileName?: string; origin?: HandoffSource }
+  | { phase: 'error'; message: string; status: number | null; fileName?: string; origin?: HandoffSource };
+
+type HandoffSource = 'xml-generator' | 'xml-repairer';
+
+const HANDOFF_CONTEXT: Record<HandoffSource, { label: string; fileName: string }> = {
+  'xml-generator': { label: 'XML Generator', fileName: 'generated-invoice.xml' },
+  'xml-repairer': { label: 'XML Repairer', fileName: 'repaired-invoice.xml' },
+};
 
 type InputMethod = 'upload' | 'drop' | 'paste' | 'valid_sample' | 'broken_sample';
 
@@ -50,10 +57,11 @@ export function ValidatorWorkspace({ context = 'tool' }: {
       const raw = sessionStorage.getItem('einvoicecheck:converter-handoff');
       if (!raw) return;
       sessionStorage.removeItem('einvoicecheck:converter-handoff');
-      const parsed = JSON.parse(raw) as { source?: string; xml?: string };
-      if (['xml-repairer', 'xml-generator'].includes(parsed?.source ?? '') && typeof parsed.xml === 'string' && parsed.xml.trim()) {
+      const parsed = JSON.parse(raw) as { source?: HandoffSource; fileName?: string; xml?: string };
+      if (parsed.source && parsed.source in HANDOFF_CONTEXT && typeof parsed.xml === 'string' && parsed.xml.trim()) {
         setDocumentText(parsed.xml);
-        void validate(parsed.xml, 'repaired.xml');
+        const context = HANDOFF_CONTEXT[parsed.source];
+        void validate(parsed.xml, parsed.fileName || context.fileName, parsed.source);
       }
     } catch { /* malformed/stale — silently ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,19 +71,19 @@ export function ValidatorWorkspace({ context = 'tool' }: {
     trackEvent('validator_input_selected', { context, method });
   }
 
-  function showError(message: string, status: number | null, fileName?: string, category: number | 'network' | 'timeout' | 'file' = 'file') {
-    setState({ phase: 'error', message, status, fileName });
+  function showError(message: string, status: number | null, fileName?: string, category: number | 'network' | 'timeout' | 'file' = 'file', origin?: HandoffSource) {
+    setState({ phase: 'error', message, status, fileName, origin });
     trackEvent('validator_error', { context, status: category });
   }
 
-  async function validate(document: string, fileName?: string) {
+  async function validate(document: string, fileName?: string, origin?: HandoffSource) {
     abortRef.current?.abort();
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     const controller = new AbortController();
     let timedOut = false;
     abortRef.current = controller;
-    setState({ phase: 'validating', fileName });
+    setState({ phase: 'validating', fileName, origin });
     timeoutRef.current = setTimeout(() => {
       timedOut = true;
       controller.abort();
@@ -84,16 +92,16 @@ export function ValidatorWorkspace({ context = 'tool' }: {
     try {
       const data = await validateInvoiceDocument(document, controller.signal);
       if (abortRef.current !== controller) return;
-      setState({ phase: 'result', data, fileName });
+      setState({ phase: 'result', data, fileName, origin });
       trackEvent('validator_success', { context, valid: data.result.valid });
     } catch (error) {
       if (abortRef.current !== controller) return;
       if (error instanceof ValidationClientError) {
-        showError(error.message, error.status, fileName, error.status ?? 'file');
+        showError(error.message, error.status, fileName, error.status ?? 'file', origin);
       } else if (typeof error === 'object' && error !== null && 'name' in error && error.name === 'AbortError' && timedOut) {
-        showError(TIMEOUT_MESSAGE, null, fileName, 'timeout');
+        showError(TIMEOUT_MESSAGE, null, fileName, 'timeout', origin);
       } else {
-        showError(NETWORK_MESSAGE, null, fileName, 'network');
+        showError(NETWORK_MESSAGE, null, fileName, 'network', origin);
       }
     } finally {
       if (abortRef.current !== controller) return;
@@ -140,6 +148,7 @@ export function ValidatorWorkspace({ context = 'tool' }: {
 
   if (state.phase === 'result') {
     return h('div', { className: 'validator-result' },
+      state.origin ? h('p', { className: 'validation-result-origin', role: 'status' }, `Validated from ${HANDOFF_CONTEXT[state.origin].label}`) : null,
       state.fileName ? h('p', { className: 'selected-file-name' }, state.fileName) : null,
       h(ValidationSummary, { result: state.data.result, rateLimit: state.data.rateLimit, onReset: reset }),
     );

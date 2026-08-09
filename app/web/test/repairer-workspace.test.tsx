@@ -70,6 +70,14 @@ afterEach(() => {
 });
 
 describe('RepairerWorkspace', () => {
+  it('uses the shared semantic repair and revalidate workflow', () => {
+    render(h(RepairerWorkspace));
+
+    expect(screen.getByRole('list', { name: 'Repair progress' })).toBeTruthy();
+    expect(screen.getByText('Repair')).toBeTruthy();
+    expect(screen.getByText('Revalidate')).toBeTruthy();
+  });
+
   it('shows no mode toggle (single repair mode)', () => {
     render(h(RepairerWorkspace));
     expect(screen.queryByText(/Full \(refuse on data errors\)/)).toBeNull();
@@ -120,6 +128,7 @@ describe('RepairerWorkspace', () => {
 
     const handoff = sessionStorage.getItem('einvoicecheck:converter-handoff');
     expect(handoff).toContain('xml-repairer');
+    expect(JSON.parse(handoff!).fileName).toBe('repaired-invoice.xml');
     expect(routerMock.push).toHaveBeenCalledWith(
       '/tools/uae-e-invoice-validator',
     );

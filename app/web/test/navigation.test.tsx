@@ -170,6 +170,18 @@ describe('UAE Compliance Desk visual system source', () => {
     expect(compressionCss).toContain('.api-spotlight');
   });
 
+  it('wraps long Validator finding headings instead of clipping them on mobile', () => {
+    const css = source('app', 'globals.css');
+
+    expect(css).toMatch(/\.validation-issue__heading h3\s*\{[^}]*min-width:\s*0;[^}]*overflow-wrap:\s*anywhere;/s);
+  });
+
+  it('keeps the Repairer audit table in a local horizontal scroller', () => {
+    const css = source('app', 'globals.css');
+
+    expect(css).toMatch(/\.repairer-audit-table\s*\{[^}]*display:\s*block;[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;/s);
+  });
+
   it('defines every focused compliance desk class', () => {
     const css = source('app', 'globals.css');
     for (const className of [

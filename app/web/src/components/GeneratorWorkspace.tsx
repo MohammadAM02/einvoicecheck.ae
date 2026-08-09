@@ -10,6 +10,7 @@ import {
 } from '@/lib/generator-client';
 import type { GenerateInput, GenerateLine } from '@/lib/generator-client';
 import { downloadXml, copyXml } from '@/lib/repairer-client';
+import { NextActionPanel, WorkflowStepper } from '@/components/ProductExperience';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -369,7 +370,11 @@ export function GeneratorWorkspace(): React.ReactElement {
     try {
       sessionStorage.setItem(
         'einvoicecheck:converter-handoff',
-        JSON.stringify({ source: 'xml-generator', xml: state.xml }),
+        JSON.stringify({
+          source: 'xml-generator',
+          fileName: 'generated-invoice.xml',
+          xml: state.xml,
+        }),
       );
     } catch {
       /* noop */
@@ -441,8 +446,6 @@ export function GeneratorWorkspace(): React.ReactElement {
   const isError = state.phase === 'error';
   const isBuilding = state.phase === 'building';
   const canSubmit = isMinimallyValid(form) && supplierTrnOk && customerTrnOk;
-  const step1Class = 'generator-step' + (isReady ? ' done' : state.phase !== 'idle' ? ' active' : '');
-  const step2Class = 'generator-step' + (isReady ? ' active' : '');
 
   /* ---- field errors map ---- */
 
@@ -462,22 +465,13 @@ export function GeneratorWorkspace(): React.ReactElement {
     /* ================================================================
        STEPPER
        ================================================================ */
-    h(
-      'div',
-      { className: 'generator-stepper', 'aria-label': 'Generator progress' },
-      h(
-        'div',
-        { className: step1Class },
-        h('div', { className: 'generator-dot' }, '1'),
-        h('div', { className: 'generator-label' }, 'Build'),
-      ),
-      h(
-        'div',
-        { className: step2Class },
-        h('div', { className: 'generator-dot' }, '2'),
-        h('div', { className: 'generator-label' }, 'Validate'),
-      ),
-    ),
+    h(WorkflowStepper, {
+      label: 'Generator progress',
+      steps: [
+        { label: 'Create', status: isReady ? 'complete' : 'current' },
+        { label: 'Validate', status: isReady ? 'current' : 'upcoming' },
+      ],
+    }),
 
     /* ================================================================
        MAIN LAYOUT: form left, preview right
@@ -957,14 +951,12 @@ export function GeneratorWorkspace(): React.ReactElement {
         /* ---- Next panel: Step 2 — Validate ---- */
         isReady
           ? h(
-              'div',
-              { className: 'generator-next-panel', 'data-testid': 'validate-panel' },
-              h('strong', { style: { fontSize: '0.95rem' } }, 'Step 2 — Validate'),
-              h(
-                'p',
-                { className: 'muted', style: { margin: '6px 0 12px' } },
-                'Run this generated invoice through the rule engine.',
-              ),
+              NextActionPanel,
+              {
+                title: 'Validate the generated invoice',
+                description: 'Run this XML through the Validator before you continue.',
+                testId: 'validate-panel',
+              },
               h(
                 'button',
                 {

@@ -99,6 +99,13 @@ describe('ValidationSummary', () => {
     expect(onReset).toHaveBeenCalledOnce();
   });
 
+  it('keeps revalidation visually primary beside the report action', () => {
+    render(h(ValidationSummary, { result: failedResult, rateLimit, onReset: vi.fn() }));
+
+    expect(screen.getByRole('button', { name: 'Validate another file' }).className).toContain('btn-primary');
+    expect(screen.getByRole('button', { name: 'Copy report' }).className).toContain('btn-ghost');
+  });
+
   it('copies the preflight report when clipboard is available', async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
@@ -110,14 +117,17 @@ describe('ValidationSummary', () => {
     expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy();
   });
 
-  it('keeps the API conversion close to long results and preserves rate-limit information', () => {
+  it('shows the correction path before operational metadata and findings before API conversion', () => {
     const { container } = render(h(ValidationSummary, { result: failedResult, rateLimit: { ...rateLimit, degraded: true }, onReset: vi.fn() }));
 
     const apiLink = screen.getByRole('link', { name: 'Use the validation API' });
     const issueList = container.querySelector('.validation-issue-list');
+    const nextAction = screen.getByRole('region', { name: 'Correct and revalidate' });
+    const profile = screen.getByText('Validation profile: PINT AE 1.0');
     expect(apiLink.getAttribute('href')).toBe('/signup');
     expect(screen.getByText('Need this check inside your ERP or workflow?')).toBeTruthy();
-    expect(apiLink.compareDocumentPosition(issueList!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(nextAction.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(issueList!.compareDocumentPosition(apiLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText('7 of 10 free checks left this hour.')).toBeTruthy();
     expect(screen.getByText('Rate-limit protection is temporarily degraded.')).toBeTruthy();
     expect(screen.queryByText('Would be rejected')).toBeNull();

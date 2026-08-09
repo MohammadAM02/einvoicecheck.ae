@@ -5,6 +5,7 @@ import { InvoiceValidator } from '@/components/InvoiceValidator';
 import { RepairerWorkspace } from '@/components/RepairerWorkspace';
 import { GeneratorWorkspace } from '@/components/GeneratorWorkspace';
 import { ScopePanel } from '@/components/ScopePanel';
+import { ToolPageHeader } from '@/components/ProductExperience';
 import { breadcrumbSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { API_BASE_URL, PRICING, TOOL_SLUGS, type ToolSlug } from '@/lib/site';
 
@@ -98,9 +99,11 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
       <div className="section">
         <div className="container" style={{ maxWidth: 800 }}>
-          <span className="badge" style={{ marginBottom: 12 }}>Free tool &middot; no signup</span>
-          <h1 style={{ marginBottom: 12 }}>{tool.h1}</h1>
-          <p className="lead" style={{ marginBottom: 24 }}>{tool.blurb}</p>
+          <ToolPageHeader
+            eyebrow="Free tool · no signup"
+            title={tool.h1}
+            description={tool.blurb}
+          />
 
           {slug === 'uae-e-invoice-validator' ? (
             <div className="validator-tool-primary">

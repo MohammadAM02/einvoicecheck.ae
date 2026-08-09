@@ -81,6 +81,8 @@ describe('ValidatorWorkspace handoff', () => {
     expect(
       screen.getByRole('heading', { name: 'Preflight passed' }),
     ).toBeTruthy();
+    expect(screen.getByText('Validated from XML Repairer')).toBeTruthy();
+    expect(screen.getByText('repaired-invoice.xml')).toBeTruthy();
   });
 
   it('pre-fills + auto-validates when the handoff comes from the xml-generator', async () => {
@@ -103,6 +105,8 @@ describe('ValidatorWorkspace handoff', () => {
       '<Invoice/>',
       expect.any(AbortSignal),
     );
+    expect(screen.getByText('Validated from XML Generator')).toBeTruthy();
+    expect(screen.getByText('generated-invoice.xml')).toBeTruthy();
   });
 
   it('ignores malformed handoff silently', () => {

@@ -4,6 +4,7 @@ import type React from 'react';
 import { createElement as h, useEffect, useRef, useState } from 'react';
 import { toReportText, LAYER_LABELS, flattenValidationIssues, type ValidationLayerName, type ValidationRateLimit, type XmlValidationResult } from '@/lib/validation-ui';
 import { ValidationIssueList } from './ValidationIssueList';
+import { NextActionPanel } from '@/components/ProductExperience';
 
 export function ValidationSummary(props: {
   result: XmlValidationResult;
@@ -43,14 +44,18 @@ export function ValidationSummary(props: {
       h('p', null, 'This document is type 389 (self-billed invoice). Structural checks ran, but self-billing business rules are not vendored, so results are incomplete. Use an accredited ASP for self-billed invoices.'),
     ) : null,
     h('p', null, `${blockingCount} blocking issue${blockingCount === 1 ? '' : 's'} and ${warningCount} warning${warningCount === 1 ? '' : 's'}.`),
+    result.valid ? h('p', null, 'No blocking issues were found by the checks currently included in this preflight engine.') : null,
+    h(NextActionPanel, {
+      title: result.valid ? 'Continue with the checked invoice' : 'Correct and revalidate',
+      description: result.valid
+        ? 'Export or return the invoice to your implementation workflow.'
+        : 'Use the findings below to correct the source, then run the invoice again.',
+    },
+      h('button', { type: 'button', className: 'btn btn-primary', onClick: onReset }, 'Validate another file'),
+      canCopy ? h('button', { type: 'button', className: 'btn btn-ghost', onClick: copyReport }, copied ? 'Copied' : 'Copy report') : null,
+    ),
     h('p', null, `Detected invoice type: ${result.invoiceType ?? 'Not identified'}`),
     h('p', null, `Validation profile: ${result.schemaVersion}`),
-    result.valid ? h('p', null, 'No blocking issues were found by the checks currently included in this preflight engine.') : null,
-    !result.valid ? h('p', { className: 'validation-summary__guidance' }, 'Use the fix list below to trace the mapping or invoice data problem.') : null,
-    h('aside', { className: 'validation-summary__api', 'aria-label': 'Automated validation' },
-      h('strong', null, 'Need this check inside your ERP or workflow?'),
-      h('a', { href: '/signup' }, 'Use the validation API'),
-    ),
     h('div', { className: 'validation-layers', 'aria-label': 'Validation layers' },
       h('button', {
         type: 'button',
@@ -72,9 +77,9 @@ export function ValidationSummary(props: {
     h(ValidationIssueList, { issues: visibleIssues, filter: layerFilter }),
     h('p', null, `${rateLimit.remaining} of ${rateLimit.limit} free checks left this hour.`),
     rateLimit.degraded ? h('p', null, 'Rate-limit protection is temporarily degraded.') : null,
-    h('div', null,
-      h('button', { type: 'button', onClick: onReset }, 'Validate another file'),
-      canCopy ? h('button', { type: 'button', onClick: copyReport }, copied ? 'Copied' : 'Copy report') : null,
+    h('aside', { className: 'validation-summary__api', 'aria-label': 'Automated validation' },
+      h('strong', null, 'Need this check inside your ERP or workflow?'),
+      h('a', { href: '/signup' }, 'Use the validation API'),
     ),
   );
 }

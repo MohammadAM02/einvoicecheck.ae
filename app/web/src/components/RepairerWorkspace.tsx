@@ -12,6 +12,7 @@ import {
   readXmlFile,
 } from '@/lib/repairer-client';
 import type { AuditEntry, BlockedIssue, ConvertResult } from '@/lib/repairer-client';
+import { NextActionPanel, WorkflowStepper } from '@/components/ProductExperience';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -332,7 +333,11 @@ export function RepairerWorkspace(): React.ReactElement {
     try {
       sessionStorage.setItem(
         'einvoicecheck:converter-handoff',
-        JSON.stringify({ source: 'xml-repairer', xml }),
+        JSON.stringify({
+          source: 'xml-repairer',
+          fileName: 'repaired-invoice.xml',
+          xml,
+        }),
       );
     } catch {
       /* noop */
@@ -375,12 +380,6 @@ export function RepairerWorkspace(): React.ReactElement {
     (state.data.dataIssues?.some((i: BlockedIssue) => i.rule === 'ENG-TYPE-01/SELF-BILLING') ||
       state.data.blocked?.some((i: BlockedIssue) => i.rule === 'ENG-TYPE-01/SELF-BILLING'));
 
-  // Stepper classes
-  const step1Class =
-    'repairer-step' +
-    (isResult ? ' done' : state.phase !== 'idle' ? ' active' : '');
-  const step2Class = 'repairer-step' + (isResult ? ' active' : '');
-
   /* ---- render ---- */
 
   return h(
@@ -390,22 +389,13 @@ export function RepairerWorkspace(): React.ReactElement {
     /* ================================================================
        STEPPER
        ================================================================ */
-    h(
-      'div',
-      { className: 'repairer-stepper', 'aria-label': 'Repair progress' },
-      h(
-        'div',
-        { className: step1Class },
-        h('div', { className: 'repairer-dot' }, '1'),
-        h('div', { className: 'repairer-label' }, 'Repair format'),
-      ),
-      h(
-        'div',
-        { className: step2Class },
-        h('div', { className: 'repairer-dot' }, '2'),
-        h('div', { className: 'repairer-label' }, 'Validate'),
-      ),
-    ),
+    h(WorkflowStepper, {
+      label: 'Repair progress',
+      steps: [
+        { label: 'Repair', status: isResult ? 'complete' : 'current' },
+        { label: 'Revalidate', status: isResult ? 'current' : 'upcoming' },
+      ],
+    }),
 
     /* ================================================================
        INPUT CARD
@@ -896,21 +886,11 @@ export function RepairerWorkspace(): React.ReactElement {
             if (d.status !== 'CONVERTED') return null;
 
             return h(
-              'div',
-              { className: 'repairer-next-panel' },
-              h(
-                'strong',
-                { style: { fontSize: '0.95rem' } },
-                'Step 2 — Validate',
-              ),
-              h(
-                'p',
-                {
-                  className: 'muted',
-                  style: { margin: '6px 0 12px' },
-                },
-                'Run the repaired invoice through the same rule engine the API uses.',
-              ),
+              NextActionPanel,
+              {
+                title: 'Revalidate the repaired invoice',
+                description: 'Run the output through the Validator to review the remaining findings.',
+              },
               h(
                 'button',
                 {
