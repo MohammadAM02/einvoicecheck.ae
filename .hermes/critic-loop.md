@@ -50,7 +50,7 @@
 | F-13 | "API" and "Documentation" nav links both go to /docs | P3 | inspected | `2a77a7a` / merge `7d7cad5` replace both links with one `API Docs` entry and add a navigation regression test. Deployment and live navigation verification remain required. |
 | F-14 | Existing XML Repairer still named Converter in API and backend contracts | P1 | 🔄 IN PROGRESS | Backend/API naming is outside the frontend audit pass. |
 | F-15 | Batch validator charges one free-tool quota unit for up to 50 upstream validations | P2 | open | Backend/rate-limit issue; outside the frontend audit pass. |
-| F-16 | `/v1/validate` stops accepting canonical JSON without a compatibility window | P2 | open | API contract issue; outside the frontend audit pass. |
+| F-16 / CL-003 | API/Pricing contract contradiction: `/v1/validate` described as the new API | P0 | blocked | PR #19 merge `36b1c942` resolves the repository contract and keeps legacy compatibility, but the production smoke gate is not clean: browser-facing validator copy/sample still advertises JSON while JSON now rejects, and direct authenticated endpoint semantics could not be run without a production API key. |
 | F-17 | Generator Invoice templates use type codes rejected by current PINT AE Billing rules and skip full Schematron validation | P1 | reported | `388b72d` reports `standard-tax-invoice` emits `388` and `summary-tax-invoice` emits `386`, while the vendored/current Billing v1.0.4 subset is `380`/`480`. Generation runs UBL 2.1 XSD only, not the full XML/Schematron pipeline. Code correction, full-pipeline tests, deployment, and live verification are absent. |
 
 ## Resolved
@@ -61,8 +61,9 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `8f3f8224d8310cfaf21fc8c841f97a85788aec8e` — `Unify the EInvoiceCheck product experience system (#18)`
+- **Last scanned main commit:** `36b1c942acf536bec314a4df0939b4793d512453` — `Merge pull request #19 from motivatedc-creator/fix/api-contract-truth`
 - **Scanned:** 2026-08-09
+- PR #19 repository contract is recorded as: Browser Validator → XML only; `POST /v2/validate` → new XML; `POST /v1/preflight` → new canonical JSON; `POST /v1/validate` → legacy JSON/XML compatibility.
 - `8f3f822` adds shared tool headers, semantic workflow steppers, next-action panels, Generator/Repairer-to-Validator provenance, responsive overflow containment, and focused component tests.
 - F-06 gains accessibility evidence for ordered workflow progress and `aria-current="step"`; status remains `inspected` pending test execution, deployment, and live accessibility verification.
 - F-10 gains mobile containment evidence for long validator headings and repairer audit tables. The tracked desktop-width behavior is not live-verified.
@@ -82,6 +83,17 @@ Before `git push`, Hermes MUST:
 1. Run the available test/type/build suites.
 2. If verification cannot run in the current environment, record that explicitly instead of claiming success.
 3. After deploy, verify production separately and update this file only with evidence.
+
+## Smoke run 2026-08-09T15:59:09.692Z
+
+- **STATUS: BLOCKED / NOT LIVE-VERIFIED** — PR #19 merge `36b1c942acf536bec314a4df0939b4793d512453` is deployed in the API, but the complete production gate did not pass.
+- **API health:** PASS — `GET https://api.einvoicecheck.ae/health` returned HTTP 200 with Mongo and Redis up.
+- **Route reachability:** PASS only at the auth boundary — unauthenticated POSTs to `/v2/validate`, `/v1/preflight`, and `/v1/validate` all returned the expected HTTP 401. The authenticated contract matrix was not run because no production API key was available in the test context.
+- **Browser Validator:** PARTIAL PASS — live XML submission completed end-to-end and returned layered results (format, structure, semantic). The live browser UI still advertises `PINT-AE XML or canonical JSON`; its “Try valid sample” is JSON and now returns the XML-only error. This contradicts the intended public story.
+- **Docs:** PASS on the live page — `/docs` shows `/v2/validate`, `/v1/preflight`, and legacy `/v1/validate` wording.
+- **Pricing:** PASS on the live page — plan bullets show `/v2/validate` XML, `/v1/preflight` canonical JSON, and legacy `/v1/validate` compatibility.
+- **Stale new-API wording:** Not found on the current live `/docs` or `/pricing` pages. The browser/home validator copy remains stale on the XML-only boundary.
+- **Conclusion:** Do not mark CL-003 live-verified or close the loop. The repository contract is resolved by merge SHA `36b1c942`; production remains blocked pending browser copy/sample correction, deployment, and an authenticated API matrix.
 
 ## Smoke run 2026-08-07T18:01:30Z
 
