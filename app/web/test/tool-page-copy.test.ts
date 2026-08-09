@@ -19,10 +19,10 @@ describe('dedicated validator page boundaries', () => {
     expect(batchValidator).not.toMatch(/[\u00e2\u00c2\u00c3\ufffd]/);
   });
 
-  it('uses approved scope and API quota language without rejection or launch copy', () => {
+  it('uses approved scope, usage-metering, and rate-limit language without rejection or launch copy', () => {
     const route = source('app', 'tools', '[slug]', 'page.tsx');
 
-    expect(route).toContain('plan-based monthly quotas and per-minute rate limits');
+    expect(route).toContain('usage is metered per key and per-minute rate limits apply');
     expect(route).toContain('<ScopePanel />');
     expect(route).not.toContain('would get it rejected');
     expect(route).not.toContain('Would be rejected');

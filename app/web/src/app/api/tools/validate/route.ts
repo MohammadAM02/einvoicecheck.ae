@@ -9,13 +9,11 @@ export const dynamic = 'force-dynamic';
 /**
  * Free-tool validation endpoint - ZERO LOGIN. No API key, no email, no cookie.
  *
- * It proxies to the paid strict `POST /v2/validate` (see src/lib/validation.ts),
- * so the errors shown in the browser are the errors the API returns - never a
- * fabricated or simplified result. Preflight only: this does not transmit
+ * It forwards the authenticated server-side layered XML result from
+ * `POST /v2/validate` (see src/lib/validation.ts). The browser surface is
+ * intentionally XML-only; canonical JSON data preflight is available through
+ * `POST /v1/preflight`, not here. This is preflight only and does not transmit
  * anything to the FTA or to an accredited ASP.
- *
- * The free tool is XML-only: canonical JSON preflight is available through the
- * API (POST /v1/preflight), not here.
  *
  * Abuse control is an IP rate limit in the shared Redis (src/lib/toolRateLimit.ts).
  * Nothing about the submitted invoice is persisted here.
