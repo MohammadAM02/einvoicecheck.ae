@@ -1,10 +1,11 @@
 /**
  * Server-side client for the strict validation API.
  *
- * The free tool no longer runs a vendored engine: `validateDocument` proxies
- * to the paid `POST /v2/validate` (XML-only, layered result). The server-side
+ * The free tool does not run a separate browser rule engine: `validateDocument`
+ * forwards the paid `POST /v2/validate` XML-only layered result. The server-side
  * `x-api-key` is read from `process.env.EINVOICECHECK_API_KEY` at call time —
- * never shipped to the browser, never echoed back in error messages.
+ * is never shipped to the browser or echoed back in error messages. Canonical
+ * JSON data preflight is a separate API contract at `POST /v1/preflight`.
  *
  * Env is read at call time (not module scope) so tests can stub it without
  * re-importing modules.

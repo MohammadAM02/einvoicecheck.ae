@@ -4,16 +4,16 @@ import { breadcrumbSchema, faqSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { API_BASE_URL } from '@/lib/site';
 
 export const metadata = pageMetadata({
-  title: 'UAE e-invoicing API docs - POST /v2/validate',
+  title: 'UAE e-invoicing API docs - POST /v2/validate and /v1/preflight',
   description:
-    'Developer docs for layered UBL XML validation: POST /v2/validate (format, structure and semantic layers), POST /v1/validate (legacy flat), POST /v1/preflight (canonical JSON data preflight), GET /usage and GET /health. Auth via x-api-key.',
+    'Developer docs for layered XML validation at POST /v2/validate, canonical JSON preflight at POST /v1/preflight, and legacy POST /v1/validate compatibility. Auth via x-api-key.',
   path: '/docs',
 });
 
 const faqs = [
   {
     q: 'What does the UAE e-invoicing API return?',
-    a: 'POST /v2/validate returns a layered JSON result: a valid flag, invoiceType, schemaVersion and per-layer results for format, structure and semantic checks. Each layer carries a status (passed, failed or skipped) and an issues array. POST /v1/validate returns the legacy flat shape with a single errors array. Each issue includes a path, rule id, severity, message and, where possible, a suggested fix.',
+    a: 'POST /v2/validate returns a layered JSON result with format, structure and semantic statuses. POST /v1/preflight returns canonical JSON data findings. POST /v1/validate retains its legacy flat errors[] response for existing clients.',
   },
   {
     q: 'How do I authenticate?',
@@ -21,11 +21,11 @@ const faqs = [
   },
   {
     q: 'What validation layers are currently included?',
-    a: 'POST /v2/validate runs the currently implemented validation pipeline: format (XML well-formedness), structure (UBL 2.1 XSD checks for Invoice and CreditNote) and semantic (rules + Schematron) layers. It is a supported preflight check, not a guarantee of official artifact parity, ASP acceptance or downstream filing. Use POST /v1/preflight for canonical JSON data preflight; it checks invoice data but does not validate final UBL XML structure.',
+    a: 'POST /v2/validate runs format (well-formedness), structure (UBL 2.1 XSD) and semantic (rules + Schematron) layers. POST /v1/preflight checks canonical JSON invoice data. Existing POST /v1/validate clients retain the legacy JSON/XML compatibility contract. These are supported preflight checks, not guarantees of ASP acceptance or downstream filing.',
   },
   {
     q: 'Does the API submit my invoice to the FTA?',
-    a: 'No. The API validates a document and returns errors. It is not FTA-accredited, does not transmit legal e-invoices, does not replace an accredited service provider and does not provide statutory archival.',
+    a: 'No. The API validates a document and returns findings. It is not FTA-accredited, does not transmit legal e-invoices, does not replace an accredited service provider and does not provide statutory archival.',
   },
 ];
 
@@ -47,20 +47,20 @@ export default function DocsPage() {
         <div className="container">
           <h1 style={{ marginBottom: 12 }}>UAE e-invoice preflight API</h1>
           <p className="lead" style={{ marginBottom: 24 }}>
-            Three validation endpoints: layered UBL XML validation (v2), the legacy flat XML
-            contract (v1) and canonical JSON data preflight — plus usage and health endpoints.
+            New integrations have two canonical validation paths: XML at <code>POST /v2/validate</code>
+            and canonical JSON at <code>POST /v1/preflight</code>. Existing clients can continue using{' '}
+            <code>POST /v1/validate</code> as a legacy JSON/XML compatibility endpoint; usage and health
+            are also available.
           </p>
           <GuardrailNotice />
           <div className="notice" style={{ marginBottom: 24 }}>
             <strong>Current validation scope</strong>
             <p style={{ marginTop: 4 }}>
-              <code>POST /v2/validate</code> and <code>POST /v1/validate</code> accept UBL 2.1 /
-                PINT AE XML only and run the currently supported pipeline: format (well-formedness),
-                structure (UBL 2.1 XSD for Invoice and CreditNote) and semantic (rules +
-                Schematron) layers.
-                Canonical JSON invoice data is accepted only by <code>POST /v1/preflight</code>,
-                which performs data preflight and does not validate final UBL XML structure.
-              </p>
+              <code>POST /v2/validate</code> accepts raw UBL 2.1 / PINT AE XML and runs format,
+              structure (UBL 2.1 XSD) and semantic (rules + Schematron) layers.{' '}
+              <code>POST /v1/preflight</code> accepts canonical JSON invoice data only. Existing{' '}
+              <code>POST /v1/validate</code> clients retain the legacy JSON/XML compatibility behavior.
+            </p>
           </div>
         </div>
       </div>
@@ -76,28 +76,17 @@ export default function DocsPage() {
           <pre className="keybox" style={{ marginBottom: 24 }}>
             <code>{`x-api-key: <your-api-key>`}</code>
           </pre>
-          <p className="muted">
-            Base URL: <code>{API_BASE_URL}</code>
-          </p>
+          <p className="muted">Base URL: <code>{API_BASE_URL}</code></p>
         </div>
       </div>
 
       <div className="section">
         <div className="container">
-          <h2 style={{ marginBottom: 12 }}>POST /v2/validate</h2>
+          <h2 style={{ marginBottom: 12 }}>POST /v2/validate (new XML integrations)</h2>
           <p className="muted" style={{ marginBottom: 16 }}>
-            Layered UBL 2.1 / PINT AE XML validation for Invoice and CreditNote documents. XML-only:
-            send raw UBL 2.1 / PINT AE XML with <code>Content-Type: application/xml</code>, or an
-            envelope <code>{'{ "document": "<Invoice>..." }'}</code>. Returns a layered result so
-            you can distinguish passed, failed and skipped layers.
-          </p>
-          <p className="muted" style={{ marginBottom: 16 }}>
-            The pipeline runs three layers: format (XML well-formedness), structure (UBL 2.1 XSD
-            schema validation — the document must conform to the Invoice or CreditNote schema, and
-            wrong namespaces cannot pass), and semantic (rules + Schematron). If a layer fails, the
-            later layers still run where meaningful and each layer reports its own status. These are
-            the currently supported checks; they are not presented as a promise of complete official
-            conformity, exact artifact parity or downstream acceptance.
+            Send raw UBL 2.1 / PINT AE XML with <code>Content-Type: application/xml</code> or{' '}
+            <code>text/xml</code>. This is the preferred canonical XML path and returns layered
+            format, structure and semantic findings.
           </p>
           <pre className="keybox" style={{ marginBottom: 24 }}>
             <code>{`POST ${API_BASE_URL}/v2/validate
@@ -111,7 +100,6 @@ content-type: application/xml
   <!-- UBL 2.1 / PINT AE Invoice or CreditNote -->
 </Invoice>`}</code>
           </pre>
-
           <h3 style={{ marginBottom: 8 }}>200 response</h3>
           <pre className="keybox" style={{ marginBottom: 24 }}>
             <code>{`{
@@ -126,19 +114,14 @@ content-type: application/xml
 }`}</code>
           </pre>
           <p className="muted" style={{ marginBottom: 24 }}>
-            Each layer reports <code>passed</code>, <code>failed</code> or <code>skipped</code>{' '}
-            with its issues. A malformed document fails the format layer with a parse issue (for
-            example <code>ENG-PARSE-01</code>) and skips the deeper layers; an XSD failure produces
-            structure issues while semantic findings are still exposed.
+            A malformed document fails the format layer and skips deeper layers. Structure and
+            semantic findings remain independently visible when a document is structurally invalid.
           </p>
-
           <table style={{ marginBottom: 24 }}>
-            <thead>
-              <tr><th>Status</th><th>Meaning</th></tr>
-            </thead>
+            <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
             <tbody>
-              <tr><td>200</td><td>The document was processed. Read <code>valid</code> and each layer's <code>status</code>; a 200 is not automatically a pass.</td></tr>
-              <tr><td>400</td><td>The request body is not XML. This endpoint accepts UBL XML only; canonical JSON goes to <code>/v1/preflight</code>.</td></tr>
+              <tr><td>200</td><td>The document was processed. Read <code>valid</code> and each layer status.</td></tr>
+              <tr><td>400</td><td>The request body is not raw XML. Canonical JSON goes to <code>/v1/preflight</code>.</td></tr>
               <tr><td>401</td><td>Missing or invalid API key.</td></tr>
               <tr><td>413</td><td>Document exceeds the accepted payload size.</td></tr>
               <tr><td>429</td><td>Rate limit or monthly quota exceeded.</td></tr>
@@ -149,73 +132,10 @@ content-type: application/xml
 
       <div className="section-alt">
         <div className="container">
-          <h2 style={{ marginBottom: 12 }}>POST /v1/validate</h2>
+          <h2 style={{ marginBottom: 12 }}>POST /v1/preflight (new JSON integrations)</h2>
           <p className="muted" style={{ marginBottom: 16 }}>
-            Legacy flat XML contract. Accepts UBL 2.1 / PINT AE XML only — the same strict pipeline
-            as <code>/v2/validate</code> — and flattens the format, structure and semantic layers
-            into the legacy <code>errors[]</code> shape for existing clients.
-          </p>
-          <p className="muted" style={{ marginBottom: 16 }}>
-            Canonical JSON is not accepted here. JSON invoice data is validated by{' '}
-            <code>POST /v1/preflight</code> instead.
-          </p>
-          <pre className="keybox" style={{ marginBottom: 24 }}>
-            <code>{`POST ${API_BASE_URL}/v1/validate
-x-api-key: <your-api-key>
-content-type: application/xml
-
-<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
-  <!-- UBL 2.1 / PINT AE Invoice or CreditNote -->
-</Invoice>`}</code>
-          </pre>
-
-          <h3 style={{ marginBottom: 8 }}>200 response</h3>
-          <pre className="keybox" style={{ marginBottom: 24 }}>
-            <code>{`{
-  "valid": false,
-  "invoiceType": "388",
-  "schemaVersion": "urn:peppol:pint:billing-1@ae-1",
-  "errors": [
-    {
-      "path": "/Invoice/cac:AccountingSupplierParty",
-      "rule": "ENG-TRN-02/BT-31",
-      "severity": "error",
-      "message": "Seller TRN must contain exactly 15 digits.",
-      "fix": "Replace the value with the seller's 15-digit UAE TRN."
-    }
-  ]
-}`}</code>
-          </pre>
-
-          <table style={{ marginBottom: 24 }}>
-            <thead>
-              <tr><th>Status</th><th>Meaning</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>200</td><td>The document was processed. Read <code>valid</code> and <code>errors</code>; a 200 is not automatically a pass.</td></tr>
-              <tr><td>400</td><td>The request body is not XML. Canonical JSON goes to <code>/v1/preflight</code>.</td></tr>
-              <tr><td>401</td><td>Missing or invalid API key.</td></tr>
-              <tr><td>413</td><td>Document exceeds the accepted payload size.</td></tr>
-              <tr><td>429</td><td>Rate limit or monthly quota exceeded.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="container">
-          <h2 style={{ marginBottom: 12 }}>POST /v1/preflight</h2>
-          <p className="muted" style={{ marginBottom: 16 }}>
-            Canonical JSON data preflight. Accepts the canonical JSON invoice shape and runs the
-            semantic data checks (invoice type, required fields, TRN shape, currency rules, VAT
-            category and rate consistency, line arithmetic, tax breakdowns and document totals).
-          </p>
-          <p className="muted" style={{ marginBottom: 16 }}>
-            This endpoint validates invoice <em>data</em>, not final UBL XML structure: it does not
-            run XSD structure validation and cannot confirm that the data renders as conformant
-            UBL 2.1 / PINT AE XML. For that, validate the generated XML with{' '}
-            <code>POST /v2/validate</code>.
+            Send a bare canonical JSON invoice object. This is the preferred canonical JSON path;
+            XML bodies and the legacy <code>document</code>/<code>invoice</code> wrappers are rejected.
           </p>
           <pre className="keybox" style={{ marginBottom: 24 }}>
             <code>{`POST ${API_BASE_URL}/v1/preflight
@@ -229,55 +149,34 @@ content-type: application/json
   "currency": "AED",
   "supplier": { "name": "Acme FZ-LLC", "trn": "100123456700003" },
   "customer": { "name": "Buyer LLC", "trn": "100987654300003" },
-  "lines": [
-    {
-      "id": "1",
-      "quantity": 2,
-      "unitPrice": 500,
-      "lineExtensionAmount": 1000,
-      "taxCategory": { "code": "S", "rate": 5 },
-      "itemName": "Consulting"
-    }
-  ],
-  "taxSubtotals": [
-    {
-      "taxableAmount": 1000,
-      "taxAmount": 50,
-      "category": { "code": "S", "rate": 5 }
-    }
-  ],
-  "totals": {
+  "lines": [{
+    "id": "1", "quantity": 2, "unitPrice": 500,
     "lineExtensionAmount": 1000,
-    "taxExclusiveAmount": 1000,
-    "taxAmount": 50,
-    "taxInclusiveAmount": 1050,
-    "payableAmount": 1050
+    "taxCategory": { "code": "S", "rate": 5 }, "itemName": "Consulting"
+  }],
+  "totals": {
+    "lineExtensionAmount": 1000, "taxExclusiveAmount": 1000,
+    "taxAmount": 50, "taxInclusiveAmount": 1050, "payableAmount": 1050
   }
 }`}</code>
           </pre>
-
-          <h3 style={{ marginBottom: 8 }}>200 response</h3>
-          <pre className="keybox" style={{ marginBottom: 24 }}>
-            <code>{`{
-  "valid": false,
-  "invoiceType": "388",
-  "schemaVersion": "urn:peppol:pint:billing-1@ae-1",
-  "validationScope": "json-data-preflight",
-  "errors": [
-    {
-      "path": "/supplier/trn",
-      "rule": "ENG-TRN-02/BT-31",
-      "severity": "error",
-      "message": "Seller TRN must contain exactly 15 digits.",
-      "fix": "Replace the value with the seller's 15-digit UAE TRN."
-    }
-  ]
-}`}</code>
-          </pre>
           <p className="muted" style={{ marginBottom: 24 }}>
-            The response is the legacy flat shape plus <code>validationScope</code>. XML sent to
-            this endpoint is rejected: UBL XML goes to <code>POST /v1/validate</code> or{' '}
-            <code>POST /v2/validate</code>.
+            The response includes the flat <code>errors</code> shape plus{' '}
+            <code>validationScope: "canonical-json-data-preflight"</code>. This endpoint validates
+            invoice data; validate final UBL XML through <code>POST /v2/validate</code>.
+          </p>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="container">
+          <h2 style={{ marginBottom: 12 }}>POST /v1/validate (legacy compatibility)</h2>
+          <p className="muted" style={{ marginBottom: 16 }}>
+            Existing clients remain supported. This route preserves canonical JSON, the{' '}
+            <code>{'{ "invoice": { ... } }'}</code> wrapper, the{' '}
+            <code>{'{ "document": "&lt;Invoice&gt;..." }'}</code> XML envelope, and raw XML,
+            returning the legacy flat <code>errors[]</code> shape. It is not the recommended path
+            for new integrations; there is no retirement date.
           </p>
         </div>
       </div>
@@ -293,14 +192,11 @@ content-type: application/json
             <code>{`GET ${API_BASE_URL}/usage
 x-api-key: <your-api-key>`}</code>
           </pre>
-
           <h2 style={{ marginBottom: 12 }}>GET /health</h2>
           <p className="muted" style={{ marginBottom: 16 }}>
             Unauthenticated liveness and readiness probe. Returns 503 when a required dependency is unavailable.
           </p>
-          <pre className="keybox">
-            <code>{`GET ${API_BASE_URL}/health`}</code>
-          </pre>
+          <pre className="keybox"><code>{`GET ${API_BASE_URL}/health`}</code></pre>
         </div>
       </div>
 

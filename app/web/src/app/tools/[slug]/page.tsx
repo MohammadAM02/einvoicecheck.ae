@@ -9,12 +9,12 @@ import { ToolPageHeader } from '@/components/ProductExperience';
 import { breadcrumbSchema, jsonLd, pageMetadata } from '@/lib/seo';
 import { API_BASE_URL, PRICING, TOOL_SLUGS, type ToolSlug } from '@/lib/site';
 
-const CURL_SNIPPET = `curl -X POST ${API_BASE_URL}/v1/validate \\
+const CURL_SNIPPET = `curl -X POST ${API_BASE_URL}/v1/preflight \\
   -H "x-api-key: $EINVOICE_KEY" \\
   -H "content-type: application/json" \\
   --data-binary @invoice.json`;
 
-const NODE_SNIPPET = `const res = await fetch("${API_BASE_URL}/v1/validate", {
+const NODE_SNIPPET = `const res = await fetch("${API_BASE_URL}/v1/preflight", {
   method: "POST",
   headers: {
     "x-api-key": process.env.EINVOICECHECK_API_KEY,
@@ -42,9 +42,9 @@ const TOOLS: Record<ToolSlug, ToolDef> = {
   'uae-e-invoice-validator': {
     title: 'Free UAE e-invoice validator (paste an invoice, get the errors)',
     h1: 'Free UAE e-invoice validator',
-    description: 'Paste a UAE e-invoice (JSON or PINT AE / UBL XML) and get semantic, VAT, code-list and arithmetic issues found by the current preflight engine. Free, no signup.',
+    description: 'Paste a PINT AE / UBL 2.1 XML invoice and get layered format, structure, Schematron and semantic findings. Free, no signup. Canonical JSON data preflight is available through POST /v1/preflight.',
     targetKeyword: 'e invoicing UAE',
-    blurb: 'Paste an invoice in the browser and get the same deterministic error list the API returns: TRN format, required tax fields, total arithmetic, VAT category and rate consistency, code-list membership.',
+    blurb: 'Paste a PINT AE / UBL 2.1 XML invoice in the browser and inspect layered format, structure, Schematron and semantic findings. New canonical JSON integrations use POST /v1/preflight.',
   },
   'pint-ae-validator': {
     title: 'Free PINT AE validation tool - check a UBL 2.1 invoice online',
@@ -156,11 +156,12 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             <div className="container" style={{ maxWidth: 800 }}>
               <h2 style={{ marginBottom: 12 }}>Need this on every invoice? One API call.</h2>
               <p className="muted" style={{ marginBottom: 16 }}>
-                The browser tool is the single-shot version of{' '}
-                <code>POST /v1/validate</code>. Same rule engine, same normalized errors
-                (<code>path</code>, <code>rule</code>, <code>severity</code>, <code>message</code>,{' '}
-                <code>fix</code>) - authenticated with an <code>x-api-key</code> header, with
-                {' '}plan-based monthly quotas and per-minute rate limits.
+                The browser tool is a free single-shot XML preflight surface backed by{' '}
+                <code>POST /v2/validate</code>. It accepts XML only; new canonical JSON
+                integrations should send a bare invoice object to <code>POST /v1/preflight</code>.
+                Existing <code>POST /v1/validate</code> clients remain supported as a legacy
+                JSON/XML compatibility path. Authenticated API calls use an{' '}
+                <code>x-api-key</code> header, with plan-based monthly quotas and per-minute rate limits.
               </p>
               <pre className="keybox" style={{ marginBottom: 16 }}><code>{CURL_SNIPPET}</code></pre>
               <pre className="keybox" style={{ marginBottom: 24 }}><code>{NODE_SNIPPET}</code></pre>

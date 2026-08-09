@@ -120,9 +120,20 @@ describe('POST /v2/validate (strict UBL XML)', () => {
     expect(['passed', 'failed']).toContain(body.semantic.status);
     expect(Array.isArray(body.semantic.issues)).toBe(true);
   });
+
+  it('v2 rejects the legacy JSON XML envelope in its raw-XML-only contract', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/v2/validate',
+      headers: auth(),
+      payload: { document: validUblXml() },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error).toBe('invalid_request');
+  });
 });
 
-describe('POST /v1/validate (legacy flat XML contract)', () => {
+describe('POST /v1/validate (legacy JSON/XML compatibility contract)', () => {
   let ctx;
   beforeAll(async () => {
     ctx = await startTestApp();
@@ -176,6 +187,28 @@ describe('POST /v1/validate (legacy flat XML contract)', () => {
       expect(e.rule).toBeTruthy();
       expect(e.path).toBeTruthy();
     }
+  });
+
+  it('preserves the legacy JSON XML envelope compatibility form', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/v1/validate',
+      headers: auth(),
+      payload: { document: validUblXml() },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().errors.some((e) => e.rule === 'ENG-PARSE-01')).toBe(false);
+  });
+
+  it('preserves the legacy JSON invoice wrapper compatibility form', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/v1/validate',
+      headers: auth(),
+      payload: { invoice: validInvoice() },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().valid).toBe(true);
   });
 
   it('runs the Schematron interpreter for XML payloads (bad date → ibr-073)', async () => {
@@ -254,15 +287,15 @@ describe('POST /v1/validate (legacy flat XML contract)', () => {
     expect(body.errors[0].message).toMatch(/Invocie|well.formed|closing tag/i);
   });
 
-  it('rejects canonical JSON with HTTP 400 and /v1/preflight guidance', async () => {
+  it('preserves canonical JSON compatibility while new clients use /v1/preflight', async () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/v1/validate',
       headers: auth(),
       payload: validInvoice(),
     });
-    expect(res.statusCode).toBe(400);
-    expect(res.json().message).toMatch(/\/v1\/preflight/);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().valid).toBe(true);
   });
 });
 

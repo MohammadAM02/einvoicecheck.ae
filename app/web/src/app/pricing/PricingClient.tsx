@@ -6,7 +6,7 @@ import { PLANS, PLAN_IDS } from '@/lib/plans';
 const tiers = PLAN_IDS.map((id) => {
   const p = PLANS[id];
   const features = [
-    'POST /v1/validate (canonical JSON, envelope, or XML)',
+    'POST /v2/validate (XML) or /v1/preflight (canonical JSON); legacy /v1/validate compatibility',
     'Per-key usage metering at GET /usage',
     'Machine-readable errors with a suggested fix',
   ];
@@ -62,7 +62,7 @@ export function PricingClient() {
             <div className="section-header"><div className="section-label">Scope</div><h2 className="section-title">A preflight layer, not a replacement for your ASP</h2></div>
           </ScrollReveal>
           <ScrollReveal delay={1}>
-            <p className="muted">Accredited providers handle legal transmission and archival. einvoicecheck.ae provides supported preflight checks for core fields, TRNs, VAT consistency and arithmetic before the file reaches them. Exact official XSD/Schematron artifact parity and version coverage remain AMG-verification.</p>
+            <p className="muted">Accredited providers handle legal transmission and archival. einvoicecheck.ae provides supported preflight checks for core fields, TRNs, VAT consistency and arithmetic before the file reaches them; the canonical XML API path also layers server-side Schematron findings on top. Exact official artifact parity and version coverage remain AMG-verification. This remains preflight, not transmission.</p>
           </ScrollReveal>
         </div>
       </div>
@@ -74,7 +74,7 @@ export function PricingClient() {
             { q: 'Can I get an API key without paying?', a: 'Yes. Signup creates a free account and provisions the first API key immediately. No card is required.' },
             { q: 'Who processes paid subscriptions?', a: 'PayPal processes subscription payments. einvoicecheck.ae provides the service and remains responsible for its pricing, refunds and customer support.' },
             { q: 'Does the price include transmitting invoices to the FTA?', a: 'No. einvoicecheck.ae is a preflight validator. It is not FTA-accredited, does not transmit legal e-invoices, does not replace an accredited service provider, and does not provide statutory archival.' },
-            { q: 'What counts as one validation?', a: 'One POST to /v1/validate with one invoice document. Failed and passing validations both count because the same engine work is performed.' },
+            { q: 'What counts as one validation?', a: 'One API validation request with one invoice document. Failed and passing validations both count because the same preflight work is performed.' },
           ].map((item, i) => (
             <ScrollReveal key={item.q} delay={i}><div style={{ marginTop: 18 }}><h3 style={{ marginBottom: 4 }}>{item.q}</h3><p className="muted">{item.a}</p></div></ScrollReveal>
           ))}
