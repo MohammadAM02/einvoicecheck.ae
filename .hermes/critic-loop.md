@@ -50,8 +50,9 @@
 | F-13 | "API" and "Documentation" nav links both go to /docs | P3 | inspected | `2a77a7a` / merge `7d7cad5` replace both links with one `API Docs` entry and add a navigation regression test. Deployment and live navigation verification remain required. |
 | F-14 | Existing XML Repairer still named Converter in API and backend contracts | P1 | 🔄 IN PROGRESS | Backend/API naming is outside the frontend audit pass. |
 | F-15 | Batch validator charges one free-tool quota unit for up to 50 upstream validations | P2 | open | Backend/rate-limit issue; outside the frontend audit pass. |
-| F-16 / CL-003 | API/Pricing contract contradiction: `/v1/validate` described as the new API | P0 | blocked | PR #20 merge `9a560cb5` closes the live browser copy/sample contradiction and production confirms the XML-only UI plus valid/broken XML samples. Live `/docs` and `/pricing` also show the corrected `/v2/validate`, `/v1/preflight`, and legacy `/v1/validate` contract. The only remaining gate is the authenticated endpoint matrix, which could not run without a production API key. |
-| F-17 | Generator Invoice templates use type codes rejected by current PINT AE Billing rules and skip full Schematron validation | P1 | reported | `388b72d` reports `standard-tax-invoice` emits `388` and `summary-tax-invoice` emits `386`, while the vendored/current Billing v1.0.4 subset is `380`/`480`. Generation runs UBL 2.1 XSD only, not the full XML/Schematron pipeline. Code correction, full-pipeline tests, deployment, and live verification are absent. |
+| F-16 / CL-003 | API/Pricing contract contradiction: `/v1/validate` described as the new API | P0 | blocked | PR #20 merge `9a560cb5` closes the live browser copy/sample contradiction and production confirms the XML-only UI plus valid/broken XML samples. `36b6d8b` preserves the current contract in the signed-in Quickstart: XML uses `/v2/validate`, canonical JSON uses `/v1/preflight`, and beginner samples omit legacy `/v1/validate`. The only remaining gate is the authenticated endpoint matrix, which could not run without a production API key. |
+| F-17 | Generator Invoice templates use type codes rejected by current PINT AE Billing rules and skip full Schematron validation | P1 | reported | `388b72d` reports `standard-tax-invoice` emits `388` and `summary-tax-invoice` emits `386`, while the vendored/current Billing v1.0.4 subset is `380`/`480`. `36b6d8b` also uses `388` in signed-in XML response and canonical-JSON Quickstart examples, expanding the unverified type-code claim beyond Generator. Code correction, full-pipeline tests, deployment, and live verification are absent. |
+| F-18 | Mobile account drawer leaves hidden controls keyboard-focusable; Quickstart arrow keys change tabs without moving focus | P2 | open | In `36b6d8b`, the closed drawer is moved off-screen only by CSS transform and remains mounted without `inert`/`aria-hidden`; tab arrow handlers update selection but do not focus the newly selected tab. Escape restoration is tested, but closed-drawer tab order and roving-tab focus are not. Repository evidence only; deployment and live keyboard verification required. |
 
 ## Resolved
 
@@ -61,14 +62,18 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `9a560cb5b5dfe04bbdb1453ea2980b2fa29960b1` — `Fix browser validator XML-only contract (#20)`
-- **Scanned:** 2026-08-09
+- **Last scanned main commit:** `36b6d8bc0f297f066bf3aa60e62362efc649439d` — `feat(web): build signed-in application workspace (#21)`
+- **Scanned:** 2026-08-10
 - PR #19 repository contract is recorded as: Browser Validator → XML only; `POST /v2/validate` → new XML; `POST /v1/preflight` → new canonical JSON; `POST /v1/validate` → legacy JSON/XML compatibility.
 - PR #20 deploys that browser contract: XML-only copy, file acceptance and paste flow; a passing UBL/PINT-AE XML sample; and a broken XML sample with two expected semantic TRN findings.
 - `8f3f822` adds shared tool headers, semantic workflow steppers, next-action panels, Generator/Repairer-to-Validator provenance, responsive overflow containment, and focused component tests.
 - F-06 gains accessibility evidence for ordered workflow progress and `aria-current="step"`; status remains `inspected` pending test execution, deployment, and live accessibility verification.
 - F-10 gains mobile containment evidence for long validator headings and repairer audit tables. The tracked desktop-width behavior is not live-verified.
-- No parsing, validation-engine, authentication, payment, legal, SEO, or deployment behavior changed. No new material risk was identified from the reviewed diff.
+- `36b6d8b` adds the signed-in workspace, current API Quickstart, recent usage read model, API-key controls, billing-plan UI, responsive shell, and focused component tests.
+- F-16 gains repository evidence that signed-in guidance uses `/v2/validate` for XML and `/v1/preflight` for canonical JSON; authenticated production semantics remain unverified.
+- F-17 expands: signed-in examples also present InvoiceTypeCode `388`; this remains unverified against the tracked PINT AE Billing rule concern.
+- F-18 added: hidden mobile-drawer controls remain keyboard-focusable, and arrow-key tab selection does not move focus.
+- No validation route, authentication backend, payment backend, legal, or SEO semantics changed in the reviewed diff. No deployment or live verification inferred.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
 
 ## Commit gate
