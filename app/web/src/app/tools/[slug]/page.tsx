@@ -91,80 +91,97 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const tool = TOOLS[slug as ToolSlug];
   if (!tool) notFound();
+  const isValidator = slug === 'uae-e-invoice-validator';
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbSchema([{ name: 'Home', path: '/' }, { name: tool.h1, path: `/tools/${slug}` }]))} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd({ '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: tool.h1, applicationCategory: 'BusinessApplication', operatingSystem: 'Web browser', description: tool.description, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } })} />
 
-      <div className="section">
-        <div className="container" style={{ maxWidth: 800 }}>
-          <ToolPageHeader
-            eyebrow="Free tool · no signup"
-            title={tool.h1}
-            description={tool.blurb}
-          />
-
-          {slug === 'uae-e-invoice-validator' ? (
-            <div className="validator-tool-primary">
+      <div className={isValidator ? 'section validator-station-section' : 'section'}>
+        <div className={isValidator ? 'container validator-station-page' : 'container'} style={isValidator ? undefined : { maxWidth: 800 }}>
+          {isValidator ? (
+            <>
+              <header className="validator-station-page__header">
+                <div className="validator-station-page__title">
+                  <span className="validator-station-page__signal" aria-hidden="true" />
+                  <div>
+                    <h1>Validator Station</h1>
+                    <p className="validator-station-page__lead">One invoice in. The exact failure path out.</p>
+                  </div>
+                </div>
+                <p className="validator-station-page__copy">Run the file here. Keep the finding, rule and fix in one place while you work.</p>
+                <div className="validator-station-page__facts" aria-label="Validator facts">
+                  <span>PINT-AE XML</span>
+                  <span>No signup</span>
+                  <span>Validated in memory</span>
+                  <span>Independent preflight</span>
+                </div>
+              </header>
               <InvoiceValidator />
-              <p className="muted validator-tool-context">
-                E-invoicing in the UAE breaks at the file, not at the filing. Your accredited service
-                provider may reject an invalid document whose TRN
-                is the wrong length, whose VAT category does not match its rate, or whose totals are
-                off by a fil. Paste the invoice below and see those errors now, before the deadline
-                is on top of you.
-              </p>
-            </div>
-          ) : slug === 'xml-generator' ? (
-            <div className="validator-tool-primary">
-              <GeneratorWorkspace />
-              <p className="muted validator-tool-context">
-                The generator builds <strong>format-correct</strong> PINT-AE XML from the current
-                template set — with computed totals, supported data-entry checks, and a form-first
-                flow. It <strong>never transmits anything</strong> until you choose to validate the
-                result.
-              </p>
-            </div>
-          ) : slug === 'xml-repairer' ? (
-            <div className="validator-tool-primary">
-              <RepairerWorkspace />
-              <p className="muted validator-tool-context">
-                The repairer fixes <strong>format only</strong> — namespace URIs, prefix casing,
-                illegal XML characters, missing declarations, and encoding mismatches. It will
-                <strong>never</strong> change a TRN, amount, date, or any other invoice data value.
-                Every repair is audited with a machine-readable trail and SHA-256 hashes.
-              </p>
-            </div>
+            </>
           ) : (
-            <div className="notice">
-              <strong>Tool ships next</strong>
-              <p style={{ marginTop: 4 }}>
-                This browser tool is being built on top of the same rule engine as the API - the
-                same one already powering the{' '}
-                <Link href="/tools/uae-e-invoice-validator" style={{ color: 'var(--accent)' }}>free UAE e-invoice validator</Link>.
-                Leave your email and we will send it the day it goes live.
-              </p>
-            </div>
+            <>
+              <ToolPageHeader
+                eyebrow="Free tool · no signup"
+                title={tool.h1}
+                description={tool.blurb}
+              />
+
+              {slug === 'xml-generator' ? (
+                <div className="validator-tool-primary">
+                  <GeneratorWorkspace />
+                  <p className="muted validator-tool-context">
+                    The generator builds <strong>format-correct</strong> PINT-AE XML from the current
+                    template set — with computed totals, supported data-entry checks, and a form-first
+                    flow. It <strong>never transmits anything</strong> until you choose to validate the
+                    result.
+                  </p>
+                </div>
+              ) : slug === 'xml-repairer' ? (
+                <div className="validator-tool-primary">
+                  <RepairerWorkspace />
+                  <p className="muted validator-tool-context">
+                    The repairer fixes <strong>format only</strong> — namespace URIs, prefix casing,
+                    illegal XML characters, missing declarations, and encoding mismatches. It will
+                    <strong>never</strong> change a TRN, amount, date, or any other invoice data value.
+                    Every repair is audited with a machine-readable trail and SHA-256 hashes.
+                  </p>
+                </div>
+              ) : (
+                <div className="notice">
+                  <strong>Tool ships next</strong>
+                  <p style={{ marginTop: 4 }}>
+                    This browser tool is being built on top of the same rule engine as the API - the
+                    same one already powering the{' '}
+                    <Link href="/tools/uae-e-invoice-validator" style={{ color: 'var(--accent)' }}>free UAE e-invoice validator</Link>.
+                    Leave your email and we will send it the day it goes live.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
-      {slug === 'uae-e-invoice-validator' ? (
+      {isValidator ? (
         <>
-          <div className="section-alt">
-            <div className="container" style={{ maxWidth: 800 }}>
-              <h2 style={{ marginBottom: 12 }}>Need this on every invoice? One API call.</h2>
-              <p className="muted" style={{ marginBottom: 16 }}>
-                The browser tool is a free single-shot XML preflight surface backed by{' '}
-                <code>POST /v2/validate</code>. It accepts XML only; new canonical JSON
-                integrations should send a bare invoice object to <code>POST /v1/preflight</code>.
-                Existing <code>POST /v1/validate</code> clients remain supported as a legacy
-                JSON/XML compatibility path. Authenticated API calls use an{' '}
-                <code>x-api-key</code> header; usage is metered per key and per-minute rate limits apply.
-              </p>
-              <pre className="keybox" style={{ marginBottom: 16 }}><code>{CURL_SNIPPET}</code></pre>
-              <pre className="keybox" style={{ marginBottom: 24 }}><code>{NODE_SNIPPET}</code></pre>
+          <div className="section-alt validator-api-continuation">
+            <div className="container" style={{ maxWidth: 980 }}>
+              <div className="validator-api-continuation__intro">
+                <h2>Make the browser check disappear into your workflow.</h2>
+                <p className="muted">
+                  The browser station is a free single-shot XML preflight surface backed by{' '}
+                  <code>POST /v2/validate</code>. It accepts XML only. New canonical JSON integrations
+                  use <code>POST /v1/preflight</code>; existing <code>POST /v1/validate</code> clients remain
+                  supported as a legacy JSON/XML compatibility path. Authenticated API calls use an{' '}
+                  <code>x-api-key</code> header; usage is metered per key and per-minute rate limits apply.
+                </p>
+              </div>
+              <div className="validator-api-continuation__code">
+                <pre className="keybox"><code>{CURL_SNIPPET}</code></pre>
+                <pre className="keybox"><code>{NODE_SNIPPET}</code></pre>
+              </div>
               <div className="cta-row">
                 <Link className="btn btn-primary" href="/signup">
                   Get an API key - {PRICING.trial.priceLabel} {PRICING.trial.cadence},{' '}
@@ -182,8 +199,8 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       ) : null}
 
       <div className="section">
-        <div className="container" style={{ maxWidth: 800 }}>
-          {slug !== 'uae-e-invoice-validator' ? (
+        <div className="container" style={{ maxWidth: isValidator ? 980 : 800 }}>
+          {!isValidator ? (
             <div className="card" style={{ maxWidth: 560 }}>
               <h3 style={{ marginBottom: 8 }}>Get it when it lands</h3>
               <p className="muted" style={{ marginBottom: 12 }}>

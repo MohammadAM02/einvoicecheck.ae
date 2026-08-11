@@ -22,12 +22,12 @@ function renderHomepage() {
 }
 
 describe('Homepage', () => {
-  it('leads with a concise ERP preflight message and mounts the homepage workspace', () => {
+  it('opens with tension, a concrete preflight promise and the live homepage input', () => {
     renderHomepage();
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Check your UAE e-invoice before your ASP does' })).toBeTruthy();
-    expect(screen.getByText('Your ERP creates the invoice. We check whether it will pass.')).toBeTruthy();
-    expect(screen.getByText('Upload PINT-AE XML. Get the exact field and fix.')).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: "Your ERP can create the invoice. That doesn't mean the file is ready." })).toBeTruthy();
+    expect(screen.getByText('Catch the broken field, mapping or total before it becomes an ASP rejection loop.')).toBeTruthy();
+    expect(screen.getByText('Drop in PINT-AE XML. EInvoiceCheck shows what failed, where it failed, and the smallest practical fix.')).toBeTruthy();
     expect(screen.getByText('Validate an invoice')).toBeTruthy();
     expect(screen.getByTestId('validator-workspace').getAttribute('data-context')).toBe('homepage');
   });
@@ -64,36 +64,38 @@ describe('Homepage', () => {
     expect(screen.queryByText(/99\.7%|Sub-50ms|SHA-256 Key Security/)).toBeNull();
   });
 
-  it('uses a visual three-step process and three compact failure cards', () => {
+  it('shows the ERP-to-ASP route as one product story with a concrete diagnostic interruption', () => {
     renderHomepage();
 
-    expect(screen.getByRole('heading', { name: 'See where the invoice breaks.' })).toBeTruthy();
-    expect(screen.getByText('One quick check between your ERP and ASP.')).toBeTruthy();
-    for (const item of ['ERP export', 'Preflight check', 'ASP submission', 'Invoice created', 'Errors explained', 'Ready to send']) {
-      expect(screen.getByText(item)).toBeTruthy();
-    }
-    for (const problem of ['Rejected invoice', 'Broken ERP mapping', 'Wrong invoice data']) {
-      expect(screen.getByRole('heading', { name: problem })).toBeTruthy();
-    }
-    expect(screen.queryByText('ERP configuration problems')).toBeNull();
-    expect(screen.queryByText('Unclear validation errors')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Find the fault while it is still yours to fix.' })).toBeTruthy();
+    expect(screen.getByText('ERP output')).toBeTruthy();
+    expect(screen.getByText('EInvoiceCheck')).toBeTruthy();
+    expect(screen.getByText('Your ASP')).toBeTruthy();
+    expect(screen.getByText('Buyer TRN failed')).toBeTruthy();
+    expect(screen.getByText('14 digits found')).toBeTruthy();
+    expect(screen.getByText('Use the 15-digit UAE TRN.')).toBeTruthy();
+    expect(screen.getByText('Source data')).toBeTruthy();
+    expect(screen.getByText('Mapping')).toBeTruthy();
+    expect(screen.getByText('Final XML')).toBeTruthy();
   });
 
-  it('shows one representative error and one concise API continuation', () => {
+  it('shows one representative error as an actionable result, not a generic invalid state', () => {
     renderHomepage();
 
-    expect(screen.getByRole('heading', { name: 'One error. One clear fix.' })).toBeTruthy();
-    expect(screen.getByText('No XML archaeology required.')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Don’t get an “invalid invoice.” Get the reason.' })).toBeTruthy();
+    expect(screen.getByText('Rule. Location. Meaning. Fix. Enough information to move the invoice forward.')).toBeTruthy();
     expect(screen.getByText('Buyer TRN is not a valid 15-digit UAE TRN.')).toBeTruthy();
     expect(screen.getByText('Fix: Use exactly 15 numeric digits.')).toBeTruthy();
     expect(screen.getAllByText('Technical details')).toHaveLength(1);
+  });
 
-    expect(screen.getByRole('heading', { name: 'Validating more than one invoice?' })).toBeTruthy();
-    expect(screen.getByText('Add the same checks inside your ERP or workflow.')).toBeTruthy();
+  it('makes API automation the continuation after single-invoice value is clear', () => {
+    renderHomepage();
+
+    expect(screen.getByRole('heading', { name: 'When one clean invoice becomes a thousand.' })).toBeTruthy();
+    expect(screen.getByText('Put the same preflight checks inside your ERP, CI or delivery workflow.')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Automate with the API' }).getAttribute('href')).toBe('/signup');
     expect(screen.getByRole('link', { name: 'View pricing' }).getAttribute('href')).toBe('/pricing');
-    expect(screen.queryByRole('heading', { name: 'Free validator' })).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Validation API' })).toBeNull();
   });
 
   it('keeps scope, limitations and privacy available through progressive disclosure', () => {

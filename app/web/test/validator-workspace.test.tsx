@@ -2,13 +2,14 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createElement as h } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const validationClient = vi.hoisted(() => ({
   readInvoiceFile: vi.fn(),
   validateInvoiceDocument: vi.fn(),
 }));
 const analytics = vi.hoisted(() => ({ trackEvent: vi.fn() }));
+const router = vi.hoisted(() => ({ push: vi.fn() }));
 
 vi.mock('@/lib/validation-client', () => ({
   ...validationClient,
@@ -26,8 +27,10 @@ vi.mock('@/lib/validation-samples', () => ({
   BROKEN_XML_SAMPLE: '<Invoice>broken</Invoice>',
 }));
 vi.mock('@/lib/analytics', () => analytics);
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: router.push }) }));
 
 import { ValidationClientError } from '@/lib/validation-client';
+import { consumeHomepageValidatorHandoff } from '@/lib/validator-handoff';
 import { ValidatorWorkspace } from '@/components/validation/ValidatorWorkspace';
 
 const success = {
@@ -45,14 +48,19 @@ const success = {
   rateLimit: { limit: 10, remaining: 9, resetSeconds: 60, degraded: false },
 };
 
+beforeEach(() => {
+  sessionStorage.clear();
+  consumeHomepageValidatorHandoff();
+});
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.clearAllMocks();
 });
 
-function renderWorkspace() {
-  return render(h(ValidatorWorkspace, { context: 'homepage' }));
+function renderWorkspace(context: 'homepage' | 'tool' = 'tool') {
+  return render(h(ValidatorWorkspace, { context }));
 }
 
 describe('ValidatorWorkspace', () => {
@@ -82,7 +90,7 @@ describe('ValidatorWorkspace', () => {
     expect(click).toHaveBeenCalledTimes(3);
   });
 
-  it('reads an uploaded file and sends its unchanged text to the validator without auth', async () => {
+  it('reads an uploaded file and sends its unchanged text to the validator without auth in tool context', async () => {
     const user = userEvent.setup();
     validationClient.readInvoiceFile.mockResolvedValue('  <Invoice>upload</Invoice>  ');
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
@@ -93,10 +101,10 @@ describe('ValidatorWorkspace', () => {
     await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('  <Invoice>upload</Invoice>  ', expect.any(AbortSignal)));
     expect(validationClient.readInvoiceFile).toHaveBeenCalledOnce();
     expect(screen.getByText('invoice.xml')).toBeTruthy();
-    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'homepage', method: 'upload' });
+    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'tool', method: 'upload' });
   });
 
-  it('uses the same client flow for a dropped file and shows its name', async () => {
+  it('uses the same client flow for a dropped file and shows its name in tool context', async () => {
     validationClient.readInvoiceFile.mockResolvedValue('<Invoice>drop</Invoice>');
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
     renderWorkspace();
@@ -107,7 +115,57 @@ describe('ValidatorWorkspace', () => {
     await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('<Invoice>drop</Invoice>', expect.any(AbortSignal)));
     expect(validationClient.readInvoiceFile).toHaveBeenCalledWith(file);
     expect(screen.getByText('dropped.xml')).toBeTruthy();
-    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'homepage', method: 'drop' });
+    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'tool', method: 'drop' });
+  });
+
+  it('hands an uploaded homepage invoice to the dedicated validator station without validating twice or writing invoice content to sessionStorage', async () => {
+    const user = userEvent.setup();
+    validationClient.readInvoiceFile.mockResolvedValue('  <Invoice>homepage</Invoice>  ');
+    renderWorkspace('homepage');
+
+    await user.upload(screen.getByLabelText('Choose an XML invoice'), new File(['ignored'], 'homepage.xml', { type: 'application/xml' }));
+
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith('/tools/uae-e-invoice-validator'));
+    expect(validationClient.validateInvoiceDocument).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('einvoicecheck:converter-handoff')).toBeNull();
+    expect(consumeHomepageValidatorHandoff()).toEqual({
+      source: 'homepage',
+      fileName: 'homepage.xml',
+      xml: '  <Invoice>homepage</Invoice>  ',
+    });
+    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'homepage', method: 'upload' });
+  });
+
+  it('hands pasted homepage XML to the station unchanged without browser persistence', async () => {
+    const user = userEvent.setup();
+    renderWorkspace('homepage');
+
+    await user.click(screen.getByRole('button', { name: 'Paste XML' }));
+    fireEvent.change(screen.getByLabelText('Invoice XML'), { target: { value: '  <Invoice>paste</Invoice>  ' } });
+    await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
+
+    expect(router.push).toHaveBeenCalledWith('/tools/uae-e-invoice-validator');
+    expect(validationClient.validateInvoiceDocument).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('einvoicecheck:converter-handoff')).toBeNull();
+    expect(consumeHomepageValidatorHandoff()).toEqual({
+      source: 'homepage',
+      xml: '  <Invoice>paste</Invoice>  ',
+    });
+  });
+
+  it('hands homepage samples to the station instead of rendering results in marketing content', async () => {
+    const user = userEvent.setup();
+    renderWorkspace('homepage');
+
+    await user.click(screen.getByRole('button', { name: 'Try broken sample' }));
+
+    expect(router.push).toHaveBeenCalledWith('/tools/uae-e-invoice-validator');
+    expect(validationClient.validateInvoiceDocument).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('einvoicecheck:converter-handoff')).toBeNull();
+    expect(consumeHomepageValidatorHandoff()).toEqual({
+      source: 'homepage',
+      xml: '<Invoice>broken</Invoice>',
+    });
   });
 
   it('links oversize local files to documentation without claiming a larger API limit', async () => {
@@ -115,7 +173,7 @@ describe('ValidatorWorkspace', () => {
     validationClient.readInvoiceFile.mockRejectedValue(
       new ValidationClientError('File is larger than 256 KB. Choose a smaller XML invoice.', 413),
     );
-    renderWorkspace();
+    renderWorkspace('homepage');
 
     await user.upload(
       screen.getByLabelText('Choose an XML invoice'),
@@ -125,9 +183,11 @@ describe('ValidatorWorkspace', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('File is larger than 256 KB.');
     expect(screen.getByRole('link', { name: 'Read file size guidance' }).getAttribute('href')).toBe('/docs');
     expect(screen.queryByText(/API supports|larger payload|larger file/i)).toBeNull();
+    expect(router.push).not.toHaveBeenCalled();
+    expect(consumeHomepageValidatorHandoff()).toBeNull();
   });
 
-  it('reveals paste input and submits its unchanged content', async () => {
+  it('reveals paste input and submits its unchanged content in tool context', async () => {
     const user = userEvent.setup();
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
     renderWorkspace();
@@ -138,13 +198,13 @@ describe('ValidatorWorkspace', () => {
     await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
 
     await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith('  <Invoice>paste</Invoice>  ', expect.any(AbortSignal)));
-    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'homepage', method: 'paste' });
+    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'tool', method: 'paste' });
   });
 
   it.each([
     ['Try valid sample', '<Invoice>valid</Invoice>', 'valid_sample'],
     ['Try broken sample', '<Invoice>broken</Invoice>', 'broken_sample'],
-  ] as const)('validates the %s without changing it', async (button, document, method) => {
+  ] as const)('validates the %s without changing it in tool context', async (button, document, method) => {
     const user = userEvent.setup();
     validationClient.validateInvoiceDocument.mockResolvedValue(success);
     renderWorkspace();
@@ -152,7 +212,7 @@ describe('ValidatorWorkspace', () => {
     await user.click(screen.getByRole('button', { name: button }));
 
     await waitFor(() => expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith(document, expect.any(AbortSignal)));
-    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'homepage', method });
+    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_input_selected', { context: 'tool', method });
   });
 
   it.each([
@@ -173,7 +233,7 @@ describe('ValidatorWorkspace', () => {
     expect((input as HTMLTextAreaElement).value).toBe('retained server document');
     expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy();
     expect(document.activeElement).toBe(alert);
-    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_error', { context: 'homepage', status });
+    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_error', { context: 'tool', status });
   });
 
   it('retains pasted input with a timeout message', async () => {
@@ -255,7 +315,7 @@ describe('ValidatorWorkspace', () => {
     await user.click(screen.getByRole('button', { name: 'Validate pasted invoice' }));
     await screen.findByRole('heading', { name: 'Preflight passed' });
 
-    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_success', { context: 'homepage', valid: true });
+    expect(analytics.trackEvent).toHaveBeenCalledWith('validator_success', { context: 'tool', valid: true });
     for (const call of analytics.trackEvent.mock.calls) {
       expect(JSON.stringify(call)).not.toContain(privateDocument);
     }
