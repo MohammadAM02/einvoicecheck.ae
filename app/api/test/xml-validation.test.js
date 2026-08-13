@@ -55,6 +55,25 @@ describe('validateXmlDocument (layered XML validation core)', () => {
     expect(result.structure.issues).toEqual([]);
   });
 
+  it('rejects XML with a non-zero AE reverse-charge subtotal tax (A-004)', () => {
+    const baseXml = fs.readFileSync(
+      path.join(import.meta.dirname, '..', 'pint-ae-resources', 'trn-invoice', 'example', 'Supply under Reverse charge mechanism.xml'),
+      'utf8'
+    );
+    // PINT-AE sample's AE subtotal tax is 0 (rule absent); corrupt it and
+    // the AE zero-tax rule must fire.
+    const zeroRules = validateXmlDocument(baseXml).semantic.issues.map((i) => i.rule);
+    expect(zeroRules).not.toContain('aligned-ibrp-ae-09-ae');
+    const xml = baseXml.replace(
+      /(<cbc:TaxAmount currencyID="AED">)0(<\/cbc:TaxAmount>\s*<cac:TaxCategory>\s*<cbc:ID>AE<\/cbc:ID>)/,
+      '$15$2'
+    );
+    const result = validateXmlDocument(xml);
+    expect(result.valid).toBe(false);
+    const aeRules = result.semantic.issues.map((i) => i.rule);
+    expect(aeRules).toContain('aligned-ibrp-ae-09-ae');
+  });
+
   it('every issue location field is either a real value or null', () => {
     const results = [
       validateXmlDocument(validUblXml().replace('</Invoice>', '</Invocie>')),

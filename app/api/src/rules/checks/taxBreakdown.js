@@ -34,7 +34,8 @@ export const taxBreakdownRule = {
       const code = st.category?.code;
 
       // BR-S-09: tax = taxable x rate/100 (SKIPPED for AE — reverse charge,
-      // seller tax amount is 0 by definition; buyer self-assesses).
+      // seller tax amount is 0 by definition; buyer self-assesses). The
+      // binding invariant is enforced below (aligned-ibrp-ae-09-ae).
       if (code !== 'AE' && isNumber(st.taxableAmount) && isNumber(rate) && isNumber(st.taxAmount)) {
         const expectedTax = round2((Number(st.taxableAmount) * Number(rate)) / 100);
         if (!moneyEq(expectedTax, st.taxAmount)) {
@@ -42,6 +43,15 @@ export const taxBreakdownRule = {
             `VAT subtotal tax ${fmt(st.taxAmount)} for category "${code}" does not equal taxable x rate (${fmt(expectedTax)}).`,
             `Set taxAmount to ${fmt(expectedTax)} (= ${fmt(st.taxableAmount)} x ${rate}%).`));
         }
+      }
+
+      // AE reverse-charge invariant (PINT-AE aligned-ibrp-ae-09-ae): seller
+      // tax amount for category AE MUST be 0. Notional-rate cases (rate 5,
+      // tax 0) stay valid — only a non-zero tax amount is rejected.
+      if (code === 'AE' && isNumber(st.taxAmount) && !moneyEq(0, st.taxAmount)) {
+        out.push(err(`${base}/taxAmount`, 'ENG-TAX-10/aligned-ibrp-ae-09-ae',
+          `VAT subtotal tax ${fmt(st.taxAmount)} for category "AE" (reverse charge) must be 0.`,
+          'Set taxAmount to 0 — the buyer self-assesses reverse-charge VAT.'));
       }
 
       // BR-S-08: taxable reconciles to line nets of the same category.
