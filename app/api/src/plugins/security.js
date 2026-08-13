@@ -91,12 +91,12 @@ async function publishedPlanLimit(redis, keyId) {
  * default. An over-plan caller therefore gets a 429 from this service without
  * the dashboard having to touch the API at all.
  */
-export function makeRateLimiter(fastify) {
+export function makeRateLimiter(fastify, { max: maxOverride = null } = {}) {
   return async function rateLimit(request, reply) {
     const key = request.apiKey;
     if (!key) return; // authenticate already rejected
     const plan = await publishedPlanLimit(fastify.redis, String(key._id));
-    const max = plan?.rateLimitPerMinute ?? key.rateLimitPerMinute ?? config.rateLimit.max;
+    const max = maxOverride ?? plan?.rateLimitPerMinute ?? key.rateLimitPerMinute ?? config.rateLimit.max;
     const windowMs = config.rateLimit.windowMs;
 
     let result;
