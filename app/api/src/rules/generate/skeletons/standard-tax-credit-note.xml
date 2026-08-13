@@ -13,36 +13,15 @@
 	<cbc:Note>{{NOTE}}</cbc:Note>
 	<cbc:DocumentCurrencyCode>{{CURRENCY}}</cbc:DocumentCurrencyCode>
 	<cbc:AccountingCost>{{ACCOUNTING_COST}}</cbc:AccountingCost>
-	<cbc:BuyerReference>{{BUYER_REFERENCE}}</cbc:BuyerReference>
-	<cac:InvoicePeriod>
-		<cbc:StartDate>{{INVOICE_PERIOD_START}}</cbc:StartDate>
-		<cbc:EndDate>{{INVOICE_PERIOD_END}}</cbc:EndDate>
-	</cac:InvoicePeriod>
 	<cac:DiscrepancyResponse>
 		<cbc:ResponseCode>{{DISCREPANCY_RESPONSE_CODE}}</cbc:ResponseCode>
 	</cac:DiscrepancyResponse>
-	<cac:OrderReference>
-		<cbc:ID>{{ORDER_REFERENCE_ID}}</cbc:ID>
-		<cbc:SalesOrderID>{{SALES_ORDER_ID}}</cbc:SalesOrderID>
-	</cac:OrderReference>
 	<cac:BillingReference>
 		<cac:InvoiceDocumentReference>
 			<cbc:ID>{{BILLING_REF_ID}}</cbc:ID>
 			<cbc:IssueDate>{{BILLING_REF_DATE}}</cbc:IssueDate>
 		</cac:InvoiceDocumentReference>
 	</cac:BillingReference>
-	<cac:DespatchDocumentReference>
-		<cbc:ID>{{DESPATCH_DOC_REF_ID}}</cbc:ID>
-	</cac:DespatchDocumentReference>
-		<cac:AdditionalDocumentReference>
-			<cbc:ID>{{ADD_DOC_REF_ID_1}}</cbc:ID>
-		<cac:Attachment>
-			<cbc:EmbeddedDocumentBinaryObject mimeCode="application/pdf" filename="{{ADD_DOC_REF_FILENAME_1}}">{{ADD_DOC_REF_BINARY_1}}</cbc:EmbeddedDocumentBinaryObject>
-		</cac:Attachment>
-	</cac:AdditionalDocumentReference>
-	<cac:OriginatorDocumentReference>
-		<cbc:ID>{{ORIGINATOR_DOC_REF_ID}}</cbc:ID>
-	</cac:OriginatorDocumentReference>
 	<cac:AccountingSupplierParty>
 		<cac:Party>
 			<cbc:EndpointID schemeID="0235">{{SUPPLIER_ENDPOINT_ID}}</cbc:EndpointID>
@@ -68,11 +47,6 @@
 				<cbc:CompanyID schemeAgencyID="TL" schemeAgencyName="Trade License issuing Authority">{{SUPPLIER_TRADE_LICENSE}}</cbc:CompanyID>
 				<cbc:CompanyLegalForm>{{SUPPLIER_LEGAL_FORM}}</cbc:CompanyLegalForm>
 			</cac:PartyLegalEntity>
-			<cac:Contact>
-				<cbc:Name>{{SUPPLIER_CONTACT_NAME}}</cbc:Name>
-				<cbc:Telephone>{{SUPPLIER_CONTACT_PHONE}}</cbc:Telephone>
-				<cbc:ElectronicMail>{{SUPPLIER_CONTACT_EMAIL}}</cbc:ElectronicMail>
-			</cac:Contact>
 		</cac:Party>
 	</cac:AccountingSupplierParty>
 	<cac:AccountingCustomerParty>
@@ -99,54 +73,11 @@
 				<cbc:RegistrationName>{{CUSTOMER_LEGAL_NAME}}</cbc:RegistrationName>
 				<cbc:CompanyID schemeAgencyID="TL" schemeAgencyName="Trade License issuing Authority">{{CUSTOMER_TRADE_LICENSE}}</cbc:CompanyID>
 			</cac:PartyLegalEntity>
-			<cac:Contact>
-				<cbc:Name>{{CUSTOMER_CONTACT_NAME}}</cbc:Name>
-				<cbc:Telephone>{{CUSTOMER_CONTACT_PHONE}}</cbc:Telephone>
-				<cbc:ElectronicMail>{{CUSTOMER_CONTACT_EMAIL}}</cbc:ElectronicMail>
-			</cac:Contact>
 		</cac:Party>
 	</cac:AccountingCustomerParty>
-	<cac:PayeeParty>
-		<cac:PartyName>
-			<cbc:Name>{{PAYEE_NAME}}</cbc:Name>
-		</cac:PartyName>
-		<cac:PartyLegalEntity>
-			<cbc:CompanyID>{{PAYEE_COMPANY_ID}}</cbc:CompanyID>
-		</cac:PartyLegalEntity>
-	</cac:PayeeParty>
-	<cac:PaymentTerms>
-		<cbc:Note>{{PAYMENT_TERMS_NOTE}}</cbc:Note>
-	</cac:PaymentTerms>
-	<cac:AllowanceCharge>
-		<cbc:ChargeIndicator>false</cbc:ChargeIndicator>
-		<cbc:AllowanceChargeReasonCode>{{ALLOWANCE_1_REASON_CODE}}</cbc:AllowanceChargeReasonCode>
-		<cbc:AllowanceChargeReason>{{ALLOWANCE_1_REASON}}</cbc:AllowanceChargeReason>
-		<cbc:MultiplierFactorNumeric>{{ALLOWANCE_1_MULTIPLIER}}</cbc:MultiplierFactorNumeric>
-		<cbc:Amount currencyID="AED">{{ALLOWANCE_1_AMOUNT}}</cbc:Amount>
-		<cbc:BaseAmount currencyID="AED">{{ALLOWANCE_1_BASE_AMOUNT}}</cbc:BaseAmount>
-		<cac:TaxCategory>
-			<cbc:ID>{{ALLOWANCE_1_TAX_CATEGORY}}</cbc:ID>
-			<cbc:Percent>{{ALLOWANCE_1_TAX_RATE}}</cbc:Percent>
-			<cac:TaxScheme>
-				<cbc:ID>VAT</cbc:ID>
-			</cac:TaxScheme>
-		</cac:TaxCategory>
-	</cac:AllowanceCharge>
-	<cac:AllowanceCharge>
-		<cbc:ChargeIndicator>true</cbc:ChargeIndicator>
-		<cbc:AllowanceChargeReasonCode>{{CHARGE_1_REASON_CODE}}</cbc:AllowanceChargeReasonCode>
-		<cbc:AllowanceChargeReason>{{CHARGE_1_REASON}}</cbc:AllowanceChargeReason>
-		<cbc:MultiplierFactorNumeric>{{CHARGE_1_MULTIPLIER}}</cbc:MultiplierFactorNumeric>
-		<cbc:Amount currencyID="AED">{{CHARGE_1_AMOUNT}}</cbc:Amount>
-		<cbc:BaseAmount currencyID="AED">{{CHARGE_1_BASE_AMOUNT}}</cbc:BaseAmount>
-		<cac:TaxCategory>
-			<cbc:ID>{{CHARGE_1_TAX_CATEGORY}}</cbc:ID>
-			<cbc:Percent>{{CHARGE_1_TAX_RATE}}</cbc:Percent>
-			<cac:TaxScheme>
-				<cbc:ID>VAT</cbc:ID>
-			</cac:TaxScheme>
-		</cac:TaxCategory>
-	</cac:AllowanceCharge>
+	<cac:PaymentMeans>
+		<cbc:PaymentMeansCode name="Debit Card">55</cbc:PaymentMeansCode>
+	</cac:PaymentMeans>
 	<cac:TaxTotal>
 		<cbc:TaxAmount currencyID="AED">{{TAX_TOTAL}}</cbc:TaxAmount>
 		<cbc:TaxIncludedIndicator>false</cbc:TaxIncludedIndicator>
@@ -158,7 +89,6 @@
 		<cbc:TaxInclusiveAmount currencyID="AED">{{TAX_INCLUSIVE_TOTAL}}</cbc:TaxInclusiveAmount>
 		<cbc:AllowanceTotalAmount currencyID="AED">0</cbc:AllowanceTotalAmount>
 		<cbc:ChargeTotalAmount currencyID="AED">0</cbc:ChargeTotalAmount>
-		<cbc:PayableRoundingAmount currencyID="AED">{{PAYABLE_ROUNDING}}</cbc:PayableRoundingAmount>
 		<cbc:PayableAmount currencyID="AED">{{PAYABLE_TOTAL}}</cbc:PayableAmount>
 	</cac:LegalMonetaryTotal>
 {{LINE_BLOCK}}

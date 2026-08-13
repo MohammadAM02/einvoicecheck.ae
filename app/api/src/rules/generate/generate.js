@@ -14,7 +14,7 @@ import { TEMPLATES } from './templates.js';
 import { computeTotals } from './totals.js';
 import { VAT_CATEGORY_CODES } from '../codelists.js';
 import { round2, isNumber } from '../money.js';
-import { validateGenerateXsd } from './validate-xsd.js';
+import { validateXmlDocument } from '../xml-validation.js';
 
 export const GENERATOR_VERSION = '1.0.0';
 
@@ -89,7 +89,7 @@ function buildTokenMap(input, template, totals) {
     INVOICE_PERIOD_END: input.issueDate,
     ORDER_REFERENCE_ID: '',
     SALES_ORDER_ID: '',
-    BILLING_REF_ID: '',
+    BILLING_REF_ID: input.invoiceNumber,
     BILLING_REF_DATE: input.issueDate,
     DESPATCH_DOC_REF_ID: '',
     ORIGINATOR_DOC_REF_ID: '',
@@ -101,16 +101,16 @@ function buildTokenMap(input, template, totals) {
     ADD_DOC_REF_FILENAME_1: '',
     ADD_DOC_REF_BINARY_1: '',
     PROJECT_REF_ID: '',
-    DISCREPANCY_RESPONSE_CODE: '',
+    DISCREPANCY_RESPONSE_CODE: 'DL8.61.1.E',
     SUPPLIER_ENDPOINT_ID: s.trn ? s.trn.slice(0, 10) : '',
     SUPPLIER_NAME: s.name || '',
     SUPPLIER_STREET: 'Street Name',
     SUPPLIER_CITY: 'Dubai',
-    SUPPLIER_COUNTRY_SUBENTITY: 'DU',
+    SUPPLIER_COUNTRY_SUBENTITY: 'DXB',
     SUPPLIER_COUNTRY_CODE: 'AE',
     SUPPLIER_TRN: s.trn || '',
     SUPPLIER_LEGAL_NAME: s.name || '',
-    SUPPLIER_TRADE_LICENSE: '',
+    SUPPLIER_TRADE_LICENSE: s.trn || '',
     SUPPLIER_LEGAL_FORM: 'Merchant',
     SUPPLIER_CONTACT_NAME: '',
     SUPPLIER_CONTACT_PHONE: '',
@@ -119,11 +119,11 @@ function buildTokenMap(input, template, totals) {
     CUSTOMER_NAME: c.name || '',
     CUSTOMER_STREET: 'Street Name',
     CUSTOMER_CITY: 'Dubai',
-    CUSTOMER_COUNTRY_SUBENTITY: 'DU',
+    CUSTOMER_COUNTRY_SUBENTITY: 'DXB',
     CUSTOMER_COUNTRY_CODE: 'AE',
     CUSTOMER_TRN: c.trn || '',
     CUSTOMER_LEGAL_NAME: c.name || '',
-    CUSTOMER_TRADE_LICENSE: '',
+    CUSTOMER_TRADE_LICENSE: c.trn || '',
     CUSTOMER_CONTACT_NAME: '',
     CUSTOMER_CONTACT_PHONE: '',
     CUSTOMER_CONTACT_EMAIL: '',
@@ -244,6 +244,29 @@ function validateInput(data, template) {
 function renderLine(line, index, rates, lineFrag) {
   const ext = round2(Number(line.quantity) * Number(line.unitPrice));
   const rate = rates[line.category] ?? VAT_CATEGORY_CODES[line.category]?.expectedRate ?? 0;
+  // PINT-AE line VAT amounts (BTAE-08, BTAE-10): AE reverse-charge lines
+  // carry 0 tax; ItemPriceExtension Amount is the tax-inclusive line total.
+  const lineTax = line.category === 'AE' ? 0 : round2((ext * rate) / 100);
+  const linePayable = round2(ext + lineTax);
+
+  // Per-category ClassifiedTaxCategory content: Exempt lines carry an
+  // exemption reason code and no rate (aligned-ibrp-e-05, ibr-167-ae);
+  // Out-of-scope lines carry no rate (aligned-ibrp-o-05); Zero-rated lines
+  // carry rate 0 (aligned-ibrp-z-05); rated lines carry their percent.
+  let taxCatExtra;
+  if (line.category === 'E') {
+    taxCatExtra = '<cbc:TaxExemptionReasonCode>VATEX-AE-EDU</cbc:TaxExemptionReasonCode>';
+  } else if (line.category === 'O') {
+    taxCatExtra = '';
+  } else if (line.category === 'Z') {
+    taxCatExtra = '<cbc:Percent>0</cbc:Percent>';
+  } else {
+    taxCatExtra = `<cbc:Percent>${xmlEscape(String(rate))}</cbc:Percent>`;
+  }
+  // Exempt lines must not carry a line VAT amount (ibr-163-ae).
+  const taxTotalBlock = line.category === 'E'
+    ? ''
+    : `        <cac:TaxTotal>\n          <cbc:TaxAmount currencyID="AED">${fmtAmount(lineTax)}</cbc:TaxAmount>\n        </cac:TaxTotal>\n`;
 
   const lineTokens = {
     LINE_ID: String(index + 1),
@@ -253,10 +276,19 @@ function renderLine(line, index, rates, lineFrag) {
     LINE_EXT: fmtAmount(ext),
     LINE_CATEGORY: line.category,
     LINE_RATE: String(rate),
+    LINE_STD_ITEM_ID: String(index + 1),
+    LINE_TAX_AMOUNT: fmtAmount(lineTax),
+    LINE_PAYABLE_AMOUNT: fmtAmount(linePayable),
+    LINE_TAX_CATEGORY_EXTRA: taxCatExtra,
+    LINE_TAX_TOTAL_BLOCK: taxTotalBlock,
   };
 
   return lineFrag.replace(TOKEN_RE, (match, token) => {
-    if (token in lineTokens) return xmlEscape(lineTokens[token]);
+    if (token in lineTokens) {
+      // Pre-built XML blocks are inserted verbatim; value tokens are escaped.
+      if (token === 'LINE_TAX_CATEGORY_EXTRA' || token === 'LINE_TAX_TOTAL_BLOCK') return lineTokens[token];
+      return xmlEscape(lineTokens[token]);
+    }
     // Extra tokens not in our standard set — provide safe defaults.
     if (token === 'LINE_NOTE') return '';
     if (token === 'LINE_PERIOD_START' || token === 'LINE_PERIOD_END') return '';
@@ -278,15 +310,30 @@ function renderLine(line, index, rates, lineFrag) {
  * @returns {string}
  */
 function renderTaxSubtotal(cat, frag) {
+  // Exempt/Out-of-scope subtotals must not carry a rate (ibr-121-ae,
+  // aligned-ibrp-o-11-ae); Zero-rated must carry 0 (ibr-120-ae); rated and
+  // AE (notional) carry their percent.
+  let rateBlock;
+  if (cat.category === 'E' || cat.category === 'O') {
+    rateBlock = '';
+  } else if (cat.category === 'Z') {
+    rateBlock = '<cbc:Percent>0</cbc:Percent>';
+  } else {
+    rateBlock = `<cbc:Percent>${xmlEscape(String(cat.rate))}</cbc:Percent>`;
+  }
   const subtotalTokens = {
     TAXABLE_AMOUNT: fmtAmount(cat.taxable),
     TAX_AMOUNT: fmtAmount(cat.tax),
     CATEGORY: cat.category,
     RATE: String(cat.rate),
+    TAX_CATEGORY_RATE_BLOCK: rateBlock,
   };
 
   return frag.replace(TOKEN_RE, (match, token) => {
-    if (token in subtotalTokens) return xmlEscape(subtotalTokens[token]);
+    if (token in subtotalTokens) {
+      if (token === 'TAX_CATEGORY_RATE_BLOCK') return subtotalTokens[token];
+      return xmlEscape(subtotalTokens[token]);
+    }
     return match;
   });
 }
@@ -376,15 +423,23 @@ export function generateInvoice({ template: templateId, data } = {}) {
     throw new Error('Block tokens not fully resolved in generated XML.');
   }
 
-  // --- 11. Runtime XSD oracle ---
-  const xsdResult = validateGenerateXsd(result);
-  if (xsdResult.issues.length > 0) {
-    const msgs = xsdResult.issues.map((i) => `${i.rule} ${i.path}: ${i.message}`).join('; ');
-    throw new Error(`XSD validation failed on generated invoice: ${msgs}`);
-  }
-  if (xsdResult.evalErrors.length > 0) {
-    const msgs = xsdResult.evalErrors.map((e) => e.message).join('; ');
-    throw new Error(`XSD evaluation error on generated invoice: ${msgs}`);
+  // --- 11. Full validation pipeline gate (format + structure + semantic) ---
+  // Generated output must pass the complete validateXmlDocument() pipeline;
+  // fail closed otherwise. Reuses the pipeline's safe, sanitised issue
+  // messages as fieldErrors (the route's existing 400 error shape).
+  const pipeline = validateXmlDocument(result);
+  if (!pipeline.valid) {
+    const issues = [
+      ...(pipeline.format.status === 'failed' ? pipeline.format.issues : []),
+      ...(pipeline.structure.status === 'failed' ? pipeline.structure.issues : []),
+      ...(pipeline.semantic.status === 'failed' ? pipeline.semantic.issues : []),
+    ];
+    const err = new Error('Generated invoice failed validation.');
+    err.validationErrors = issues.map((i) => ({
+      field: i.path || '/',
+      message: `${i.rule}: ${i.message}`,
+    }));
+    throw err;
   }
 
   return {

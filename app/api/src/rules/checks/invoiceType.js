@@ -34,6 +34,11 @@ export const invoiceTypeRule = {
       );
       return out;
     }
+    // PINT-AE Billing recognises 480 (out of scope of VAT) alongside the
+    // codelist subset; the generated summary template emits it.
+    if (code === '480') {
+      return out;
+    }
     if (!isKnownInvoiceType(code)) {
       out.push(
         warn(

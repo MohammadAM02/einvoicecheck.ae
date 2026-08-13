@@ -17,8 +17,8 @@ describe('POST /v1/generate', () => {
     invoiceNumber: 'INV-001',
     issueDate: '2026-01-15',
     dueDate: '2026-02-15',
-    supplier: { trn: '123456789012345', name: 'Acme Corp' },
-    customer: { trn: '987654321098765', name: 'Buyer Inc' },
+    supplier: { trn: '100000000000003', name: 'Acme Corp' },
+    customer: { trn: '100000000000403', name: 'Buyer Inc' },
     lines: [{ name: 'Widget', quantity: 10, unitPrice: 100, category: 'S' }],
     ...overrides,
   });
@@ -35,8 +35,8 @@ describe('POST /v1/generate', () => {
         template: 'summary-tax-invoice',
         data: validData({
           lines: [
-            { name: 'Widget A', quantity: 5, unitPrice: 100, category: 'S' },
-            { name: 'Widget B', quantity: 2, unitPrice: 200, category: 'AE' },
+            { name: 'Widget A', quantity: 5, unitPrice: 100, category: 'Z' },
+            { name: 'Widget B', quantity: 2, unitPrice: 200, category: 'E' },
           ],
         }),
       },
@@ -183,7 +183,7 @@ describe('POST /v1/generate', () => {
       payload: {
         template: 'standard-tax-invoice',
         data: validData({
-          supplier: { trn: '123456789012345', name: 'Falcon & Sons <Trading> "LLC" O\'Brien' },
+          supplier: { trn: '100000000000003', name: 'Falcon & Sons <Trading> "LLC" O\'Brien' },
         }),
       },
     });
