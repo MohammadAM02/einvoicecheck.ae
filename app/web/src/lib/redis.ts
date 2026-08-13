@@ -10,6 +10,8 @@ type MinimalRedis = {
   del(key: string): Promise<unknown>;
   // Used by the free-tool IP rate limiter (src/lib/toolRateLimit.ts).
   incr(key: string): Promise<number>;
+  incrby(key: string, n: number): Promise<number>;
+  decrby(key: string, n: number): Promise<number>;
   expire(key: string, seconds: number): Promise<unknown>;
   ttl(key: string): Promise<number>;
 };

@@ -49,16 +49,38 @@ export function toolRateKey(tool: string, ip: string, now = Date.now()): string 
 }
 
 export async function checkToolRateLimit(tool: string, ip: string): Promise<RateLimitDecision> {
+  return reserveToolRateLimit(tool, ip, 1);
+}
+
+/**
+ * Atomically reserve N units for one request (batch mode: one unit per
+ * accepted invoice). INCRBY is atomic; if the request needs more units than
+ * remain, the over-limit units are rolled back before returning so the whole
+ * batch can be rejected with nothing consumed. The caller must not process
+ * anything when `allowed` is false.
+ */
+export async function reserveToolRateLimit(tool: string, ip: string, units: number): Promise<RateLimitDecision> {
   const limit = TOOL_RATE_LIMIT;
   const key = toolRateKey(tool, ip);
 
   try {
     const redis = getRedis();
-    const hits = await redis.incr(key);
-    if (hits === 1) await redis.expire(key, TOOL_RATE_WINDOW_SECONDS);
+    const hits = await redis.incrby(key, units);
+    if (hits === units) await redis.expire(key, TOOL_RATE_WINDOW_SECONDS);
     const ttl = await redis.ttl(key);
+    if (hits > limit) {
+      await redis.decrby(key, units);
+      return {
+        allowed: false,
+        limit,
+        remaining: 0,
+        resetSeconds: ttl > 0 ? ttl : TOOL_RATE_WINDOW_SECONDS,
+        degraded: false,
+        unavailable: false,
+      };
+    }
     return {
-      allowed: hits <= limit,
+      allowed: true,
       limit,
       remaining: Math.max(0, limit - hits),
       resetSeconds: ttl > 0 ? ttl : TOOL_RATE_WINDOW_SECONDS,
