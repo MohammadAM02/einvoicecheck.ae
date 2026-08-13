@@ -1,0 +1,21 @@
+# Allowed scope for p1-hardening-1-5 (from plan.md), fnmatch patterns
+app/api/src/rules/generate/**
+app/api/src/rules/checks/**
+app/api/src/rules/xml-validation.js
+app/api/src/plugins/security.js
+app/api/src/routes/validate.js
+app/api/src/routes/convert.js
+app/api/src/routes/generate.js
+app/api/src/routes/usage.js
+app/api/src/config/plans.js
+app/api/src/models/UsageEvent.js
+app/api/test/**
+app/web/src/app/api/tools/validate/batch/route.ts
+app/web/src/components/BatchValidator.tsx
+app/web/src/lib/toolRateLimit.ts
+app/web/src/lib/usage.ts
+app/web/src/lib/plans.ts
+app/web/test/**
+specs/p1-hardening-1-5/**
+.hermes/work/p1-hardening-1-5/**
+.hermes/critic-loop.md

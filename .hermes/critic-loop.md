@@ -112,3 +112,9 @@ Before `git push`, Hermes MUST:
 - REGRESSION: wrong UBL namespace — expected rule `KNOWN_GAP_F-02`, got: ENG-TRN-03/BT-48
 - REGRESSION: reverse-charge AE + non-zero VAT — expected rule `KNOWN_GAP_F-03`, got:
 - REGRESSION: invalid date 2026-02-30 — expected rule `KNOWN_GAP_F-04`, got:
+
+## 2026-08-13 — p1-hardening-1-5 merged-tree evidence (repository-only, no live claims)
+Lane A fea42b7/0779a1d + Lane B 20e6e61/dd00161/d0ab7bb integrated on rpi/p1-hardening-1-5 at f1c420b.
+Merged-tree verification: API 159/159, web 144/144, build clean, secret-scan PASSED, diff-check clean.
+Disclosed scope deviation: app/web/src/lib/redis.ts (+2 type lines incrby/decrby) — required by multi-unit reservation; awaiting reviewer ruling.
+No push/deploy/live verification performed.
