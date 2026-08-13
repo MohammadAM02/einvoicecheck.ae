@@ -1,7 +1,14 @@
 import { validateInvoice } from '../rules/engine.js';
 import { validateXmlDocument } from '../rules/xml-validation.js';
 import { looksLikeXml } from '../rules/xml.js';
-import { authenticate, makeRateLimiter } from '../plugins/security.js';
+import {
+  authenticate,
+  makeRateLimiter,
+  registerQuotaReleaseHook,
+  reserveMonthlyQuota,
+  finalizeMonthlyQuota,
+  quotaRejectedReply,
+} from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
 
 /**
@@ -118,6 +125,7 @@ function legacyXmlResponse(result) {
 
 export async function validateRoutes(fastify) {
   const rateLimit = makeRateLimiter(fastify);
+  registerQuotaReleaseHook(fastify);
 
   fastify.post(
     '/v2/validate',
@@ -145,7 +153,11 @@ export async function validateRoutes(fastify) {
         return reply.code(400).send({ error: 'invalid_request', message: NOT_XML_V2 });
       }
 
+      const quota = await reserveMonthlyQuota(fastify, request);
+      if (!quota.ok) return quotaRejectedReply(reply, quota);
+
       const result = validateXmlDocument(request.body);
+      finalizeMonthlyQuota(request);
       await meter(request, '/v2/validate', 200, outcomeFor(flattenIssues(result), result.valid));
       return reply.code(200).send(result);
     }
@@ -177,7 +189,11 @@ export async function validateRoutes(fastify) {
         return reply.code(400).send({ error: 'invalid_request', message: NOT_JSON_PREFLIGHT });
       }
 
+      const quota = await reserveMonthlyQuota(fastify, request);
+      if (!quota.ok) return quotaRejectedReply(reply, quota);
+
       const result = validateInvoice(request.body, type);
+      finalizeMonthlyQuota(request);
       const payload = { ...result, validationScope: 'canonical-json-data-preflight' };
       await meter(request, '/v1/preflight', 200, outcomeFor(result.errors, result.valid));
       return reply.code(200).send(payload);
@@ -207,16 +223,19 @@ export async function validateRoutes(fastify) {
     async (request, reply) => {
       const type = contentType(request);
       const xml = xmlPayload(request.body);
+      const quota = await reserveMonthlyQuota(fastify, request);
+      if (!quota.ok) return quotaRejectedReply(reply, quota);
+
+      let payload;
       if (xml) {
         const result = validateXmlDocument(xml);
-        const payload = legacyXmlResponse(result);
-        await meter(request, '/v1/validate', 200, outcomeFor(payload.errors, payload.valid));
-        return reply.code(200).send(payload);
+        payload = legacyXmlResponse(result);
+      } else {
+        payload = validateInvoice(request.body, type);
       }
-
-      const result = validateInvoice(request.body, type);
-      await meter(request, '/v1/validate', 200, outcomeFor(result.errors, result.valid));
-      return reply.code(200).send(result);
+      finalizeMonthlyQuota(request);
+      await meter(request, '/v1/validate', 200, outcomeFor(payload.errors, payload.valid));
+      return reply.code(200).send(payload);
     }
   );
 }

@@ -305,6 +305,10 @@ describe('IP rate limit (Redis)', () => {
       incr: async () => {
         throw new Error('redis down');
       },
+      incrby: async () => {
+        throw new Error('redis down');
+      },
+      decrby: async () => null,
       expire: async () => null,
       ttl: async () => -1,
     } as never);
@@ -328,6 +332,10 @@ describe('IP rate limit (Redis)', () => {
       incr: async () => {
         throw new Error('redis down');
       },
+      incrby: async () => {
+        throw new Error('redis down');
+      },
+      decrby: async () => null,
       expire: async () => null,
       ttl: async () => -1,
     } as never);

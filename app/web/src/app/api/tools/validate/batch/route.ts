@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MAX_DOCUMENT_BYTES, looksLikeXml, validateDocument } from '@/lib/validation';
 import type { XmlValidationResult } from '@/lib/validation';
-import { checkToolRateLimit, clientIp } from '@/lib/toolRateLimit';
+import { reserveToolRateLimit, clientIp } from '@/lib/toolRateLimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -90,7 +90,12 @@ export async function POST(request: Request) {
   }
 
   const ip = clientIp(request);
-  const limit = await checkToolRateLimit(TOOL, ip);
+  // Reserve one free-tool unit per ACCEPTED invoice, atomically, BEFORE any
+  // validation. Malformed/empty documents are not accepted and consume
+  // nothing; if the whole batch cannot be reserved, reject it entirely so no
+  // partial quota is consumed (A-009/A-010).
+  const accepted = invoices.filter((doc) => doc && looksLikeXml(doc));
+  const limit = await reserveToolRateLimit(TOOL, ip, accepted.length);
 
   if (limit.unavailable) {
     return NextResponse.json(

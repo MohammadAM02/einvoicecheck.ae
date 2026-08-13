@@ -1,5 +1,12 @@
 import { generateInvoice, TEMPLATES, GENERATOR_VERSION } from '../rules/generate/index.js';
-import { authenticate, makeRateLimiter } from '../plugins/security.js';
+import {
+  authenticate,
+  makeRateLimiter,
+  registerQuotaReleaseHook,
+  reserveMonthlyQuota,
+  finalizeMonthlyQuota,
+  quotaRejectedReply,
+} from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
 
 /**
@@ -27,6 +34,7 @@ async function meter(request, statusCode, outcome) {
  */
 export async function generateRoutes(fastify) {
   const rateLimit = makeRateLimiter(fastify);
+  registerQuotaReleaseHook(fastify);
 
   // Register a shared response schema that includes fieldErrors for 400.
   fastify.addSchema({
@@ -105,11 +113,15 @@ export async function generateRoutes(fastify) {
         });
       }
 
+      const quota = await reserveMonthlyQuota(fastify, request);
+      if (!quota.ok) return quotaRejectedReply(reply, quota);
+
       let result;
       try {
         result = generateInvoice({ template: body.template, data: body.data });
       } catch (e) {
         if (e.validationErrors) {
+          finalizeMonthlyQuota(request);
           await meter(request, 400, 'invalid');
           return reply.code(400).send({
             error: 'validation_failed',
@@ -118,6 +130,7 @@ export async function generateRoutes(fastify) {
           });
         }
         request.log.error({ err: e }, 'generateInvoice threw');
+        // Not finalized: the onResponse hook releases the reservation (A-008).
         await meter(request, 500, 'error');
         return reply.code(500).send({
           error: 'generation_failed',
@@ -125,6 +138,7 @@ export async function generateRoutes(fastify) {
         });
       }
 
+      finalizeMonthlyQuota(request);
       await meter(request, 200, 'valid');
       return reply.code(200).send({
         ok: true,
