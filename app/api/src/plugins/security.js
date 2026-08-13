@@ -131,3 +131,99 @@ export function makeRateLimiter(fastify) {
     }
   };
 }
+
+/**
+ * Redis key holding one API key's current UTC-calendar-month quota counter.
+ * Counters only — never invoice payloads (spec invariant).
+ */
+export function monthlyQuotaKey(keyId, now = new Date()) {
+  return `q:month:${keyId}:${now.toISOString().slice(0, 7)}`;
+}
+
+function secondsUntilMonthEnd(now = new Date()) {
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  return Math.max(1, Math.floor((end.getTime() - now.getTime()) / 1000));
+}
+
+/**
+ * Atomically reserve one monthly-quota unit for the request's API key, BEFORE
+ * expensive billable work. Reads the same published plan limit the rate
+ * limiter uses (plan:limits:<keyId> from app/web). Returns:
+ *   { ok: true,  quota, remaining }                 reservation made
+ *   { ok: true,  quota: null }                      no published quota
+ *   { ok: false, quota, unavailable? }              exhausted / store failed
+ * The reservation is attached to request.quota and released automatically by
+ * the onResponse hook unless finalizeMonthlyQuota() is called first.
+ *
+ * Failure mode mirrors the rate limiter: fail CLOSED (503) when
+ * config.rateLimit.requireRedis, else fail open with a warning.
+ */
+export async function reserveMonthlyQuota(fastify, request) {
+  const key = request.apiKey;
+  if (!key) return { ok: true, quota: null };
+  const plan = await publishedPlanLimit(fastify.redis, String(key._id));
+  const quota = plan?.monthlyQuota ?? null;
+  if (!quota || quota <= 0) return { ok: true, quota: null };
+
+  const k = monthlyQuotaKey(String(key._id));
+  let used;
+  try {
+    used = await fastify.redis.incr(k);
+    if (used === 1) await fastify.redis.expire(k, secondsUntilMonthEnd());
+  } catch (e) {
+    if (config.rateLimit.requireRedis) {
+      request.log.error({ err: e }, 'monthly quota store unavailable; failing closed (503)');
+      return { ok: false, quota, unavailable: true };
+    }
+    request.log.warn({ err: e }, 'monthly quota store unavailable; allowing request');
+    return { ok: true, quota: null };
+  }
+  if (used > quota) {
+    // Roll back the rejected unit. INCR is atomic, so two concurrent requests
+    // cannot both take the final unit (A-006).
+    await fastify.redis.decr(k).catch(() => {});
+    return { ok: false, quota, remaining: 0, key: k };
+  }
+  request.quota = { key: k, finalized: false, released: false };
+  return { ok: true, quota, remaining: quota - used, key: k };
+}
+
+/** Keep the reserved unit: the billable operation produced a real outcome. */
+export function finalizeMonthlyQuota(request) {
+  if (request.quota) request.quota.finalized = true;
+}
+
+/**
+ * Register the automatic release hook once per app. Must be called during
+ * route registration (before app.ready()); per-request reservation calls run
+ * too late to add hooks. Any reservation never finalized — internal error,
+ * route throw — is released when the response is sent (A-008).
+ */
+export function registerQuotaReleaseHook(fastify) {
+  if (fastify.quotaReleaseHookRegistered) return;
+  fastify.quotaReleaseHookRegistered = true;
+  fastify.addHook('onResponse', async (request) => {
+    const q = request.quota;
+    if (!q || q.finalized || q.released) return;
+    q.released = true;
+    try {
+      await fastify.redis.decr(q.key);
+    } catch (e) {
+      request.log.warn({ err: e }, 'failed to release monthly quota reservation');
+    }
+  });
+}
+
+/** Standard 429/503 reply for a rejected quota reservation. */
+export function quotaRejectedReply(reply, quota) {
+  if (quota.unavailable) {
+    return reply.code(503).send({
+      error: 'quota_store_unavailable',
+      message: 'Quota enforcement is temporarily unavailable. Please retry shortly.',
+    });
+  }
+  return reply.code(429).send({
+    error: 'quota_exceeded',
+    message: `Monthly quota exceeded: ${quota.quota} operations per UTC calendar month. Resets on the 1st of the next month.`,
+  });
+}

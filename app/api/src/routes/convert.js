@@ -1,5 +1,12 @@
 ﻿import { convert } from '../rules/convert/index.js';
-import { authenticate, makeRateLimiter } from '../plugins/security.js';
+import {
+  authenticate,
+  makeRateLimiter,
+  registerQuotaReleaseHook,
+  reserveMonthlyQuota,
+  finalizeMonthlyQuota,
+  quotaRejectedReply,
+} from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
 
 const auditEntrySchema = {
@@ -75,6 +82,7 @@ async function meter(request, statusCode, outcome) {
  */
 export async function convertRoutes(fastify) {
   const rateLimit = makeRateLimiter(fastify);
+  registerQuotaReleaseHook(fastify);
 
   fastify.post(
     '/v1/convert',
@@ -126,7 +134,11 @@ export async function convertRoutes(fastify) {
         });
       }
 
+      const quota = await reserveMonthlyQuota(fastify, request);
+      if (!quota.ok) return quotaRejectedReply(reply, quota);
+
       const result = convert(xml, mode ? { mode } : {});
+      finalizeMonthlyQuota(request);
       const outcome =
         result.status === 'ERROR' ? 'error' : result.status === 'REFUSED' ? 'invalid' : 'valid';
       await meter(request, 200, outcome);
