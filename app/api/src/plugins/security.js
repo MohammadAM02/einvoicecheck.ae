@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { ApiKey } from '../models/ApiKey.js';
 import { config } from '../config/env.js';
 import { planLimitRedisKey, parsePlanLimit } from '../config/plans.js';
@@ -48,10 +49,12 @@ export async function authenticate(request, reply) {
 /**
  * Redis sliding-window rate limiter, per API key. Uses a sorted set of request
  * timestamps; entries older than the window are trimmed on each call.
+ * `namespace` isolates independent buckets for the same key (A-019) — e.g.
+ * paid operations vs cheap /usage reads.
  */
-async function consume(redis, keyId, max, windowMs) {
+async function consume(redis, keyId, max, windowMs, namespace = '') {
   const now = Date.now();
-  const k = `rl:${keyId}`;
+  const k = namespace ? `rl:${namespace}:${keyId}` : `rl:${keyId}`;
   const member = `${now}-${Math.random().toString(36).slice(2)}`;
   const pipeline = redis.multi();
   pipeline.zremrangebyscore(k, 0, now - windowMs);
@@ -71,15 +74,24 @@ async function consume(redis, keyId, max, windowMs) {
 
 /**
  * Read the plan limit the dashboard (app/web) published to shared Redis for
- * this API key. See src/config/plans.js for the contract. Returns null when
- * nothing is published or the blob is malformed — callers fall back.
+ * this API key. See src/config/plans.js for the contract. Distinguishes the
+ * states callers must treat differently (A-014):
+ *   { status: 'ok', limit }          valid published plan metadata
+ *   { status: 'missing' }            nothing published for this key
+ *   { status: 'malformed' }          published blob is not parseable
+ *   { status: 'unreadable', error }  Redis transport failure
  */
-async function publishedPlanLimit(redis, keyId) {
+async function readPlanLimit(redis, keyId) {
+  let raw;
   try {
-    return parsePlanLimit(await redis.get(planLimitRedisKey(keyId)));
-  } catch {
-    return null;
+    raw = await redis.get(planLimitRedisKey(keyId));
+  } catch (e) {
+    return { status: 'unreadable', error: e };
   }
+  if (!raw) return { status: 'missing' };
+  const limit = parsePlanLimit(raw);
+  if (!limit) return { status: 'malformed' };
+  return { status: 'ok', limit };
 }
 
 /**
@@ -89,19 +101,23 @@ async function publishedPlanLimit(redis, keyId) {
  * Precedence for the limit: published plan limit (Redis, written by app/web on
  * signup / subscribe / upgrade / cancel) > ApiKey.rateLimitPerMinute > global
  * default. An over-plan caller therefore gets a 429 from this service without
- * the dashboard having to touch the API at all.
+ * the dashboard having to touch the API at all. Missing/malformed published
+ * data deliberately falls back to the document/global default (per-minute
+ * enforcement still holds); monthly quota fail-closed is handled separately
+ * in reserveMonthlyQuota (A-014).
  */
-export function makeRateLimiter(fastify, { max: maxOverride = null } = {}) {
+export function makeRateLimiter(fastify, { max: maxOverride = null, namespace = '' } = {}) {
   return async function rateLimit(request, reply) {
     const key = request.apiKey;
     if (!key) return; // authenticate already rejected
-    const plan = await publishedPlanLimit(fastify.redis, String(key._id));
-    const max = maxOverride ?? plan?.rateLimitPerMinute ?? key.rateLimitPerMinute ?? config.rateLimit.max;
+    const read = await readPlanLimit(fastify.redis, String(key._id));
+    const planLimit = read.status === 'ok' ? read.limit : null;
+    const max = maxOverride ?? planLimit?.rateLimitPerMinute ?? key.rateLimitPerMinute ?? config.rateLimit.max;
     const windowMs = config.rateLimit.windowMs;
 
     let result;
     try {
-      result = await consume(fastify.redis, String(key._id), max, windowMs);
+      result = await consume(fastify.redis, String(key._id), max, windowMs, namespace);
     } catch (e) {
       if (config.rateLimit.requireRedis) {
         // Fail CLOSED: a limiter outage must not become unlimited paid access.
@@ -140,36 +156,75 @@ export function monthlyQuotaKey(keyId, now = new Date()) {
   return `q:month:${keyId}:${now.toISOString().slice(0, 7)}`;
 }
 
-function secondsUntilMonthEnd(now = new Date()) {
-  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-  return Math.max(1, Math.floor((end.getTime() - now.getTime()) / 1000));
+/** Exact UTC month-end expiry in milliseconds — never truncated early (A-015). */
+function monthEndMs(now = new Date()) {
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1);
 }
+
+/**
+ * Atomic monthly-quota reservation (A-015): check remaining capacity, add this
+ * reservation, and on first use pin the key to the exact UTC month-end — one
+ * native Redis operation. The reservation set holds opaque tokens only, never
+ * payloads or secrets. Returns {1, usedAfter, remaining} on success, or
+ * {0, used} when the quota is already exhausted.
+ */
+const RESERVE_LUA = `
+local key = KEYS[1]
+local quota = tonumber(ARGV[1])
+local token = ARGV[2]
+local expiryMs = tonumber(ARGV[3])
+local used = redis.call('SCARD', key)
+if used >= quota then return {0, used} end
+redis.call('SADD', key, token)
+if used == 0 then redis.call('PEXPIREAT', key, expiryMs) end
+return {1, used + 1, quota - used - 1}
+`;
 
 /**
  * Atomically reserve one monthly-quota unit for the request's API key, BEFORE
  * expensive billable work. Reads the same published plan limit the rate
  * limiter uses (plan:limits:<keyId> from app/web). Returns:
- *   { ok: true,  quota, remaining }                 reservation made
- *   { ok: true,  quota: null }                      no published quota
- *   { ok: false, quota, unavailable? }              exhausted / store failed
+ *   { ok: true,  quota, remaining, key, token }    reservation made
+ *   { ok: true,  quota: null }                     no quota authority needed
+ *   { ok: false, quota, unavailable? }             exhausted / fail-closed
  * The reservation is attached to request.quota and released automatically by
  * the onResponse hook unless finalizeMonthlyQuota() is called first.
  *
- * Failure mode mirrors the rate limiter: fail CLOSED (503) when
- * config.rateLimit.requireRedis, else fail open with a warning.
+ * Fail-closed policy (A-014): missing or malformed active-plan metadata is
+ * never treated as an unlimited monthly quota — the request is refused with a
+ * safe 503 before any billable work. Redis transport failure follows the rate
+ * limiter's policy: fail CLOSED (503) when config.rateLimit.requireRedis,
+ * else fail open with a warning.
  */
 export async function reserveMonthlyQuota(fastify, request) {
   const key = request.apiKey;
   if (!key) return { ok: true, quota: null };
-  const plan = await publishedPlanLimit(fastify.redis, String(key._id));
-  const quota = plan?.monthlyQuota ?? null;
-  if (!quota || quota <= 0) return { ok: true, quota: null };
+
+  const read = await readPlanLimit(fastify.redis, String(key._id));
+  if (read.status === 'unreadable') {
+    if (config.rateLimit.requireRedis) {
+      request.log.error({ err: read.error }, 'monthly quota store unavailable; failing closed (503)');
+      return { ok: false, quota: null, unavailable: true };
+    }
+    request.log.warn({ err: read.error }, 'monthly quota store unavailable; allowing request');
+    return { ok: true, quota: null };
+  }
+  if (read.status !== 'ok' || !read.limit.monthlyQuota || read.limit.monthlyQuota <= 0) {
+    // Missing, malformed, or quota-less active-plan metadata: no authoritative
+    // limit exists. Never silently disable monthly quotas.
+    request.log.error(
+      { status: read.status, keyId: String(key._id) },
+      'plan limits missing or malformed; failing closed (503)'
+    );
+    return { ok: false, quota: null, unavailable: true };
+  }
+  const quota = read.limit.monthlyQuota;
 
   const k = monthlyQuotaKey(String(key._id));
-  let used;
+  const token = randomUUID();
+  let res;
   try {
-    used = await fastify.redis.incr(k);
-    if (used === 1) await fastify.redis.expire(k, secondsUntilMonthEnd());
+    res = await fastify.redis.eval(RESERVE_LUA, 1, k, quota, token, monthEndMs());
   } catch (e) {
     if (config.rateLimit.requireRedis) {
       request.log.error({ err: e }, 'monthly quota store unavailable; failing closed (503)');
@@ -178,14 +233,11 @@ export async function reserveMonthlyQuota(fastify, request) {
     request.log.warn({ err: e }, 'monthly quota store unavailable; allowing request');
     return { ok: true, quota: null };
   }
-  if (used > quota) {
-    // Roll back the rejected unit. INCR is atomic, so two concurrent requests
-    // cannot both take the final unit (A-006).
-    await fastify.redis.decr(k).catch(() => {});
+  if (Number(res[0]) === 0) {
     return { ok: false, quota, remaining: 0, key: k };
   }
-  request.quota = { key: k, finalized: false, released: false };
-  return { ok: true, quota, remaining: quota - used, key: k };
+  request.quota = { key: k, token, finalized: false, released: false };
+  return { ok: true, quota, remaining: Number(res[2]), key: k, token };
 }
 
 /** Keep the reserved unit: the billable operation produced a real outcome. */
@@ -197,7 +249,9 @@ export function finalizeMonthlyQuota(request) {
  * Register the automatic release hook once per app. Must be called during
  * route registration (before app.ready()); per-request reservation calls run
  * too late to add hooks. Any reservation never finalized — internal error,
- * route throw — is released when the response is sent (A-008).
+ * route throw, converter ERROR — is released when the response is sent
+ * (A-008/A-016). Release removes exactly this reservation's opaque token and
+ * is idempotent (SREM of a missing member is a no-op).
  */
 export function registerQuotaReleaseHook(fastify) {
   if (fastify.quotaReleaseHookRegistered) return;
@@ -207,7 +261,7 @@ export function registerQuotaReleaseHook(fastify) {
     if (!q || q.finalized || q.released) return;
     q.released = true;
     try {
-      await fastify.redis.decr(q.key);
+      await fastify.redis.srem(q.key, q.token);
     } catch (e) {
       request.log.warn({ err: e }, 'failed to release monthly quota reservation');
     }
