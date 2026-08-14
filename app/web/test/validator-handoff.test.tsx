@@ -9,6 +9,7 @@ const validationClient = vi.hoisted(() => ({
 }));
 
 const analytics = vi.hoisted(() => ({ trackEvent: vi.fn() }));
+const router = vi.hoisted(() => ({ push: vi.fn() }));
 
 vi.mock('@/lib/validation-client', () => ({
   ...validationClient,
@@ -23,12 +24,14 @@ vi.mock('@/lib/validation-client', () => ({
 }));
 
 vi.mock('@/lib/validation-samples', () => ({
-  VALID_JSON_SAMPLE: '{"sample":"valid"}',
-  BROKEN_JSON_SAMPLE: '{"sample":"broken"}',
+  VALID_XML_SAMPLE: '<Invoice>valid</Invoice>',
+  BROKEN_XML_SAMPLE: '<Invoice>broken</Invoice>',
 }));
 
 vi.mock('@/lib/analytics', () => analytics);
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: router.push }) }));
 
+import { consumeHomepageValidatorHandoff, setHomepageValidatorHandoff } from '@/lib/validator-handoff';
 import { ValidatorWorkspace } from '@/components/validation/ValidatorWorkspace';
 
 const successResponse = {
@@ -48,6 +51,7 @@ const successResponse = {
 
 beforeEach(() => {
   sessionStorage.clear();
+  consumeHomepageValidatorHandoff();
   vi.clearAllMocks();
 });
 
@@ -56,7 +60,7 @@ afterEach(() => {
 });
 
 describe('ValidatorWorkspace handoff', () => {
-  it('pre-fills + auto-validates from sessionStorage, then clears it', async () => {
+  it('pre-fills + auto-validates a repairer handoff from sessionStorage, then clears it', async () => {
     validationClient.validateInvoiceDocument.mockResolvedValue(successResponse);
 
     sessionStorage.setItem(
@@ -77,7 +81,6 @@ describe('ValidatorWorkspace handoff', () => {
       expect.any(AbortSignal),
     );
 
-    // The summary shows a valid preflight result
     expect(
       screen.getByRole('heading', { name: 'Preflight passed' }),
     ).toBeTruthy();
@@ -85,7 +88,7 @@ describe('ValidatorWorkspace handoff', () => {
     expect(screen.getByText('repaired-invoice.xml')).toBeTruthy();
   });
 
-  it('pre-fills + auto-validates when the handoff comes from the xml-generator', async () => {
+  it('pre-fills + auto-validates when the converter handoff comes from the xml-generator', async () => {
     validationClient.validateInvoiceDocument.mockResolvedValue(successResponse);
 
     sessionStorage.setItem(
@@ -109,7 +112,30 @@ describe('ValidatorWorkspace handoff', () => {
     expect(screen.getByText('generated-invoice.xml')).toBeTruthy();
   });
 
-  it('ignores malformed handoff silently', () => {
+  it('auto-validates an in-memory invoice handed off from the homepage and preserves its filename', async () => {
+    validationClient.validateInvoiceDocument.mockResolvedValue(successResponse);
+    setHomepageValidatorHandoff({
+      source: 'homepage',
+      fileName: 'customer-invoice.xml',
+      xml: '<Invoice>homepage</Invoice>',
+    });
+
+    render(h(ValidatorWorkspace, { context: 'tool' }));
+
+    await waitFor(() => {
+      expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith(
+        '<Invoice>homepage</Invoice>',
+        expect.any(AbortSignal),
+      );
+    });
+
+    expect(consumeHomepageValidatorHandoff()).toBeNull();
+    expect(sessionStorage.getItem('einvoicecheck:converter-handoff')).toBeNull();
+    expect(screen.getByText('Started from homepage')).toBeTruthy();
+    expect(screen.getByText('customer-invoice.xml')).toBeTruthy();
+  });
+
+  it('ignores malformed converter handoff silently', () => {
     sessionStorage.setItem(
       'einvoicecheck:converter-handoff',
       'not-json',
@@ -117,17 +143,14 @@ describe('ValidatorWorkspace handoff', () => {
 
     render(h(ValidatorWorkspace, { context: 'tool' }));
 
-    // The key is removed (removeItem runs before JSON.parse fails)
     expect(
       sessionStorage.getItem('einvoicecheck:converter-handoff'),
     ).toBeNull();
 
-    // Validation should not have been triggered
     expect(
       validationClient.validateInvoiceDocument,
     ).not.toHaveBeenCalled();
 
-    // The component stays in idle state
     expect(screen.getByText('Validate an invoice')).toBeTruthy();
     expect(
       screen.getByLabelText('Choose an XML invoice'),

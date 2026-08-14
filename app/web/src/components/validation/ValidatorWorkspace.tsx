@@ -2,10 +2,12 @@
 
 import type React from 'react';
 import { createElement as h, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { trackEvent } from '@/lib/analytics';
 import { ValidationClientError, readInvoiceFile, validateInvoiceDocument } from '@/lib/validation-client';
 import { BROKEN_XML_SAMPLE, VALID_XML_SAMPLE } from '@/lib/validation-samples';
 import type { ValidateApiSuccess } from '@/lib/validation-ui';
+import { consumeHomepageValidatorHandoff, setHomepageValidatorHandoff } from '@/lib/validator-handoff';
 import { ValidationSummary } from './ValidationSummary';
 
 type WorkspaceState =
@@ -15,9 +17,14 @@ type WorkspaceState =
   | { phase: 'result'; data: ValidateApiSuccess; fileName?: string; origin?: HandoffSource }
   | { phase: 'error'; message: string; status: number | null; fileName?: string; origin?: HandoffSource };
 
-type HandoffSource = 'xml-generator' | 'xml-repairer';
+type HandoffSource = 'homepage' | 'xml-generator' | 'xml-repairer';
+type ConverterHandoffSource = Exclude<HandoffSource, 'homepage'>;
+
+const CONVERTER_HANDOFF_KEY = 'einvoicecheck:converter-handoff';
+const VALIDATOR_PATH = '/tools/uae-e-invoice-validator';
 
 const HANDOFF_CONTEXT: Record<HandoffSource, { label: string; fileName: string }> = {
+  homepage: { label: 'homepage', fileName: 'invoice.xml' },
   'xml-generator': { label: 'XML Generator', fileName: 'generated-invoice.xml' },
   'xml-repairer': { label: 'XML Repairer', fileName: 'repaired-invoice.xml' },
 };
@@ -30,6 +37,7 @@ const NETWORK_MESSAGE = 'Could not reach the validator. Your invoice is still he
 export function ValidatorWorkspace({ context = 'tool' }: {
   context?: 'homepage' | 'tool';
 }): React.ReactElement {
+  const router = useRouter();
   const [state, setState] = useState<WorkspaceState>({ phase: 'idle' });
   const [pasteMode, setPasteMode] = useState(false);
   const [documentText, setDocumentText] = useState('');
@@ -53,17 +61,29 @@ export function ValidatorWorkspace({ context = 'tool' }: {
 
   useEffect(() => {
     if (context !== 'tool') return;
+
+    const homepageHandoff = consumeHomepageValidatorHandoff();
+    if (homepageHandoff && homepageHandoff.xml.trim()) {
+      setDocumentText(homepageHandoff.xml);
+      void validate(
+        homepageHandoff.xml,
+        homepageHandoff.fileName || HANDOFF_CONTEXT.homepage.fileName,
+        'homepage',
+      );
+      return;
+    }
+
     try {
-      const raw = sessionStorage.getItem('einvoicecheck:converter-handoff');
+      const raw = sessionStorage.getItem(CONVERTER_HANDOFF_KEY);
       if (!raw) return;
-      sessionStorage.removeItem('einvoicecheck:converter-handoff');
-      const parsed = JSON.parse(raw) as { source?: HandoffSource; fileName?: string; xml?: string };
+      sessionStorage.removeItem(CONVERTER_HANDOFF_KEY);
+      const parsed = JSON.parse(raw) as { source?: ConverterHandoffSource; fileName?: string; xml?: string };
       if (parsed.source && parsed.source in HANDOFF_CONTEXT && typeof parsed.xml === 'string' && parsed.xml.trim()) {
         setDocumentText(parsed.xml);
-        const context = HANDOFF_CONTEXT[parsed.source];
-        void validate(parsed.xml, parsed.fileName || context.fileName, parsed.source);
+        const handoff = HANDOFF_CONTEXT[parsed.source];
+        void validate(parsed.xml, parsed.fileName || handoff.fileName, parsed.source);
       }
-    } catch { /* malformed/stale — silently ignore */ }
+    } catch { /* malformed/stale converter handoff — silently ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context]);
 
@@ -74,6 +94,20 @@ export function ValidatorWorkspace({ context = 'tool' }: {
   function showError(message: string, status: number | null, fileName?: string, category: number | 'network' | 'timeout' | 'file' = 'file', origin?: HandoffSource) {
     setState({ phase: 'error', message, status, fileName, origin });
     trackEvent('validator_error', { context, status: category });
+  }
+
+  function handoffToStation(document: string, fileName?: string) {
+    if (!document.trim()) {
+      showError('Paste an XML invoice before validating.', 400, fileName, 'file');
+      return;
+    }
+    const payload: { source: 'homepage'; xml: string; fileName?: string } = {
+      source: 'homepage',
+      xml: document,
+    };
+    if (fileName) payload.fileName = fileName;
+    setHomepageValidatorHandoff(payload);
+    router.push(VALIDATOR_PATH);
   }
 
   async function validate(document: string, fileName?: string, origin?: HandoffSource) {
@@ -116,6 +150,10 @@ export function ValidatorWorkspace({ context = 'tool' }: {
     try {
       const text = await readInvoiceFile(file);
       setDocumentText(text);
+      if (context === 'homepage') {
+        handoffToStation(text, file.name);
+        return;
+      }
       await validate(text, file.name);
     } catch (error) {
       if (error instanceof ValidationClientError) {
@@ -132,6 +170,10 @@ export function ValidatorWorkspace({ context = 'tool' }: {
 
   function validatePasted() {
     trackInput('paste');
+    if (context === 'homepage') {
+      handoffToStation(documentText);
+      return;
+    }
     void validate(documentText, undefined);
   }
 
@@ -139,6 +181,10 @@ export function ValidatorWorkspace({ context = 'tool' }: {
     setPasteMode(true);
     setDocumentText(document);
     trackInput(method);
+    if (context === 'homepage') {
+      handoffToStation(document);
+      return;
+    }
     void validate(document, undefined);
   }
 
@@ -147,8 +193,14 @@ export function ValidatorWorkspace({ context = 'tool' }: {
   }
 
   if (state.phase === 'result') {
+    const originCopy = state.origin === 'homepage'
+      ? 'Started from homepage'
+      : state.origin
+        ? `Validated from ${HANDOFF_CONTEXT[state.origin].label}`
+        : null;
+
     return h('div', { className: 'validator-result' },
-      state.origin ? h('p', { className: 'validation-result-origin', role: 'status' }, `Validated from ${HANDOFF_CONTEXT[state.origin].label}`) : null,
+      originCopy ? h('p', { className: 'validation-result-origin', role: 'status' }, originCopy) : null,
       state.fileName ? h('p', { className: 'selected-file-name' }, state.fileName) : null,
       h(ValidationSummary, { result: state.data.result, rateLimit: state.data.rateLimit, onReset: reset }),
     );
@@ -220,7 +272,7 @@ export function ValidatorWorkspace({ context = 'tool' }: {
     state.phase === 'error' ? h('div', { ref: errorRef, role: 'alert', tabIndex: -1, className: 'validator-error' },
       h('p', null, state.message),
       state.status === 413 ? h('a', { href: '/docs', className: 'btn btn-secondary' }, 'Read file size guidance') : null,
-      documentText ? h('button', { type: 'button', disabled: validating, onClick: () => void validate(documentText, state.fileName) }, 'Retry') : null,
+      context === 'tool' && documentText ? h('button', { type: 'button', disabled: validating, onClick: () => void validate(documentText, state.fileName) }, 'Retry') : null,
     ) : null,
   );
 }

@@ -4,10 +4,18 @@ import { ApiKey, UsageEvent } from './models';
 import { PLANS, type PlanId } from './plans';
 
 export type UsagePoint = { date: string; valid: number; invalid: number; error: number; total: number };
+export type UsageEventView = {
+  endpoint: string;
+  method: string;
+  outcome: 'valid' | 'invalid' | 'error';
+  statusCode: number;
+  timestamp: string;
+};
 export type UsageSummary = {
   days: UsagePoint[];
   totals: { today: number; last30Days: number; allTime: number };
   outcomes: { valid: number; invalid: number; error: number };
+  recent: UsageEventView[];
   quota: { plan: PlanId; monthlyQuota: number; used: number; remaining: number; overage: number };
 };
 
@@ -30,7 +38,7 @@ export async function usageSummary(
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const keyFilter = keyIds.length ? { keyId: { $in: keyIds } } : null;
 
-  const [rows, allTime, monthCount] = await Promise.all([
+  const [rows, allTime, monthCount, recent] = await Promise.all([
     keyIds.length
       ? UsageEvent.aggregate<{ _id: { day: string; outcome: string }; count: number }>([
           { $match: { keyId: { $in: keyIds }, timestamp: { $gte: since } } },
@@ -39,6 +47,12 @@ export async function usageSummary(
       : Promise.resolve([]),
     keyFilter ? UsageEvent.countDocuments(keyFilter) : Promise.resolve(0),
     keyFilter ? UsageEvent.countDocuments({ ...keyFilter, timestamp: { $gte: monthStart } }) : Promise.resolve(0),
+    keyIds.length
+      ? UsageEvent.find({ keyId: { $in: keyIds } })
+          .sort({ timestamp: -1 })
+          .limit(10)
+          .lean()
+      : Promise.resolve([]),
   ]);
 
   const byDay = new Map<string, UsagePoint>();
@@ -61,6 +75,13 @@ export async function usageSummary(
     days,
     totals: { today: byDay.get(isoDay(now))?.total ?? 0, last30Days, allTime },
     outcomes,
+    recent: recent.map((event) => ({
+      endpoint: event.endpoint,
+      method: event.method,
+      outcome: event.outcome as UsageEventView['outcome'],
+      statusCode: event.statusCode,
+      timestamp: new Date(event.timestamp).toISOString(),
+    })),
     quota: {
       plan,
       monthlyQuota,

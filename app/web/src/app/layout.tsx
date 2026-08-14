@@ -3,6 +3,8 @@ import { Inter, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import './visual-compression.css';
 import './aesthetic-polish.css';
+import './home-validator-experience.css';
+import './account.css';
 import { Chrome } from '@/components/Chrome';
 
 const inter = Inter({
