@@ -17,6 +17,15 @@ Task: `p1-hardening-1-5`
 | A-011 | Authenticated caller repeatedly requests `/usage` | Limit is exceeded | Endpoint returns `429` | Usage route test |
 | A-012 | Usage summary is requested | Query executes | Current-month quota summary is correct and no unbounded all-time aggregate is required | Usage test/query inspection |
 | A-013 | Both lanes are integrated | Full verification runs | API tests, web tests, web build, secret scan, scope check, and diff check pass | Recorded commands in `verification.md` |
+| A-014 | Active-plan Redis metadata is missing or malformed | A billable request is made | Request fails closed with a safe service-unavailable response; no work or quota is consumed | Quota route tests |
+| A-015 | Redis reserve/expiry operation partially fails | A quota reservation is attempted | No leaked counted reservation remains and work does not proceed | Redis failure-injection test |
+| A-016 | A converter result has internal status `ERROR` | Response completes | Exact reservation is idempotently released and not billed | Convert failure-path test |
+| A-017 | Concurrent batch reservations race at the boundary | A larger over-limit batch and a one-unit request compete | The one-unit request can succeed when capacity exists; counter never exceeds the limit | Deterministic Lua reservation test |
+| A-018 | Summary template is selected in the web generator | Category options and payload are produced | Options/payload use `E/O/Z`; API generation succeeds | Web component + API contract test |
+| A-019 | Paid-operation rate bucket is exhausted | Caller requests `/usage` | The first usage read uses its independent allowance rather than returning 429 | Usage limiter isolation test |
+| A-020 | Historical and current-month events exist | `/usage` and dashboard summaries are requested | `allTime` remains lifetime; quota used/remaining use the UTC calendar month | API + web usage tests |
+| A-021 | Batch contains fewer than two invoices | Server endpoint receives it | Request is rejected before quota reservation or validation | Batch boundary test |
+| A-022 | Repair wave is integrated | Full verification runs | Reviewer blockers are closed and API/web/build/diff/secret/scope/completion gates pass | Recorded commands and re-review |
 
 ## Failure and security scenarios
 

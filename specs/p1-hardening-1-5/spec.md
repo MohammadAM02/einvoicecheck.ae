@@ -29,6 +29,10 @@ Task: `p1-hardening-1-5`
 - Internal/server failures release or do not finalize the reservation.
 - Validation, conversion, and generation use one shared enforcement path.
 - Existing per-minute enforcement remains intact.
+- Missing or malformed active-plan metadata must not create unlimited access; reject safely until authoritative limits are available.
+- Reserve/check/month-expiry must be one atomic Redis operation.
+- Release must be idempotent and tied to the exact reservation, not a blind counter decrement.
+- Converter results classified as internal `ERROR` do not consume quota.
 
 ### R4 — Batch per-invoice accounting
 
@@ -37,13 +41,22 @@ Task: `p1-hardening-1-5`
 - If sufficient units are unavailable, reject the complete batch without partial validation.
 - The response reports consumption and remaining quota consistently with actual reservation.
 - Processing must be bounded; do not create unbounded concurrency or add a new service.
+- Capacity check and multi-unit increment must be one atomic conditional Redis operation; increment-then-rollback is not acceptable.
+- The server boundary enforces the documented minimum of two invoices.
 
 ### R5 — Usage endpoint protection
 
 - `GET /usage` uses an existing rate-limit mechanism with a suitable low-cost policy.
 - Summary work is time-bounded to the same UTC calendar-month contract where plan quota is concerned.
-- Response compatibility is preserved.
-- Avoid an all-time unbounded aggregation in the hot path.
+- The limiter uses a distinct Redis bucket from paid validation/conversion/generation traffic.
+- `totals.allTime` retains its lifetime meaning; current-month quota usage is reported separately and used by the dashboard.
+- Quota/outcome/recent work is bounded to the current UTC month. The existing indexed lifetime count may remain solely to preserve the documented `allTime` field; do not add another all-time aggregation.
+
+### R6 — Summary generator UI alignment
+
+- The web summary generator offers and submits exactly the API-supported `E`, `O`, and `Z` categories for type `480`.
+- Standard invoice and credit-note category options remain unchanged.
+- A web integration test must fail if the summary form drifts from the API template contract again.
 
 ## Security and reliability invariants
 

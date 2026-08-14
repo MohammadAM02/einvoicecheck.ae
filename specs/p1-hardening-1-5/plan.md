@@ -18,6 +18,8 @@ Use one project-bound Kanban supervision card. Its DeepSeek V4 Flash supervisor 
 - `app/api/test/**`
 - `app/web/src/app/api/tools/validate/batch/route.ts`
 - `app/web/src/components/BatchValidator.tsx` only for response-contract alignment
+- `app/web/src/components/GeneratorWorkspace.tsx` only to align summary `480` categories with the API
+- `app/web/src/lib/redis.ts` only for the native Redis primitive required by atomic batch reservation
 - `app/web/src/lib/{toolRateLimit,usage,plans}.ts`
 - `app/web/test/**`
 - `specs/p1-hardening-1-5/**`
@@ -68,6 +70,39 @@ Use one project-bound Kanban supervision card. Its DeepSeek V4 Flash supervisor 
 - Add failing repeated-request and bounded-summary tests.
 - Apply an existing limiter rather than creating a second framework.
 - Bound quota summary to the current UTC month and remove the unbounded hot-path aggregate where response compatibility permits.
+
+## Repair wave after adversarial review
+
+Execute one focused DeepSeek V4 Flash fix lane from integrated commit `4f340dc`, then a fresh independent re-review.
+
+### Repair 1: fail-closed, atomic monthly quota
+
+- RED: missing-plan, malformed-plan, reserve/expiry partial-failure, exact idempotent release, and converter `ERROR` tests.
+- Replace split reserve/check/expiry with one native Redis Lua operation using a unique opaque reservation token; no invoice data enters Redis.
+- Missing/malformed plan metadata returns a safe 503 rather than unlimited access. Redis transport failure follows the existing production fail-closed policy.
+- Release removes only the exact reservation and is idempotent. Converter internal `ERROR` results do not finalize.
+
+### Repair 2: atomic batch reservation and HTTP minimum
+
+- RED: deterministic 19/20 race test proving a two-unit rejection cannot reject the concurrent one-unit request; one-invoice server request test.
+- Replace `INCRBY` + `DECRBY` rollback with one conditional Lua check/increment/expiry operation.
+- Return immediately for zero accepted units without creating a Redis key; enforce 2–50 at the server boundary.
+
+### Repair 3: generator UI contract
+
+- RED: summary form test expects exactly `E/O/Z` and verifies the submitted payload.
+- Change only the summary options/rates in `GeneratorWorkspace.tsx`; standard and credit-note options remain unchanged.
+
+### Repair 4: usage compatibility and limiter isolation
+
+- RED: paid requests cannot consume the `/usage` bucket; historical event remains in `allTime`; quota used/remaining uses current UTC month in API and web summaries.
+- Add a namespace parameter to the existing limiter and use a dedicated usage key.
+- Preserve exact lifetime `allTime`; add/use explicit current-month data for quota calculations. Keep only the existing indexed lifetime count needed for compatibility.
+
+### Repair verification
+
+- Run focused RED/GREEN tests per repair, then the full API suite, full web suite, web build, diff check, secret scan, updated scope gate, completion gate, and a fresh independent review.
+- No deployment, push, migration, production-data access, or dependency addition.
 
 ## Delegation protocol
 

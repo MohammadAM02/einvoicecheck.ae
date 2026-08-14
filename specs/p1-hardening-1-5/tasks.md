@@ -13,4 +13,13 @@ Task: `p1-hardening-1-5`
 - [ ] Supervisor: run all verification commands once on the merged tree.
 - [ ] Supervisor: write `verification.md` and `handoff.md`; request review, no push/deploy.
 
+## Reviewer repair wave
+
+- [ ] **Repair 1:** Fail closed on missing/malformed plan limits; make monthly reserve/expiry/release exact and atomic; do not bill converter `ERROR`.
+- [ ] **Repair 2:** Replace batch increment/rollback with atomic conditional reservation; enforce server minimum of two.
+- [ ] **Repair 3:** Align summary generator UI and payload with `E/O/Z`.
+- [ ] **Repair 4:** Isolate `/usage` limiter; preserve lifetime `allTime`; use UTC current month for quota in API and web.
+- [ ] Reviewer: independently verify every Critical/Important/Minor finding is closed.
+- [ ] Supervisor: rerun all merged-tree gates and replace the superseded verification/handoff evidence.
+
 Parallelizable: Lane A and Lane B only, and only in isolated child worktrees. Tasks within each lane are sequential.

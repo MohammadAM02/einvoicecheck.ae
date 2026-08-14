@@ -55,3 +55,19 @@ Executed on base commit after installing the RPI kit:
 - Production Redis/Mongo capacity and deployed environment values are not available locally.
 - No production API key is available for authenticated live verification.
 - No deployment is authorized; live behavior remains outside this task.
+
+## Post-implementation adversarial review — repair amendment
+
+Independent review of `f1c420b..4f340dc` blocked integration despite green suites:
+
+- Missing, malformed, or unreadable `plan:limits:<apiKeyId>` data currently disables monthly quota enforcement instead of failing closed.
+- Monthly quota `INCR`/`EXPIRE` and release operations are split; partial Redis failures can leak quota units.
+- Converter results with internal status `ERROR` are finalized as billable.
+- Batch `INCRBY` followed by rollback is not an atomic conditional reservation and can reject a smaller concurrent request despite available capacity.
+- The corrected summary `480` API accepts `E/O/Z`, while `GeneratorWorkspace.tsx` still submits `S/AE` and receives `400`.
+- `/usage` shares the paid-operation rate-limit key and silently changes `totals.allTime` from lifetime to current-month semantics.
+- Web dashboard quota usage remains trailing-30-day rather than UTC calendar month.
+- The batch HTTP boundary accepts one invoice although the approved contract is 2–50.
+- Scope verification fails only on the necessary Redis client type extension in `app/web/src/lib/redis.ts`.
+
+Fresh recovery verification on the merged branch remained green: API 159/159, web 144/144, Next.js build, diff check, and secret scan. These passing checks do not override the reviewer blockers.

@@ -2,6 +2,8 @@
 
 Task: `p1-hardening-1-5`
 
+> **SUPERSEDED / BLOCKED:** The evidence below is accurate for commit `4f340dc`, but an independent adversarial review found one Critical, seven Important, and one Minor blocker. It is not release evidence. Acceptance A-014–A-022 and the repair wave in `plan.md` must pass before this document is replaced with final verification.
+
 Merged-tree verification on `rpi/p1-hardening-1-5` (supervisor worktree) after integrating
 Lane A (validation Tasks 1-2) and Lane B (metering Tasks 3-5). Base: `f1c420b`.
 

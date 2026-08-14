@@ -1,6 +1,8 @@
 # Handoff
 
 Task: `p1-hardening-1-5` — EInvoiceCheck P1 hardening (R1-R5)
+
+> **SUPERSEDED / BLOCKED:** Independent review rejected this handoff. The recovered commits remain intact, but the reviewer repair wave is awaiting amended spec/plan approval; do not merge, push, or deploy this branch.
 Branch: `rpi/p1-hardening-1-5` (supervisor integration branch, worktree)
 Base: `f1c420b` (approved plan)
 

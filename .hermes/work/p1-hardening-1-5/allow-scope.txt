@@ -12,6 +12,8 @@ app/api/src/models/UsageEvent.js
 app/api/test/**
 app/web/src/app/api/tools/validate/batch/route.ts
 app/web/src/components/BatchValidator.tsx
+app/web/src/components/GeneratorWorkspace.tsx
+app/web/src/lib/redis.ts
 app/web/src/lib/toolRateLimit.ts
 app/web/src/lib/usage.ts
 app/web/src/lib/plans.ts
