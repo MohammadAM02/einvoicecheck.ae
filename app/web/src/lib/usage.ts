@@ -14,22 +14,31 @@ export type UsageSummary = {
 function isoDay(d: Date): string { return d.toISOString().slice(0, 10); }
 
 /** Mongo usage events are the source of truth. PayPal processes payments, not usage metering. */
-export async function usageSummary(userId: Types.ObjectId, plan: PlanId, windowDays = 30): Promise<UsageSummary> {
+export async function usageSummary(
+  userId: Types.ObjectId,
+  plan: PlanId,
+  windowDays = 30,
+  now: Date = new Date(),
+): Promise<UsageSummary> {
   await connectMongo();
   const keys = await ApiKey.find({ userId }).select('_id').lean();
   const keyIds = keys.map((key) => key._id);
-  const now = new Date();
   const since = new Date(now.getTime() - (windowDays - 1) * 86_400_000);
   since.setUTCHours(0, 0, 0, 0);
+  // Quota period is the current UTC calendar month (first instant of month,
+  // including a 31st day when applicable); the 30-day window stays the graph.
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const keyFilter = keyIds.length ? { keyId: { $in: keyIds } } : null;
 
-  const [rows, allTime] = await Promise.all([
+  const [rows, allTime, monthCount] = await Promise.all([
     keyIds.length
       ? UsageEvent.aggregate<{ _id: { day: string; outcome: string }; count: number }>([
           { $match: { keyId: { $in: keyIds }, timestamp: { $gte: since } } },
           { $group: { _id: { day: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } }, outcome: '$outcome' }, count: { $sum: 1 } } },
         ])
       : Promise.resolve([]),
-    keyIds.length ? UsageEvent.countDocuments({ keyId: { $in: keyIds } }) : Promise.resolve(0),
+    keyFilter ? UsageEvent.countDocuments(keyFilter) : Promise.resolve(0),
+    keyFilter ? UsageEvent.countDocuments({ ...keyFilter, timestamp: { $gte: monthStart } }) : Promise.resolve(0),
   ]);
 
   const byDay = new Map<string, UsagePoint>();
@@ -55,9 +64,11 @@ export async function usageSummary(userId: Types.ObjectId, plan: PlanId, windowD
     quota: {
       plan,
       monthlyQuota,
-      used: last30Days,
-      remaining: Math.max(0, monthlyQuota - last30Days),
-      overage: Math.max(0, last30Days - monthlyQuota),
+      // Quota used/remaining/overage come from the current UTC calendar month
+      // (A-020); the 30-day `days` graph and lifetime `allTime` are preserved.
+      used: monthCount,
+      remaining: Math.max(0, monthlyQuota - monthCount),
+      overage: Math.max(0, monthCount - monthlyQuota),
     },
   };
 }

@@ -302,14 +302,9 @@ describe('IP rate limit (Redis)', () => {
       get: async () => null,
       set: async () => null,
       del: async () => null,
-      incr: async () => {
+      eval: async () => {
         throw new Error('redis down');
       },
-      incrby: async () => {
-        throw new Error('redis down');
-      },
-      decrby: async () => null,
-      expire: async () => null,
       ttl: async () => -1,
     } as never);
     stubApi(apiJson(VALID_XML_RESULT));
@@ -329,14 +324,9 @@ describe('IP rate limit (Redis)', () => {
       get: async () => null,
       set: async () => null,
       del: async () => null,
-      incr: async () => {
+      eval: async () => {
         throw new Error('redis down');
       },
-      incrby: async () => {
-        throw new Error('redis down');
-      },
-      decrby: async () => null,
-      expire: async () => null,
       ttl: async () => -1,
     } as never);
 

@@ -62,9 +62,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  if (invoices.length === 0) {
+  if (invoices.length < 2) {
     return NextResponse.json(
-      { ok: false, error: '"invoices" array must contain at least one document.' },
+      { ok: false, error: '"invoices" array must contain at least two documents.' },
       { status: 400 },
     );
   }

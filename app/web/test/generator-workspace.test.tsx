@@ -137,21 +137,50 @@ describe('GeneratorWorkspace', () => {
     expect(screen.getByLabelText('Line 1 VAT category')).toBeTruthy();
   });
 
-  // (2) summary template shows AE category option
-  it('summary template shows AE category option', () => {
+  // (2) summary template (480) offers exactly E/O/Z; standard + credit note stay S
+  it('summary template offers exactly E, O, and Z categories (A-018)', () => {
     render(h(GeneratorWorkspace));
 
     // Switch to summary template
     const templateSelect = screen.getByTestId('template-select');
     fireEvent.change(templateSelect, { target: { value: 'summary-tax-invoice' } });
 
-    // The first line's category select should now include AE
     const catSelect = screen.getByTestId('line-category-0') as HTMLSelectElement;
     const options = Array.from(catSelect.options).map((o) => o.value);
-    expect(options).toContain('AE');
+    expect(options).toEqual(['E', 'O', 'Z']);
+    expect(options).not.toContain('S');
+    expect(options).not.toContain('AE');
 
-    // The AE option label (as rendered text for the select option) should be present
-    // Since it's an option element, we just verify via the options array above
+    // Standard invoice and credit-note templates remain unchanged (S only).
+    fireEvent.change(templateSelect, { target: { value: 'standard-tax-invoice' } });
+    expect(
+      Array.from((screen.getByTestId('line-category-0') as HTMLSelectElement).options).map((o) => o.value),
+    ).toEqual(['S']);
+    fireEvent.change(templateSelect, { target: { value: 'standard-tax-credit-note' } });
+    expect(
+      Array.from((screen.getByTestId('line-category-0') as HTMLSelectElement).options).map((o) => o.value),
+    ).toEqual(['S']);
+  });
+
+  // (2b) the submitted payload for summary 480 uses E/O/Z, not the API template list
+  it('submits a summary 480 payload with an E/O/Z category (A-018)', async () => {
+    render(h(GeneratorWorkspace));
+
+    fireEvent.click(screen.getByTestId('fill-sample-btn'));
+    await waitFor(() => expect(generatorClient.generateXml).toHaveBeenCalled(), { timeout: 2000 });
+
+    const templateSelect = screen.getByTestId('template-select');
+    fireEvent.change(templateSelect, { target: { value: 'summary-tax-invoice' } });
+    fireEvent.change(screen.getByTestId('line-category-0'), { target: { value: 'E' } });
+
+    await waitFor(
+      () => {
+        const calls = generatorClient.generateXml.mock.calls;
+        const last = calls[calls.length - 1]?.[0] as { data: { lines: { category: string }[] } };
+        expect(last.data.lines[0].category).toBe('E');
+      },
+      { timeout: 2000 },
+    );
   });
 
   // (3) live line math: qty 5 × price 1000 → 5000.00 line ext, 250.00 tax

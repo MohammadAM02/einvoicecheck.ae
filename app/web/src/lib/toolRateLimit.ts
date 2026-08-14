@@ -54,22 +54,45 @@ export async function checkToolRateLimit(tool: string, ip: string): Promise<Rate
 
 /**
  * Atomically reserve N units for one request (batch mode: one unit per
- * accepted invoice). INCRBY is atomic; if the request needs more units than
- * remain, the over-limit units are rolled back before returning so the whole
- * batch can be rejected with nothing consumed. The caller must not process
- * anything when `allowed` is false.
+ * accepted invoice). One native Redis Lua operation conditionally checks the
+ * current counter, increments it, and sets the window expiry on first use;
+ * the counter can never exceed the limit and no rollback is ever needed
+ * (A-017). Returns 0 when the reservation would exceed the limit, otherwise
+ * the new counter value.
  */
+const RESERVE_SCRIPT = `
+local key = KEYS[1]
+local units = tonumber(ARGV[1])
+local limit = tonumber(ARGV[2])
+local window = tonumber(ARGV[3])
+local current = tonumber(redis.call('GET', key) or '0')
+if current + units > limit then return 0 end
+local n = redis.call('INCRBY', key, units)
+if n == units then redis.call('EXPIRE', key, window) end
+return n
+`;
+
 export async function reserveToolRateLimit(tool: string, ip: string, units: number): Promise<RateLimitDecision> {
   const limit = TOOL_RATE_LIMIT;
   const key = toolRateKey(tool, ip);
 
+  // Zero accepted units reserve nothing and must not create a Redis key.
+  if (units <= 0) {
+    return {
+      allowed: true,
+      limit,
+      remaining: limit,
+      resetSeconds: TOOL_RATE_WINDOW_SECONDS,
+      degraded: false,
+      unavailable: false,
+    };
+  }
+
   try {
     const redis = getRedis();
-    const hits = await redis.incrby(key, units);
-    if (hits === units) await redis.expire(key, TOOL_RATE_WINDOW_SECONDS);
-    const ttl = await redis.ttl(key);
-    if (hits > limit) {
-      await redis.decrby(key, units);
+    const hits = Number(await redis.eval(RESERVE_SCRIPT, 1, key, units, limit, TOOL_RATE_WINDOW_SECONDS));
+    if (hits === 0) {
+      const ttl = await redis.ttl(key);
       return {
         allowed: false,
         limit,
@@ -79,6 +102,7 @@ export async function reserveToolRateLimit(tool: string, ip: string, units: numb
         unavailable: false,
       };
     }
+    const ttl = await redis.ttl(key);
     return {
       allowed: true,
       limit,

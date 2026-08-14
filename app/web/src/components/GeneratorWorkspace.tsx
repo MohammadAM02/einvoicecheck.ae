@@ -60,13 +60,17 @@ interface FormLine {
 
 const TEMPLATES: TemplateDef[] = [
   { id: 'standard-tax-invoice', name: 'Standard tax invoice', categories: ['S'] },
-  { id: 'summary-tax-invoice', name: 'Summary tax invoice', categories: ['S', 'AE'] },
+  // Summary tax invoice (PINT-AE Billing 480) supports exactly the API
+  // template categories E/O/Z — see app/api/src/rules/generate/templates.js.
+  { id: 'summary-tax-invoice', name: 'Summary tax invoice', categories: ['E', 'O', 'Z'] },
   { id: 'standard-tax-credit-note', name: 'Standard tax credit note', categories: ['S'] },
 ];
 
 const CATEGORIES: CategoryDef[] = [
   { code: 'S', label: 'S — Standard rate (5%)', rate: 5 },
-  { code: 'AE', label: 'AE — VAT Reverse Charge (notional 5%, tax 0)', rate: 0 },
+  { code: 'E', label: 'E — Exempt from tax (0%)', rate: 0 },
+  { code: 'O', label: 'O — Outside scope of tax (0%)', rate: 0 },
+  { code: 'Z', label: 'Z — Zero rated (0%)', rate: 0 },
 ];
 
 const SAMPLE_DATA: FormData = {
