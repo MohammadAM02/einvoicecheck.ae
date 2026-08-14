@@ -1,39 +1,44 @@
 # Handoff
 
-Task: `p1-hardening-1-5` — EInvoiceCheck P1 hardening (R1-R5)
+Task: `p1-hardening-1-5` — EInvoiceCheck P1 hardening
 
-> **SUPERSEDED / BLOCKED:** Independent review rejected this handoff. The recovered commits remain intact, but the reviewer repair wave is awaiting amended spec/plan approval; do not merge, push, or deploy this branch.
-Branch: `rpi/p1-hardening-1-5` (supervisor integration branch, worktree)
-Base: `f1c420b` (approved plan)
+Branch: `rpi/p1-hardening-1-5`
+Base: `f1c420b`
+Verified code tree: `b1de132`
+Release status: **locally verified; not pushed or deployed**
 
-## Delivered changes
+## Delivered
 
-Lane A (validation, commits `fea42b7`, `0779a1d`):
-- Generator now emits PINT-AE Billing `380` (standard) / `480` (summary) and the generated XML must pass the complete `validateXmlDocument()` pipeline (fail-closed).
-- Canonical validation rejects non-zero seller tax for category `AE`; zero-tax notional-rate AE cases remain valid.
-
-Lane B (metering, commits `20e6e61`, `dd00161`, `d0ab7bb`):
-- Atomic UTC-calendar-month quota enforced on /v1/validate (all variants), /v1/convert, /v1/generate via one shared Redis reservation/finalization path; per-minute limiter intact; fail-closed behavior retained; internal errors release the reservation.
-- Batch free-tool endpoint reserves one unit per accepted invoice atomically before processing; whole batch rejected on shortfall; malformed/oversized batches consume nothing.
-- GET /usage is rate-limited (10/min per key) and its summary is bounded to the current UTC month; legacy response shape preserved.
+1. Generated standard `380`, summary `480`, and credit-note `381` XML passes the complete PINT-AE validation pipeline; generation fails closed on invalid output.
+2. Canonical and XML validation rejects non-zero seller tax for reverse-charge category `AE` while preserving valid zero-tax/notional-rate cases.
+3. API monthly quotas use an atomic Redis token reservation with exact UTC-month expiry, fail-closed plan metadata, and exact release for internal failures; converter `ERROR` is not billed.
+4. Batch validation performs one atomic multi-unit reservation, meters each accepted invoice, rejects insufficient whole batches before processing, and enforces 2–50 server-side.
+5. `/usage` uses an independent limiter bucket, preserves lifetime `allTime`, exposes current-month usage, and bounds current-month work; the web dashboard uses the UTC month for quota.
+6. The summary generator UI is aligned with API categories `E/O/Z`.
 
 ## Evidence
 
-- Lane reports: `.hermes/work/p1-hardening-1-5/lane-a-report.md`, `lane-b-report.md` (RED/GREEN command output inside).
-- Merged-tree verification: `specs/p1-hardening-1-5/verification.md` — API 159/159, web 144/144, build clean, diff-check clean, secret scan PASSED.
-- Acceptance coverage A-001..A-013 mapped in verification.md.
+- API: 19 files, **166/166** tests passed.
+- Web: 22 files, **153/153** tests passed.
+- Next.js production build passed.
+- Approval hashes, diff check, secret scan, and 39-path scope gate passed.
+- Final independent DeepSeek V4 Flash review: **SHIP**, no Critical or Important code findings.
+- Detailed commands and limitations: `specs/p1-hardening-1-5/verification.md`.
 
-## Limitations / deferred
+## Deferred minor cleanup
 
-- No deployment or live verification (not authorized). Production Redis/Mongo capacity unknown.
-- Lane B scope deviation disclosed: `app/web/src/lib/redis.ts` (+2 type lines, `incrby`/`decrby`) — required by the mandated multi-unit reservation; outside plan's allowed list. Awaiting reviewer/approver ruling (see verification.md).
+- Remove the now-unreferenced shared `UsageReply#` schema when next touching `app/api/src/app.js`.
+- Remove the dead generator `includes('AE')` branch when next touching generator internals.
+- Web outcome counts use a 30-day window while API outcomes use the UTC month; this pre-existing display difference was outside approved scope.
+- Production/live verification remains separate release work and requires explicit authorization.
 
 ## Rollback
 
-Git-only, per lane: revert `fea42b7`+`0779a1d` (Lane A) or `20e6e61`+`dd00161`+`d0ab7bb` (Lane B) independently. No migration or deployment involved.
+Git-only: revert repair commits `e333374`, `db50434`, `eafc32e`, and `b1de132`, then the initial lane merges if required. No migration or deployment occurred.
 
 ## Reusable lessons
 
-- Fastify hooks cannot be added after `app.ready()` — register the auto-release hook during route registration, not per request.
-- A test mock of a synchronous engine must stay synchronous; an `async` mock silently returns a Promise and the failure path never runs.
-- `vi.stubEnv` for import-time env values requires `vi.resetModules()` plus a fresh import, or the first test sees the stale module.
+- Register Fastify release hooks before `app.ready()`.
+- Redis quota release should use an opaque exact token (`SREM`), never a blind decrement.
+- UI template categories need a contract test against the API template registry.
+- Passing suites do not override a failed scope gate or adversarial review.
