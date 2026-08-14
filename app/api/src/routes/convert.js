@@ -138,7 +138,9 @@ export async function convertRoutes(fastify) {
       if (!quota.ok) return quotaRejectedReply(reply, quota);
 
       const result = convert(xml, mode ? { mode } : {});
-      finalizeMonthlyQuota(request);
+      // Converter internal ERROR (fingerprint guard / data-integrity abort) is
+      // not a billable outcome — release the exact reservation (A-016).
+      if (result.status !== 'ERROR') finalizeMonthlyQuota(request);
       const outcome =
         result.status === 'ERROR' ? 'error' : result.status === 'REFUSED' ? 'invalid' : 'valid';
       await meter(request, 200, outcome);

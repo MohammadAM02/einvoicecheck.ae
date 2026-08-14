@@ -1,10 +1,39 @@
-﻿import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { startTestApp, stopTestApp } from './helpers/testApp.js';
 import { UsageEvent } from '../src/models/UsageEvent.js';
+import { planLimitRedisKey } from '../src/config/plans.js';
+import { monthlyQuotaKey } from '../src/plugins/security.js';
 
 const fixture = (name) =>
   readFileSync(new URL(`./fixtures/convert/${name}`, import.meta.url), 'utf8');
+
+// Force the converter to return an internal ERROR (DATA_CHANGED fingerprint
+// guard) for one payload so A-016 can prove an ERROR result never bills the
+// monthly quota reservation (route replies 200 with status ERROR, and the
+// onResponse hook releases the exact reservation).
+vi.mock('../src/rules/convert/index.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    convert(xml, opts) {
+      if (typeof xml === 'string' && xml.includes('DATA_CHANGED_SENTINEL')) {
+        return {
+          status: 'ERROR',
+          reason: 'DATA_CHANGED',
+          detail: 'A repairer altered data values. Aborting.',
+          inputHash: 'a'.repeat(64),
+          audit: [],
+          blocked: [],
+          dataIssues: [],
+          engineVersion: '1.0.0',
+          convertedAt: new Date().toISOString(),
+        };
+      }
+      return actual.convert(xml, opts);
+    },
+  };
+});
 
 describe('POST /v1/convert', () => {
   let ctx;
@@ -154,5 +183,33 @@ describe('POST /v1/convert', () => {
     }).lean();
     expect(events.length).toBeGreaterThanOrEqual(1);
     expect(['valid', 'invalid', 'error']).toContain(events[events.length - 1].outcome);
+  });
+
+  it('A-016: converter internal ERROR does not finalize (bill) the reservation', async () => {
+    // Isolate quota state: earlier tests finalized units on the shared key.
+    await ctx.redis.del(monthlyQuotaKey(String(ctx.apiKey._id)));
+    await ctx.redis.set(
+      planLimitRedisKey(String(ctx.apiKey._id)),
+      JSON.stringify({ plan: 'trial', rateLimitPerMinute: 100, monthlyQuota: 1 })
+    );
+
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/v1/convert',
+      headers: auth(),
+      payload: { xml: '<Invoice>DATA_CHANGED_SENTINEL</Invoice>' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('ERROR');
+    // The exact reservation was released: no unit remains billed.
+    expect(await ctx.redis.scard(monthlyQuotaKey(String(ctx.apiKey._id)))).toBe(0);
+    // The freed unit is usable by the next request.
+    const next = await ctx.app.inject({
+      method: 'POST',
+      url: '/v1/convert',
+      headers: auth(),
+      payload: { xml: fixture('00-valid.xml') },
+    });
+    expect(next.statusCode).toBe(200);
   });
 });
