@@ -2,17 +2,63 @@ import { authenticate, makeRateLimiter } from '../plugins/security.js';
 import { UsageEvent } from '../models/UsageEvent.js';
 
 // Low-cost policy for usage reads: cheap to serve, cheap to abuse. 10 reads
-// per minute per key is far beyond dashboard polling needs.
+// per minute per key is far beyond dashboard polling needs. Uses a separate
+// Redis bucket from paid validation/conversion/generation traffic (A-019).
 const USAGE_RATE_LIMIT_MAX = 10;
+
+const usageReplySchema = {
+  type: 'object',
+  properties: {
+    keyPrefix: { type: 'string' },
+    keyName: { type: 'string' },
+    totals: {
+      type: 'object',
+      properties: {
+        // Documented lifetime field — true lifetime count, kept for
+        // compatibility (A-020). Uses the existing keyId index only.
+        allTime: { type: 'integer' },
+        today: { type: 'integer' },
+        last30Days: { type: 'integer' },
+        // Explicit current UTC calendar month — the quota contract. Used for
+        // quota/outcome/recent calculations; no unbounded aggregation.
+        currentMonth: { type: 'integer' },
+      },
+    },
+    outcomes: {
+      type: 'object',
+      properties: {
+        valid: { type: 'integer' },
+        invalid: { type: 'integer' },
+        error: { type: 'integer' },
+      },
+    },
+    recent: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          endpoint: { type: 'string' },
+          method: { type: 'string' },
+          outcome: { type: 'string' },
+          statusCode: { type: 'integer' },
+          timestamp: { type: 'string' },
+        },
+      },
+    },
+  },
+};
 
 /**
  * Per-API-key usage, aggregated from the metering events in Mongo.
- * All aggregates are bounded to the current UTC calendar month (the quota
- * contract); the legacy `allTime` field name is kept for response
- * compatibility but now reports the monthly count, not lifetime.
+ * All quota/outcome/recent work is bounded to the current UTC calendar month
+ * (the quota contract); `totals.allTime` keeps its documented lifetime
+ * meaning (A-020). No unbounded aggregation beyond the indexed lifetime count.
  */
 export async function usageRoutes(fastify) {
-  const rateLimit = makeRateLimiter(fastify, { max: USAGE_RATE_LIMIT_MAX });
+  const rateLimit = makeRateLimiter(fastify, {
+    max: USAGE_RATE_LIMIT_MAX,
+    namespace: 'usage',
+  });
 
   fastify.get(
     '/usage',
@@ -23,7 +69,7 @@ export async function usageRoutes(fastify) {
         summary: 'Usage metering for the calling API key.',
         security: [{ apiKey: [] }, { bearerAuth: [] }],
         response: {
-          200: { $ref: 'UsageReply#' },
+          200: usageReplySchema,
           401: { $ref: 'ErrorReply#' },
           429: { $ref: 'ErrorReply#' },
         },
@@ -37,10 +83,11 @@ export async function usageRoutes(fastify) {
       const start30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const monthFilter = { keyId, timestamp: { $gte: startOfMonth } };
 
-      const [monthly, today, last30d, byOutcome, recent] = await Promise.all([
+      const [monthly, today, last30d, lifetime, byOutcome, recent] = await Promise.all([
         UsageEvent.countDocuments(monthFilter),
         UsageEvent.countDocuments({ keyId, timestamp: { $gte: startOfToday } }),
         UsageEvent.countDocuments({ keyId, timestamp: { $gte: start30d } }),
+        UsageEvent.countDocuments({ keyId }),
         UsageEvent.aggregate([
           { $match: monthFilter },
           { $group: { _id: '$outcome', count: { $sum: 1 } } },
@@ -57,11 +104,10 @@ export async function usageRoutes(fastify) {
         keyPrefix: request.apiKey.prefix,
         keyName: request.apiKey.name,
         totals: {
-          // ponytail: legacy field name, value is now the UTC-month count —
-          // renaming would break the documented response contract.
-          allTime: monthly,
+          allTime: lifetime,
           today,
           last30Days: last30d,
+          currentMonth: monthly,
         },
         outcomes,
         recent: recent.map((e) => ({

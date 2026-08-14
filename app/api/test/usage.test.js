@@ -28,6 +28,7 @@ describe('GET /usage', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.totals.allTime).toBe(3);
+    expect(body.totals.currentMonth).toBe(3);
     expect(body.outcomes.valid).toBe(2);
     expect(body.outcomes.invalid).toBe(1);
     expect(body.recent.length).toBeGreaterThan(0);
