@@ -53,7 +53,7 @@
 | F-16 / CL-003 | API/Pricing contract contradiction: `/v1/validate` described as the new API | P0 | blocked | PR #20 merge `9a560cb5` closes the live browser copy/sample contradiction and production confirms the XML-only UI plus valid/broken XML samples. `36b6d8b` preserves the current contract in the signed-in Quickstart: XML uses `/v2/validate`, canonical JSON uses `/v1/preflight`, and beginner samples omit legacy `/v1/validate`. The only remaining gate is the authenticated endpoint matrix, which could not run without a production API key. |
 | F-17 | Generator Invoice templates use type codes rejected by current PINT AE Billing rules and skip full Schematron validation | P1 | reported | `388b72d` reports `standard-tax-invoice` emits `388` and `summary-tax-invoice` emits `386`, while the vendored/current Billing v1.0.4 subset is `380`/`480`. `36b6d8b` also uses `388` in signed-in XML response and canonical-JSON Quickstart examples, expanding the unverified type-code claim beyond Generator. Code correction, full-pipeline tests, deployment, and live verification are absent. |
 | F-18 | Mobile account drawer leaves hidden controls keyboard-focusable; Quickstart arrow keys change tabs without moving focus | P2 | open | In `36b6d8b`, the closed drawer is moved off-screen only by CSS transform and remains mounted without `inert`/`aria-hidden`; tab arrow handlers update selection but do not focus the newly selected tab. Escape restoration is tested, but closed-drawer tab order and roving-tab focus are not. Repository evidence only; deployment and live keyboard verification required. |
-| F-19 | Homepage promises a practical fix for every validator finding although the engine may omit suggestions | P1 | open | `2913e65` says EInvoiceCheck shows “the smallest practical fix” and presents every result as Rule / Location / Meaning / Fix. The same commit’s design spec says not every engine finding includes a suggested fix. This is a repository-confirmed trust/capability mismatch; copy correction, test execution, deployment, and live verification are absent. |
+| F-19 | Homepage promises a practical fix for every validator finding although the engine may omit suggestions | P1 | open | `2913e65` says EInvoiceCheck shows “the smallest practical fix” and presents every result as Rule / Location / Meaning / Fix. The same commit’s design spec says not every engine finding includes a suggested fix. `9b1f633` repeats the promise in official standalone validator-reskin spikes; their READMEs explicitly label them prototypes, not production routes. This remains a repository-confirmed trust/capability mismatch; copy correction, test execution, deployment, and live verification are absent. |
 
 ## Resolved
 
@@ -63,8 +63,8 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `2913e65ab17b681b82b053a6cf8684a0e3207cfa` — `feat(web): make homepage sell and validator feel like a product (#22)`
-- **Scanned:** 2026-08-11
+- **Last scanned main commit:** `9b1f6334e25cbc4eda05672488557017ee2a73e9` — `feat(spikes): add official validator UI reskins`
+- **Scanned:** 2026-08-15
 - PR #19 repository contract is recorded as: Browser Validator → XML only; `POST /v2/validate` → new XML; `POST /v1/preflight` → new canonical JSON; `POST /v1/validate` → legacy JSON/XML compatibility.
 - PR #20 deploys that browser contract: XML-only copy, file acceptance and paste flow; a passing UBL/PINT-AE XML sample; and a broken XML sample with two expected semantic TRN findings.
 - `8f3f822` adds shared tool headers, semantic workflow steppers, next-action panels, Generator/Repairer-to-Validator provenance, responsive overflow containment, and focused component tests.
@@ -77,6 +77,7 @@
 - `2913e65` reroutes homepage XML into a dedicated Validator Station through a single-use in-memory handoff, widens the work surface, preserves the XML-only browser and current API endpoint contract, and adds focused tests that the repository plan explicitly records as not executed.
 - F-10 gains repository evidence for the wider validator/result surface; deployed responsive behavior remains unverified.
 - F-19 added: homepage copy promises every finding includes a practical fix, contradicting the same commit’s design note that suggestions are not universal.
+- `9b1f633` adds standalone playful-geometric and vaporwave validator UI reskin prototypes. It repeats F-19’s “smallest practical fix” promise, but the READMEs explicitly say the spikes are not production routes; no deployment or live verification is inferred.
 - No validation route, authentication backend, payment backend, legal, or SEO semantics changed in the reviewed diff. No deployment or live verification inferred.
 - The monitor may write only this state file. It must not modify product code or claim deployment/live verification without evidence.
 
