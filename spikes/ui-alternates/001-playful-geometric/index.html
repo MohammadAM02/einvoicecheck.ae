@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="EInvoiceCheck geometric validator prototype">
+  <title>EInvoiceCheck — Geometric validator prototype</title>
+  <style>
+    :root {
+      --accent:#087f6b; --accent-hover:#066b5a; --accent-subtle:#e7f5f1;
+      --navy:#102a43; --ink:#18324a; --ink-secondary:#48647a; --ink-muted:#5b7183;
+      --bg:#f7f8f5; --bg-card:#fff; --bg-elevated:#f0f3ef; --border:#d7dfdc; --border-solid:#bdc9c5;
+      --success:#087f5b; --success-subtle:#e8f7ef; --error:#b42318; --error-subtle:#fff0ee;
+      --warn:#9a6700; --warn-subtle:#fff7df; --font-sans:'Inter',system-ui,-apple-system,sans-serif;
+      --font-heading:'DM Sans',system-ui,-apple-system,sans-serif; --font-code:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      --radius-sm:6px; --radius-md:10px; --radius-lg:14px; --radius-xl:16px; --radius-full:9999px;
+      --shadow:0 14px 34px rgba(16,42,67,.08); color-scheme:light;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+    a{color:inherit}.skip-link{position:absolute;left:1rem;top:-4rem;z-index:10;padding:.65rem 1rem;background:var(--navy);color:#fff;border-radius:var(--radius-sm)}.skip-link:focus{top:1rem}
+    a:focus-visible,button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+    .container{width:min(1180px,calc(100% - 2rem));margin-inline:auto}
+    .site-header{background:var(--bg-card);border-bottom:1px solid var(--border)}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1rem 0}.brand img{display:block;width:min(220px,48vw);height:auto}.nav-links{display:flex;flex-wrap:wrap;gap:1rem;list-style:none;margin:0;padding:0;font-size:.9rem;color:var(--ink-secondary)}.nav-links a{text-decoration:none}.nav-links a:hover{color:var(--accent)}
+    .hero{padding:clamp(3.75rem,8vw,7rem) 0 4.5rem}.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(250px,.9fr);gap:clamp(2rem,6vw,6rem);align-items:center}.eyebrow,.section-kicker{display:inline-flex;align-items:center;gap:.5rem;color:var(--accent);font-size:.76rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.eyebrow::before{content:"";width:.7rem;height:.7rem;border-radius:50%;background:var(--accent);box-shadow:.35rem .35rem 0 var(--navy)}
+    h1,h2,h3,h4{font-family:var(--font-heading);color:var(--ink);letter-spacing:-.035em;line-height:1.1}h1{max-width:760px;margin:1rem 0 1.25rem;font-size:clamp(2.65rem,7vw,5.8rem)}h2{font-size:clamp(1.9rem,4vw,3.3rem);margin:.6rem 0 1rem}h3{font-size:1.35rem;margin:0 0 .4rem}h4{font-size:1rem;margin:0 0 .35rem}.hero-copy{max-width:670px;color:var(--ink-secondary);font-size:clamp(1.05rem,2vw,1.22rem)}.hero-actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:2rem}
+    .button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:.65rem 1rem;border:1px solid var(--accent);border-radius:var(--radius-md);background:var(--accent);color:#fff;font:inherit;font-weight:750;text-decoration:none;cursor:pointer;transition:background .16s ease,transform .16s ease,box-shadow .16s ease}.button:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 7px 16px rgba(8,127,107,.18)}.button.secondary{background:var(--bg-card);border-color:var(--border-solid);color:var(--navy)}.button.small{min-height:40px;padding:.5rem .75rem;font-size:.9rem}.button:disabled{cursor:not-allowed;opacity:.6}
+    .geometric-board{position:relative;min-height:300px;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--bg-elevated);overflow:hidden}.geometric-board::before{content:"";position:absolute;inset:20% 9%;border:1px solid var(--border-solid);transform:rotate(-8deg)}.shape{position:absolute;border:1px solid var(--navy)}.shape-a{width:145px;height:145px;left:13%;top:12%;border-radius:50%;background:var(--accent-subtle)}.shape-b{width:135px;height:135px;right:12%;top:27%;background:var(--accent);transform:rotate(18deg);opacity:.92}.shape-c{width:86px;height:86px;left:42%;bottom:8%;border-radius:var(--radius-lg);background:var(--navy);transform:rotate(-14deg)}.shape-d{width:24px;height:24px;right:8%;top:10%;background:var(--bg-card);transform:rotate(45deg)}.board-note{position:absolute;left:8%;bottom:11%;max-width:185px;padding:.65rem .8rem;border-left:4px solid var(--accent);background:var(--bg-card);box-shadow:var(--shadow);font-size:.82rem;font-weight:750}
+    .stepper{border-block:1px solid var(--border);background:var(--navy);color:#fff}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;list-style:none;margin:0;padding:1rem 0}.steps li{display:flex;align-items:center;gap:.55rem;color:#dbe8ed;font-size:.88rem}.steps b{display:grid;place-items:center;flex:0 0 28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:.8rem}
+    main{padding:4rem 0 6rem}.route{display:flex;flex-wrap:wrap;align-items:center;gap:.65rem;margin-bottom:3.5rem;padding:.9rem 1rem;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-card);color:var(--ink-secondary);font-size:.9rem}.route strong{color:var(--navy)}.route-arrow{color:var(--accent);font-weight:800}.section-intro{max-width:760px;margin-bottom:2rem}.section-intro p{max-width:670px;color:var(--ink-secondary)}.workspace-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(270px,.85fr);gap:1.5rem;align-items:start}.validator-workspace,.scope-boundary,.station-result{border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-card);box-shadow:var(--shadow)}.validator-workspace{padding:clamp(1.1rem,3vw,2rem)}.validator-formats{margin:.25rem 0;color:var(--accent);font-family:var(--font-code);font-size:.82rem}.validator-purpose{max-width:650px;color:var(--ink-secondary)}.memory-note{font-size:.88rem;color:var(--ink-muted)}.entry-grid{display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,1.2fr);gap:1rem;margin-top:1.5rem}.drop-zone{width:100%;min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;padding:1.25rem;border:1.5px dashed var(--border-solid);border-radius:var(--radius-md);background:var(--bg-elevated);color:var(--navy);font:inherit;text-align:center;cursor:pointer}.drop-zone:hover,.drop-zone.is-dragging{border-color:var(--accent);background:var(--accent-subtle)}.drop-zone strong{font-family:var(--font-heading);font-size:1.05rem}.drop-zone span{color:var(--ink-secondary);font-size:.86rem}.file-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}.selected-file{min-height:1.4em;margin:.55rem 0 0;color:var(--ink-secondary);font-family:var(--font-code);font-size:.75rem;overflow-wrap:anywhere}.paste-panel{min-width:0;padding:1rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg)}.paste-heading{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.75rem}.paste-heading h3{margin:0;font-size:1.05rem}label{display:block;margin:.5rem 0 .35rem;color:var(--navy);font-weight:750}textarea{display:block;width:100%;min-height:180px;resize:vertical;padding:.8rem;border:1px solid var(--border-solid);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--ink);font: .82rem/1.55 var(--font-code)}textarea::placeholder{color:var(--ink-muted)}.validator-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}.entry-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:1rem}.status{min-height:1.45em;color:var(--ink-secondary);font-size:.86rem}.error-message{margin:.85rem 0 0;padding:.75rem;border-left:4px solid var(--error);border-radius:var(--radius-sm);background:var(--error-subtle);color:var(--error);font-size:.88rem}.scope-boundary{padding:1.4rem;background:var(--accent-subtle);box-shadow:none}.scope-boundary h3{color:var(--navy)}.scope-boundary p{color:var(--ink-secondary)}.scope-boundary p:last-child{margin-bottom:0}.handoff,.station-result{margin-top:1.5rem;padding:1.25rem}.handoff{border:1px solid var(--accent);border-radius:var(--radius-lg);background:var(--accent-subtle)}.handoff h3{margin-bottom:.4rem}.handoff p{color:var(--ink-secondary)}.station-result{border-color:var(--navy)}.station-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}.station-label{margin:0;color:var(--accent);font-family:var(--font-code);font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.station-header h3{margin:.35rem 0 0}.finding{margin-top:1rem;padding:1rem;border-left:4px solid var(--error);border-radius:var(--radius-sm);background:var(--error-subtle)}.finding-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}.finding-heading h4{margin:0}.severity{color:var(--error);font-size:.82rem;font-weight:750}.finding p{margin:.7rem 0;color:var(--ink)}.finding-meta{display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;margin-top:.8rem;color:var(--ink-secondary);font-size:.82rem}.finding-meta code{color:var(--navy);overflow-wrap:anywhere}.fix-note{padding:.8rem;border-left:4px solid var(--accent);background:var(--bg-card);color:var(--ink)}.next-action{margin-top:1rem;padding:1rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-elevated)}.next-action p,.scope-boundary p{margin-bottom:.55rem}.station-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}.small-note{margin-top:2rem;color:var(--ink-muted);font-size:.88rem}.small-note strong{color:var(--ink)}[hidden]{display:none!important}
+    @media (max-width:1023px){.hero-grid{gap:2rem}.entry-grid{grid-template-columns:1fr}.drop-zone{min-height:140px}}
+    @media (max-width:767px){.container{width:min(100% - 1.25rem,1180px)}.nav{align-items:flex-start;flex-direction:column}.nav-links{gap:.7rem}.hero{padding-top:3.25rem}.hero-grid,.workspace-grid{grid-template-columns:1fr}.geometric-board{min-height:235px;order:-1}.steps{grid-template-columns:repeat(5,minmax(105px,1fr));overflow-x:auto}.steps li{min-width:105px;flex-direction:column;justify-content:center;text-align:center;font-size:.78rem}.route{align-items:flex-start;flex-direction:column;gap:.25rem}.entry-footer{align-items:stretch;flex-direction:column}.entry-footer .button{width:100%}.button{min-height:48px}.hero-actions .button{flex:1 1 180px}}
+    @media (max-width:430px){h1{font-size:clamp(2.45rem,13vw,3.5rem)}.validator-workspace{padding:1rem}.paste-heading{align-items:flex-start;flex-direction:column}.validator-actions .button{flex:1 1 100%}.finding-heading{flex-direction:column;gap:.35rem}}
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.button:hover{transform:none}}
+    /* Playful geometric treatment: the system palette stays the system palette. */
+    body.theme-playful{background:var(--bg);background-image:radial-gradient(circle at 12px 12px,rgba(8,127,107,.12) 0 2px,transparent 2.5px);background-size:24px 24px}
+    body.theme-playful .site-header{background:var(--accent-subtle);border-bottom:3px solid var(--navy)}
+    body.theme-playful .nav{position:relative}
+    body.theme-playful .nav::after{content:"LOCAL SPIKE";position:absolute;right:0;top:5.2rem;padding:.25rem .5rem;border:2px solid var(--navy);border-radius:var(--radius-full);background:var(--bg-card);box-shadow:3px 3px 0 var(--navy);color:var(--navy);font:800 .65rem var(--font-code);letter-spacing:.1em}
+    body.theme-playful .hero{position:relative;isolation:isolate;overflow:hidden}
+    body.theme-playful .hero::before{content:"";position:absolute;inset:12% -8% 0;background:linear-gradient(125deg,transparent 0 46%,rgba(8,127,107,.08) 46% 48%,transparent 48% 100%);transform:rotate(-4deg);pointer-events:none;z-index:-1}
+    body.theme-playful h1,body.theme-playful h2,body.theme-playful h3,body.theme-playful h4{font-family:"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;letter-spacing:-.055em}
+    body.theme-playful h1{ text-wrap:balance }
+    body.theme-playful .eyebrow::before{width:.9rem;height:.9rem;border-radius:3px;transform:rotate(45deg);box-shadow:.42rem .42rem 0 var(--navy)}
+    body.theme-playful .button{border:3px solid var(--navy);border-radius:var(--radius-full);box-shadow:5px 5px 0 var(--navy);font-family:"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif}
+    body.theme-playful .button:hover{background:var(--accent-hover);box-shadow:3px 3px 0 var(--navy);transform:translate(2px,2px)}
+    body.theme-playful .button.secondary{border-color:var(--navy);background:var(--bg-card);color:var(--navy)}
+    body.theme-playful .geometric-board{border:3px solid var(--navy);border-radius:24px;background:linear-gradient(135deg,var(--accent-subtle),var(--bg-card));box-shadow:10px 10px 0 var(--navy);transform:rotate(2deg)}
+    body.theme-playful .geometric-board::before{inset:16% 8%;border:3px solid var(--accent);border-radius:12px;transform:rotate(-13deg)}
+    body.theme-playful .geometric-board::after{content:"";position:absolute;right:9%;top:9%;width:14px;height:14px;border:3px solid var(--navy);border-radius:50%;background:var(--error);box-shadow:-34px 27px 0 var(--warn),-64px 3px 0 var(--accent),18px 58px 0 var(--navy);transform:rotate(12deg)}
+    body.theme-playful .shape{border:3px solid var(--navy);box-shadow:7px 7px 0 var(--navy)}
+    body.theme-playful .shape-a{background:var(--accent-subtle)}
+    body.theme-playful .shape-b{background:var(--accent);border-radius:12px}
+    body.theme-playful .shape-c{background:var(--navy);border-radius:18px 5px 18px 5px}
+    body.theme-playful .shape-d{border-radius:4px;background:var(--bg-card)}
+    body.theme-playful .board-note{border:3px solid var(--navy);border-left-width:8px;border-radius:7px 16px 9px 12px;box-shadow:5px 5px 0 var(--accent);font-family:"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;transform:rotate(-3deg)}
+    body.theme-playful .route{border:3px solid var(--navy);border-radius:var(--radius-full);box-shadow:4px 4px 0 var(--accent);transform:rotate(-.7deg)}
+    body.theme-playful .stepper{border-block:3px solid var(--navy);background:var(--navy)}
+    body.theme-playful .steps b{border:2px solid #fff;border-radius:9px;transform:rotate(-7deg)}
+    body.theme-playful .validator-workspace,body.theme-playful .scope-boundary,body.theme-playful .station-result{border:3px solid var(--navy);border-radius:18px 13px 21px 15px;box-shadow:8px 8px 0 rgba(16,42,67,.22)}
+    body.theme-playful .validator-workspace{position:relative;transform:rotate(-.35deg)}
+    body.theme-playful .validator-workspace::before{content:"STICKER KIT / PREP";position:absolute;right:1.5rem;top:-.9rem;padding:.35rem .55rem;border:2px solid var(--navy);border-radius:6px;background:var(--warn-subtle);box-shadow:3px 3px 0 var(--navy);color:var(--navy);font:800 .62rem var(--font-code);transform:rotate(4deg)}
+    body.theme-playful .drop-zone{border:3px dashed var(--navy);border-radius:16px;background:var(--accent-subtle);box-shadow:inset 0 0 0 4px var(--bg-card)}
+    body.theme-playful .paste-panel{border:3px solid var(--accent);border-radius:16px;box-shadow:5px 5px 0 var(--accent-subtle)}
+    body.theme-playful .handoff,body.theme-playful .finding,body.theme-playful .next-action{border-radius:14px}
+    body.theme-playful .severity{border:2px solid currentColor;border-radius:var(--radius-full);padding:.2rem .45rem}
+    @media (max-width:767px){body.theme-playful .nav::after{position:static;align-self:flex-start;margin-top:.35rem}.hero{overflow:visible}}
+  </style>
+</head>
+<body id="top" class="theme-playful">
+  <a class="skip-link" href="#validator">Skip to validator</a>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="EInvoiceCheck home"><img src="../../../app/web/public/brand/einvoicecheck-lockup.svg" alt="einvoicecheck.ae"></a>
+      <nav aria-label="Primary navigation"><ul class="nav-links"><li><a href="#validator">Validate</a></li><li><a href="#flow">How it fits</a></li><li><a href="#scope">Scope</a></li></ul></nav>
+    </div>
+    <div class="container hero">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">A calmer invoice preflight</span>
+          <h1>Your ERP can create the invoice. That doesn't mean the file is ready.</h1>
+          <p class="hero-copy">Drop in PINT-AE XML. EInvoiceCheck shows what failed, where it failed, and the smallest practical fix.</p>
+          <div class="hero-actions"><a class="button" href="#validator">Validate an invoice <span aria-hidden="true">→</span></a><a class="button secondary" href="#flow">See the loop</a></div>
+        </div>
+        <div class="geometric-board" aria-label="Geometric composition showing the preflight loop"><span class="shape shape-a" aria-hidden="true"></span><span class="shape shape-b" aria-hidden="true"></span><span class="shape shape-c" aria-hidden="true"></span><span class="shape shape-d" aria-hidden="true"></span><span class="board-note">Find the fault while it is still yours to fix.</span></div>
+      </div>
+    </div>
+  </header>
+  <section class="stepper" id="flow" aria-label="Validation workflow"><div class="container"><ol class="steps"><li><b>1</b><span>Prepare</span></li><li><b>2</b><span>Validate</span></li><li><b>3</b><span>Understand</span></li><li><b>4</b><span>Fix</span></li><li><b>5</b><span>Revalidate</span></li></ol></div></section>
+  <main class="container">
+    <div class="route" role="group" aria-label="ERP to ASP preflight route"><strong>ERP output</strong><span class="route-arrow" aria-hidden="true">→</span><strong>EInvoiceCheck preflight</strong><span class="route-arrow" aria-hidden="true">→</span><strong>ASP</strong></div>
+    <section id="validator" class="section-intro" aria-labelledby="validator-title"><span class="section-kicker">Validator entry</span><h2 id="validator-title">Bring an invoice. Leave with a next step.</h2><p>Upload XML, paste it in, or load a sample to hand off to Validator Station. This prototype stages your input locally; it does not run the real validation engine in the browser.</p></section>
+    <div class="workspace-grid">
+      <section class="validator-workspace" aria-label="Invoice validation workspace">
+        <h3>Validate an invoice</h3><p class="validator-formats">PINT-AE XML, maximum 256 KB</p><p class="validator-purpose">Built for testing, implementation and troubleshooting. Not another invoicing system.</p><p class="memory-note">Validated in memory; not persisted by this application.</p>
+        <div class="entry-grid">
+          <div><button class="drop-zone" id="drop-zone" type="button" aria-describedby="drop-help"><strong>Drop an invoice here or choose a file</strong><span id="drop-help">Choose an XML invoice</span></button><input class="file-input" id="xml-file" type="file" accept=".xml,.txt,application/xml,text/xml" aria-label="Choose an XML invoice"><p class="selected-file" id="selected-file" aria-live="polite"></p></div>
+          <div class="paste-panel"><div class="paste-heading"><h3>Paste XML</h3><button class="button small secondary" type="button" id="paste-xml">Paste XML</button></div><label for="xml-input">Invoice XML</label><textarea id="xml-input" placeholder="&lt;Invoice&gt;\n  ...\n&lt;/Invoice&gt;" aria-describedby="input-help"></textarea><p class="memory-note" id="input-help">Input remains in this browser until you reset it.</p><div class="validator-actions"><button class="button small secondary" type="button" id="valid-sample">Try valid sample</button><button class="button small secondary" type="button" id="broken-sample">Try broken sample</button></div><div class="entry-footer"><span class="status" id="status" role="status" aria-live="polite"></span><button class="button" type="button" id="stage-invoice">Open Validator Station</button></div><p class="error-message" id="input-error" role="alert" hidden></p></div>
+        </div>
+        <section class="handoff" id="handoff" aria-labelledby="handoff-title" hidden><h3 id="handoff-title">Ready for Validator Station</h3><p>Your input is staged. Open Validator Station to run the EInvoiceCheck preflight; this prototype does not claim to validate XML locally.</p><button class="button" type="button" id="open-station">Open Validator Station <span aria-hidden="true">→</span></button></section>
+        <section class="station-result" id="station" aria-labelledby="station-title" tabindex="-1" hidden><div class="station-header"><div><p class="station-label">Validator Station · Preflight result</p><h3 id="station-title">Preflight failed — 1 finding</h3></div><span class="severity">Blocking issue</span></div><article class="finding"><div class="finding-heading"><h4>Buyer TRN</h4><span class="severity">Error</span></div><p>Buyer TRN is not a valid 15-digit UAE TRN. Use exactly 15 numeric digits.</p><div class="finding-meta"><span>Rule</span><code>ENG-TRN-04 / BT-48</code><span>Location</span><code>/customer/trn</code></div><p class="fix-note"><strong>Fix:</strong> Use exactly 15 numeric digits.</p></article><div class="next-action"><h4>Next action</h4><p>Correct the buyer TRN in the source, then revalidate the same invoice.</p></div><div class="scope-boundary"><h4>Scope boundary</h4><p>Preflight tells you what this check found. It is not an ERP, filing layer, accredited service provider, or guarantee of official acceptance.</p></div><div class="station-actions"><button class="button small" type="button" id="retry">Retry</button><button class="button small secondary" type="button" id="reset">Reset</button></div></section>
+      </section>
+      <aside class="scope-boundary" id="scope" aria-labelledby="scope-side-title"><h3 id="scope-side-title">Find the fault while it is still yours to fix.</h3><p>Source data, ERP mapping and final XML are different failure points. Preflight gives you one place to isolate them before provider testing.</p><p><strong>Next:</strong> stage the source, open Validator Station, then follow the exact correction path.</p></aside>
+    </div>
+    <p class="small-note"><strong>How it fits:</strong> ERP or accounting system → EInvoiceCheck preflight → accredited service provider.</p>
+  </main>
+  <script>
+    const MAX_BYTES = 256 * 1024;
+    const VALID_SAMPLE = '<Invoice>\n  <BuyerTRN>135790246801003</BuyerTRN>\n</Invoice>';
+    const BROKEN_SAMPLE = '<Invoice>\n  <BuyerTRN>12345</BuyerTRN>\n</Invoice>';
+    const input = document.querySelector('#xml-input');
+    const file = document.querySelector('#xml-file');
+    const dropZone = document.querySelector('#drop-zone');
+    const selectedFile = document.querySelector('#selected-file');
+    const status = document.querySelector('#status');
+    const error = document.querySelector('#input-error');
+    const handoff = document.querySelector('#handoff');
+    const station = document.querySelector('#station');
+    function setStatus(message) { status.textContent = message; }
+    function showError(message) { error.textContent = message; error.hidden = false; setStatus(''); }
+    function clearError() { error.hidden = true; error.textContent = ''; }
+    function stageText(text, label) { input.value = text; selectedFile.textContent = label || ''; clearError(); handoff.hidden = true; station.hidden = true; setStatus('Input ready. Open Validator Station to run the EInvoiceCheck preflight.'); input.focus(); }
+    function readInvoice(chosen) { clearError(); if (chosen.size > MAX_BYTES) { showError('This file is larger than 256 KB. Choose a smaller PINT-AE XML invoice.'); return; } const reader = new FileReader(); reader.onload = () => stageText(String(reader.result || ''), chosen.name); reader.onerror = () => showError('Could not read this invoice. Your input is still here — try again.'); reader.readAsText(chosen); }
+    function stageForHandoff() { clearError(); if (!input.value.trim()) { showError('Paste an XML invoice before opening Validator Station.'); input.focus(); return; } handoff.hidden = false; station.hidden = true; setStatus('Input staged. Open Validator Station to run the EInvoiceCheck preflight.'); document.querySelector('#open-station').focus(); }
+    dropZone.addEventListener('click', () => file.click());
+    dropZone.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); file.click(); } });
+    dropZone.addEventListener('dragover', (event) => { event.preventDefault(); dropZone.classList.add('is-dragging'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('is-dragging'));
+    dropZone.addEventListener('drop', (event) => { event.preventDefault(); dropZone.classList.remove('is-dragging'); if (event.dataTransfer.files[0]) readInvoice(event.dataTransfer.files[0]); });
+    file.addEventListener('change', () => { if (file.files[0]) readInvoice(file.files[0]); });
+    document.querySelector('#paste-xml').addEventListener('click', () => { input.focus(); setStatus('Paste XML into the invoice field, then open Validator Station.'); });
+    document.querySelector('#valid-sample').addEventListener('click', () => stageText(VALID_SAMPLE, 'Valid sample')); document.querySelector('#broken-sample').addEventListener('click', () => stageText(BROKEN_SAMPLE, 'Broken sample'));
+    document.querySelector('#stage-invoice').addEventListener('click', stageForHandoff); document.querySelector('#open-station').addEventListener('click', () => { handoff.hidden = true; station.hidden = false; setStatus('Validator Station opened. Review the preflight finding below.'); station.focus(); });
+    document.querySelector('#retry').addEventListener('click', () => { station.hidden = true; handoff.hidden = false; setStatus('Input kept. Correct the buyer TRN, then open Validator Station again.'); document.querySelector('#open-station').focus(); });
+    document.querySelector('#reset').addEventListener('click', () => { input.value = ''; file.value = ''; selectedFile.textContent = ''; clearError(); handoff.hidden = true; station.hidden = true; setStatus('Reset. Add an invoice when ready.'); input.focus(); });
+  </script>
+</body>
+</html>
