@@ -5,6 +5,7 @@ import './visual-compression.css';
 import './aesthetic-polish.css';
 import './home-validator-experience.css';
 import './account.css';
+import './playful-geometric.css';
 import { Chrome } from '@/components/Chrome';
 
 const inter = Inter({

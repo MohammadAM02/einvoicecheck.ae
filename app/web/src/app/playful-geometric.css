@@ -1,0 +1,725 @@
+/* Playful geometric reskin. Imported last so the existing layout and behavior stay intact. */
+:root {
+  --bg: #f7f8f5;
+  --playful-outline: 2px solid var(--navy);
+  --playful-shadow: 6px 6px 0 var(--navy);
+  --playful-shadow-soft: 6px 6px 0 rgba(8, 127, 107, 0.24);
+  --playful-radius: 18px 13px 21px 15px;
+  --playful-heading: 'Arial Rounded MT Bold', var(--font-heading);
+}
+
+html,
+body {
+  background-color: var(--bg);
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 12px 12px, rgba(8, 127, 107, 0.1) 0 1.5px, transparent 2px),
+    linear-gradient(135deg, transparent 0 49.5%, rgba(16, 42, 67, 0.025) 49.5% 50.5%, transparent 50.5% 100%);
+  background-size: 24px 24px, 96px 96px;
+}
+
+.app-card,
+.account-main {
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at 12px 12px, rgba(8, 127, 107, 0.08) 0 1.5px, transparent 2px);
+  background-size: 24px 24px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.section-title,
+.pricing-price,
+.template-name,
+.account-page-header h1,
+.account-section-heading h2,
+.account-stat-card strong {
+  font-family: var(--playful-heading);
+  letter-spacing: -0.045em;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Shared shell and navigation */
+.navbar {
+  border-bottom: 3px solid var(--navy);
+  background: rgba(247, 248, 245, 0.96);
+  box-shadow: 0 4px 0 rgba(8, 127, 107, 0.16);
+}
+
+.navbar::after {
+  content: '';
+  position: absolute;
+  right: max(14px, calc((100% - 1200px) / 2));
+  bottom: -9px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--navy);
+  border-radius: 4px;
+  background: var(--warn-subtle);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.nav-text-link {
+  min-height: 44px;
+  padding-inline: 12px;
+  border-radius: var(--radius-full);
+}
+
+.nav-text-link:hover {
+  background: var(--accent-subtle);
+}
+
+.nav-primary-action,
+.mobile-menu-button {
+  min-height: 44px;
+  border: var(--playful-outline);
+  border-radius: var(--radius-full);
+  box-shadow: 4px 4px 0 var(--navy);
+}
+
+.nav-primary-action:hover,
+.mobile-menu-button:hover {
+  box-shadow: 2px 2px 0 var(--navy);
+  transform: translate(2px, 2px);
+}
+
+.mobile-menu {
+  border: var(--playful-outline);
+  border-radius: 14px 9px 17px 11px;
+  background: var(--bg-card);
+  box-shadow: var(--playful-shadow);
+}
+
+.mobile-menu .nav-text-link,
+.mobile-menu .nav-primary-action {
+  min-height: 48px;
+}
+
+/* Labels, buttons, and controls */
+.section-label,
+.tool-page-header__eyebrow,
+.badge,
+.pill,
+.pricing-badge,
+.validation-layer-badge,
+.validation-result-origin,
+.account-eyebrow,
+.account-card__eyebrow,
+.account-section-code,
+.account-header-status,
+.account-status-pill,
+.account-outcome {
+  border: 2px solid currentColor;
+  border-radius: var(--radius-full);
+  font-family: var(--font-code);
+  font-weight: 800;
+  letter-spacing: 0.055em;
+}
+
+.section-label,
+.tool-page-header__eyebrow,
+.badge,
+.validation-result-origin,
+.account-section-code,
+.account-header-status {
+  box-shadow: 3px 3px 0 rgba(16, 42, 67, 0.16);
+}
+
+.account-eyebrow,
+.account-card__eyebrow {
+  padding: 4px 7px;
+  background: var(--account-accent-soft);
+}
+
+.account-context .account-eyebrow {
+  color: #c0d2df;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn,
+.button,
+.button-primary,
+.button-secondary,
+.cta-button,
+.account-button,
+.generator-entry-mode {
+  min-height: 44px;
+  border: var(--playful-outline);
+  border-radius: var(--radius-full);
+  font-family: var(--playful-heading);
+  font-weight: 700;
+  box-shadow: 4px 4px 0 var(--navy);
+  transition: background-color 0.16s ease, color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.btn:hover:not(:disabled),
+.button:hover:not(:disabled),
+.button-primary:hover:not(:disabled),
+.button-secondary:hover:not(:disabled),
+.cta-button:hover,
+.account-button:hover:not(:disabled),
+.generator-entry-mode:hover {
+  box-shadow: 2px 2px 0 var(--navy);
+  transform: translate(2px, 2px);
+}
+
+.btn-primary,
+.button-primary,
+.cta-button,
+.account-button--primary {
+  border-color: var(--navy);
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-secondary,
+.button-secondary,
+.account-button--secondary {
+  border-color: var(--navy);
+  background: var(--bg-card);
+  color: var(--navy);
+}
+
+.form input,
+.tool-input,
+.generator-input,
+.generator-select,
+.batch-panel textarea,
+.batch-validator textarea,
+.account-create-key input {
+  min-height: 44px;
+  border: 2px solid var(--border-solid);
+  border-radius: 12px 8px 14px 9px;
+  background: var(--bg-card);
+}
+
+.form input:focus,
+.tool-input:focus,
+.generator-input:focus,
+.generator-select:focus,
+.batch-panel textarea:focus,
+.batch-validator textarea:focus,
+.account-create-key input:focus {
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent-subtle);
+}
+
+/* Cards and content surfaces */
+.card,
+.hero-card,
+.pricing-card,
+.template-card,
+.notice,
+.claim,
+.api-spotlight,
+.comparison-card,
+.scope-panel,
+.generator-section,
+.generator-totals,
+.generator-preview,
+.batch-panel,
+.batch-validator {
+  border: var(--playful-outline);
+  border-radius: var(--playful-radius);
+  background-color: var(--bg-card);
+  box-shadow: var(--playful-shadow-soft);
+}
+
+.card:nth-child(even),
+.pricing-card:nth-child(even),
+.template-card:nth-child(even),
+.comparison-card:nth-child(even),
+.account-stat-card:nth-child(even) {
+  border-radius: 13px 20px 14px 22px;
+}
+
+.card.featured,
+.card.highlight,
+.pricing-card.featured,
+.example-result--featured {
+  border: 3px solid var(--navy);
+  box-shadow: 8px 8px 0 var(--accent);
+}
+
+.pricing-card.featured {
+  transform: rotate(0.6deg);
+}
+
+.pricing-badge {
+  border-color: var(--navy);
+  box-shadow: 3px 3px 0 var(--navy);
+}
+
+.template-card:hover {
+  box-shadow: 3px 3px 0 var(--accent);
+  transform: translate(3px, 3px) rotate(-0.35deg);
+}
+
+.api-spotlight {
+  overflow: hidden;
+  border-width: 3px;
+  background: var(--accent-subtle);
+  box-shadow: 8px 8px 0 var(--navy);
+  transform: rotate(-0.35deg);
+}
+
+.api-spotlight::after {
+  border-width: 28px;
+  border-color: rgba(8, 127, 107, 0.12);
+}
+
+.tool-page-header__eyebrow,
+.section-label {
+  transform: rotate(-1.5deg);
+}
+
+/* Homepage and validator station */
+.compliance-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.compliance-hero::before {
+  content: '';
+  position: absolute;
+  inset: 5% 0 auto;
+  height: 62%;
+  z-index: -1;
+  background:
+    linear-gradient(128deg, transparent 0 47%, rgba(8, 127, 107, 0.08) 47% 49%, transparent 49%),
+    radial-gradient(circle at 88% 12%, var(--warn-subtle) 0 34px, transparent 35px);
+  pointer-events: none;
+}
+
+.hero-intro--story::after {
+  left: -20px;
+  bottom: -30px;
+  width: 72px;
+  height: 16px;
+  border: 3px solid var(--navy);
+  border-radius: 8px 17px 10px 14px;
+  background: linear-gradient(90deg, var(--warn-subtle) 0 58%, var(--accent) 58% 100%);
+  box-shadow: 4px 4px 0 var(--navy);
+  transform: rotate(2deg);
+}
+
+.hero-signal span {
+  border: 2px solid var(--navy);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  box-shadow: 3px 3px 0 rgba(8, 127, 107, 0.3);
+}
+
+.validator-workspace,
+.validator-result {
+  position: relative;
+  border: 3px solid var(--navy);
+  border-radius: 19px 13px 23px 15px;
+  background-color: var(--bg-card);
+  box-shadow: 8px 8px 0 rgba(16, 42, 67, 0.24);
+}
+
+.validator-workspace::after {
+  content: '';
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--navy);
+  border-radius: 3px;
+  background: var(--warn-subtle);
+  box-shadow: -19px 15px 0 var(--accent), 4px 4px 0 var(--navy);
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+
+.validator-station__canvas {
+  border: 2px solid rgba(8, 127, 107, 0.35);
+  border-radius: 25px 16px 28px 19px;
+  background:
+    radial-gradient(circle at 18px 18px, rgba(8, 127, 107, 0.1) 0 2px, transparent 2.5px),
+    var(--accent-subtle);
+  background-size: 36px 36px;
+}
+
+.validator-station__canvas::before {
+  border: 3px solid var(--navy);
+  border-radius: var(--radius-full);
+  box-shadow: 3px 3px 0 var(--navy);
+}
+
+.upload-zone,
+.invoice-drop-zone {
+  border: 3px dashed var(--navy);
+  border-radius: 18px 11px 20px 14px;
+  background: var(--accent-subtle);
+  box-shadow: inset 0 0 0 4px var(--bg-card);
+}
+
+.upload-zone:hover,
+.invoice-drop-zone:hover,
+.upload-zone.is-dragging,
+.invoice-drop-zone.is-dragging {
+  border-color: var(--accent);
+  background: #dff3ed;
+  box-shadow: inset 0 0 0 4px var(--bg-card), 5px 5px 0 var(--navy);
+}
+
+.validator-paste,
+.validation-summary,
+.validation-issue,
+.next-action-panel,
+.safe-repair-panel {
+  border: 2px solid var(--navy);
+  border-radius: 14px 9px 17px 11px;
+  background: var(--bg-card);
+}
+
+.validator-paste,
+.safe-repair-panel {
+  padding: 16px;
+}
+
+.validation-issue {
+  box-shadow: 5px 5px 0 rgba(180, 35, 24, 0.13);
+}
+
+.validation-fix,
+.next-action-panel {
+  border-left: 6px solid var(--accent);
+  background: var(--accent-subtle);
+}
+
+.validation-summary pre,
+.validator-original-xml pre,
+.keybox {
+  border: 2px solid var(--navy);
+  border-radius: 12px 7px 14px 9px;
+}
+
+.workflow-stepper__marker {
+  border: 2px solid var(--navy);
+  border-radius: 9px;
+  box-shadow: 3px 3px 0 rgba(16, 42, 67, 0.2);
+  transform: rotate(-4deg);
+}
+
+.workflow-stepper__step:nth-child(even) .workflow-stepper__marker {
+  transform: rotate(4deg);
+}
+
+/* Keep the intentional diagnostic story dark while giving it geometric depth. */
+.problem-section {
+  border-block: 3px solid var(--navy);
+  background-color: #0a2540;
+  background-image:
+    linear-gradient(rgba(120, 219, 200, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 219, 200, 0.06) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+.process-step__icon,
+.failure-card__icon,
+.failure-card,
+.route-node,
+.route-diagnostic,
+.fault-axes span {
+  border-width: 2px;
+  box-shadow: 4px 4px 0 rgba(120, 219, 200, 0.14);
+}
+
+.route-node,
+.failure-card {
+  border-radius: 17px 11px 20px 13px;
+}
+
+.route-node--preflight {
+  transform: rotate(-1deg);
+}
+
+.example-result__rail {
+  padding: 0.3rem 0.55rem;
+  border: 2px solid var(--navy);
+  border-radius: var(--radius-full);
+  background: var(--warn-subtle);
+  color: var(--navy);
+  box-shadow: 3px 3px 0 var(--navy);
+  transform: rotate(-2deg);
+}
+
+.result-anatomy {
+  gap: 8px;
+  border-top: 0;
+}
+
+.result-anatomy li {
+  padding: 12px;
+  border: 2px solid var(--border-solid);
+  border-radius: 12px 8px 14px 9px;
+  background: var(--bg-card);
+}
+
+/* FAQ, tables, and footer */
+.disclosure-list,
+.faq-list {
+  gap: 12px;
+  border-top: 0;
+}
+
+.disclosure-item,
+.faq-item {
+  overflow: hidden;
+  border: 2px solid var(--navy);
+  border-radius: 14px 9px 17px 11px;
+  background: var(--bg-card);
+  box-shadow: 4px 4px 0 rgba(8, 127, 107, 0.2);
+}
+
+.disclosure-item summary,
+.faq-item summary {
+  min-height: 52px;
+  padding-inline: 18px 54px;
+}
+
+.disclosure-item summary::after,
+.faq-item summary::after {
+  right: 18px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 2px solid var(--navy);
+  border-radius: 8px;
+  background: var(--accent-subtle);
+  color: var(--navy);
+  font-size: 1.25rem;
+}
+
+.disclosure-item ul,
+.disclosure-item p,
+.faq-item p {
+  padding-inline: 18px 42px;
+}
+
+table:not(.account-table) {
+  border: 2px solid var(--navy);
+  border-radius: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  background: var(--bg-card);
+  box-shadow: 4px 4px 0 rgba(8, 127, 107, 0.2);
+}
+
+table:not(.account-table) th {
+  background: var(--accent-subtle);
+  color: var(--navy);
+}
+
+.site-footer {
+  border-top: 3px solid var(--navy);
+}
+
+.footer-links a {
+  min-height: 44px;
+  padding: 0 9px;
+  border-radius: var(--radius-full);
+}
+
+.footer-links a:hover {
+  background: var(--accent-subtle);
+}
+
+/* Signed-in account shell */
+.account-shell {
+  --account-background: var(--bg);
+}
+
+.account-sidebar {
+  border-right: 3px solid var(--navy);
+  box-shadow: 5px 0 0 rgba(8, 127, 107, 0.24);
+}
+
+.account-context,
+.account-menu,
+.account-stat-card,
+.account-card,
+.account-plan-option,
+.account-tool-card,
+.account-response-callout,
+.account-response-summary,
+.account-one-time-key {
+  border: 2px solid var(--navy);
+  border-radius: 15px 10px 18px 12px;
+  box-shadow: 5px 5px 0 rgba(8, 127, 107, 0.18);
+}
+
+.account-stat-card--accent,
+.account-plan-option.is-current {
+  background: var(--accent-subtle);
+  box-shadow: 5px 5px 0 var(--accent);
+}
+
+.account-nav__link,
+.account-sidebar__tool-link,
+.account-identity,
+.account-tab,
+.account-language-tab,
+.account-copy-button,
+.account-icon-button,
+.account-table-action,
+.account-alert button,
+.account-footer a,
+.account-footer button {
+  min-height: 44px;
+}
+
+.account-nav__link,
+.account-sidebar__tool-link,
+.account-identity {
+  border-radius: 12px;
+}
+
+.account-nav__link.is-active {
+  border: 2px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 3px 3px 0 var(--account-accent);
+}
+
+.account-step__number,
+.account-method,
+.account-tool-card__icon {
+  border: 2px solid currentColor;
+  border-radius: 8px;
+  transform: rotate(-3deg);
+}
+
+.account-code-panel,
+.account-response-code {
+  border: 3px solid var(--navy);
+  border-radius: 15px 10px 18px 12px;
+  box-shadow: 5px 5px 0 rgba(8, 127, 107, 0.28);
+}
+
+.account-table-scroll {
+  border: 2px solid var(--navy);
+  border-radius: 13px;
+}
+
+.account-table th {
+  background: var(--accent-subtle);
+  color: var(--navy);
+}
+
+.account-mobile-bar {
+  border-bottom: 3px solid var(--navy);
+  background: rgba(247, 248, 245, 0.96);
+}
+
+@media (max-width: 767px) {
+  .navbar::after {
+    right: 72px;
+  }
+
+  .card,
+  .pricing-card,
+  .template-card,
+  .api-spotlight,
+  .validator-workspace,
+  .validator-result,
+  .route-node--preflight,
+  .tool-page-header__eyebrow,
+  .section-label,
+  .account-stat-card,
+  .account-card,
+  .account-plan-option {
+    transform: none;
+  }
+
+  .validator-workspace,
+  .validator-result,
+  .api-spotlight,
+  .card.featured,
+  .card.highlight,
+  .pricing-card.featured {
+    box-shadow: 4px 4px 0 rgba(16, 42, 67, 0.22);
+  }
+
+  .disclosure-item summary,
+  .faq-item summary {
+    padding-inline: 14px 50px;
+  }
+
+  .disclosure-item ul,
+  .disclosure-item p,
+  .faq-item p {
+    padding-inline: 14px 24px;
+  }
+
+  .validator-paste,
+  .safe-repair-panel {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 430px) {
+  .btn,
+  .button,
+  .button-primary,
+  .button-secondary,
+  .cta-button,
+  .account-button {
+    max-width: 100%;
+  }
+
+  .validator-workspace::after {
+    display: none;
+  }
+
+  .account-card,
+  .account-stat-card,
+  .account-plan-option,
+  .account-tool-card {
+    box-shadow: 3px 3px 0 rgba(8, 127, 107, 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .btn:hover,
+  .button:hover,
+  .button-primary:hover,
+  .button-secondary:hover,
+  .cta-button:hover,
+  .nav-primary-action:hover,
+  .mobile-menu-button:hover,
+  .account-button:hover,
+  .generator-entry-mode:hover,
+  .template-card:hover {
+    transform: none;
+  }
+}
