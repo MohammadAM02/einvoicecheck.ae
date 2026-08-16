@@ -9,7 +9,9 @@ import {
   generateXml,
 } from '@/lib/generator-client';
 import type { GenerateInput, GenerateLine } from '@/lib/generator-client';
-import { downloadXml, copyXml } from '@/lib/repairer-client';
+import { downloadXml, copyXml } from '@/lib/xml-file';
+import type { ImportInvoice } from '@/lib/invoice-import';
+import { GeneratorImport } from '@/components/GeneratorImport';
 import { NextActionPanel, WorkflowStepper } from '@/components/ProductExperience';
 
 /* ------------------------------------------------------------------ */
@@ -201,6 +203,7 @@ export function GeneratorWorkspace(): React.ReactElement {
 
   /* ---- state ---- */
   const [state, setState] = useState<WorkspaceState>({ phase: 'idle' });
+  const [entryMode, setEntryMode] = useState<'manual' | 'import'>('manual');
   const [form, setForm] = useState<FormData>({
     template: 'standard-tax-invoice',
     invoiceNumber: '',
@@ -387,6 +390,32 @@ export function GeneratorWorkspace(): React.ReactElement {
     router.push('/tools/uae-e-invoice-validator');
   }, [router, state]);
 
+  /* ---- import prefill ---- */
+
+  const handleOpenImportedInForm = useCallback((invoice: ImportInvoice) => {
+    // Prefill the manual Generator form with the invoice's supported data.
+    // The batch result stays mounted (import panel) while the user edits.
+    setForm({
+      template: invoice.template,
+      invoiceNumber: invoice.data.invoiceNumber,
+      issueDate: invoice.data.issueDate,
+      dueDate: invoice.data.dueDate ?? '',
+      supplierTrn: invoice.data.supplier.trn,
+      supplierName: invoice.data.supplier.name,
+      customerTrn: invoice.data.customer.trn,
+      customerName: invoice.data.customer.name,
+      lines: invoice.data.lines.map((l) => ({
+        key: lineKeyCounter++,
+        description: l.name,
+        quantity: String(l.quantity),
+        unitPrice: String(l.unitPrice),
+        category: l.category,
+      })),
+    });
+    setEntryMode('manual');
+    trackEvent('generator_import_open_in_form' as any);
+  }, []);
+
   /* ---- line handlers ---- */
 
   const updateLine = useCallback(
@@ -467,8 +496,31 @@ export function GeneratorWorkspace(): React.ReactElement {
     { className: 'generator-workspace', 'data-testid': 'generator-workspace' },
 
     /* ================================================================
-       STEPPER
+       ENTRY MODE: Build manually | Import invoice data
        ================================================================ */
+    h('div', { className: 'generator-entry-modes', role: 'group', 'aria-label': 'Generator entry mode' },
+      h('button', {
+        type: 'button',
+        className: 'generator-entry-mode' + (entryMode === 'manual' ? ' is-active' : ''),
+        'aria-pressed': entryMode === 'manual',
+        onClick: () => setEntryMode('manual'),
+        'data-testid': 'entry-mode-manual',
+      }, 'Build manually'),
+      h('button', {
+        type: 'button',
+        className: 'generator-entry-mode' + (entryMode === 'import' ? ' is-active' : ''),
+        'aria-pressed': entryMode === 'import',
+        onClick: () => setEntryMode('import'),
+        'data-testid': 'entry-mode-import',
+      }, 'Import invoice data'),
+    ),
+
+    /* ================================================================
+       MANUAL MODE
+       ================================================================ */
+    h('div', { hidden: entryMode === 'import' },
+
+    /* ---- STEPPER ---- */
     h(WorkflowStepper, {
       label: 'Generator progress',
       steps: [
@@ -1005,6 +1057,15 @@ export function GeneratorWorkspace(): React.ReactElement {
             h('pre', { className: 'generator-preview-code' }, state.phase === 'ready' ? state.xml : ''),
           )
         : null,
+    ),
+
+    ), /* /manual mode wrapper */
+
+    /* ================================================================
+       IMPORT MODE
+       ================================================================ */
+    h('div', { hidden: entryMode === 'manual' },
+      h(GeneratorImport, { onOpenInForm: handleOpenImportedInForm }),
     ),
 
     /* ================================================================

@@ -1,0 +1,3 @@
+template,invoiceNumber,issueDate,dueDate,supplierTrn,supplierName,customerTrn,customerName,lineName,quantity,unitPrice,category
+standard-tax-invoice,INV-2026-001,2026-08-17,2026-09-16,100123456700003,Falcon Trading LLC,100987654300003,Oasis Retail FZE,Consulting services,10,500,S
+standard-tax-invoice,INV-2026-001,2026-08-17,2026-09-16,100123456700003,Falcon Trading LLC,100987654300003,Oasis Retail FZE,Support plan,1,250,S
