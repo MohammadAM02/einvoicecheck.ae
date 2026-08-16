@@ -16,7 +16,6 @@ import { Chrome } from '@/components/Chrome';
 const REQUIRED_LINKS = [
   ['Validate an invoice', '/#validate'],
   ['XML Generator', '/tools/xml-generator'],
-  ['XML Repairer', '/tools/xml-repairer'],
   ['What We Check', '/what-we-check'],
   ['API Docs', '/docs'],
   ['Pricing', '/pricing'],
@@ -176,10 +175,18 @@ describe('UAE Compliance Desk visual system source', () => {
     expect(css).toMatch(/\.validation-issue__heading h3\s*\{[^}]*min-width:\s*0;[^}]*overflow-wrap:\s*anywhere;/s);
   });
 
-  it('keeps the Repairer audit table in a local horizontal scroller', () => {
+  it('keeps the Validator safe-repair audit table in a local horizontal scroller', () => {
     const css = source('app', 'globals.css');
 
-    expect(css).toMatch(/\.repairer-audit-table\s*\{[^}]*display:\s*block;[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;/s);
+    expect(css).toMatch(/\.safe-repair-audit-table\s*\{[^}]*display:\s*block;[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;/s);
+  });
+
+  it('contains no standalone Repairer navigation or styles', () => {
+    const css = source('app', 'globals.css');
+    const chrome = source('components', 'Chrome.tsx');
+
+    expect(chrome).not.toContain('xml-repairer');
+    expect(css).not.toMatch(/\.repairer-/);
   });
 
   it('defines every focused compliance desk class', () => {

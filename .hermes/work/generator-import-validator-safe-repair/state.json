@@ -1,0 +1,10 @@
+{
+  "task_id": "generator-import-validator-safe-repair",
+  "state": "APPROVED",
+  "repository": "https-einvoicecheck.ae",
+  "worktree": "C:/Users/AMG/code/https-einvoicecheck.ae/.worktrees/fileconverter",
+  "branch": "fileconverter",
+  "baseline_commit": "1b1933ce85d3d707d38d340ca886871353891f25",
+  "approved_scope": "Implementation spec Part A (Generator import) and Part B (Validator safe repair + Repairer/convert retirement) exactly as documented; no push, no deploy, no production access, no migration, no secrets",
+  "updated_at": "2026-08-17T00:00:00+00:00"
+}

@@ -55,8 +55,13 @@ describe('monthly quota enforcement (UTC calendar month, atomic reservation)', (
 
   const preflight = () =>
     ctx.app.inject({ method: 'POST', url: '/v1/preflight', headers: auth(), payload: validInvoice() });
-  const convert = () =>
-    ctx.app.inject({ method: 'POST', url: '/v1/convert', headers: auth(), payload: { xml: validUblXml() } });
+  const validateXml = () =>
+    ctx.app.inject({
+      method: 'POST',
+      url: '/v2/validate',
+      headers: { ...auth(), 'content-type': 'application/xml' },
+      payload: validUblXml(),
+    });
   const generate = (data = {}) =>
     ctx.app.inject({
       method: 'POST',
@@ -87,16 +92,16 @@ describe('monthly quota enforcement (UTC calendar month, atomic reservation)', (
     expect(await quotaCounter()).toBe(2);
   });
 
-  it('A-007: at monthly quota, validation/convert/generation are rejected before expensive work', async () => {
+  it('A-007: at monthly quota, validation and generation are rejected before expensive work', async () => {
     await publishQuota(1);
     expect((await preflight()).statusCode).toBe(200); // consume the only unit
 
     const before = await UsageEvent.countDocuments({ keyId: ctx.apiKey._id });
     const preflightRes = await preflight();
-    const convertRes = await convert();
+    const xmlRes = await validateXml();
     const generateRes = await generate();
 
-    for (const res of [preflightRes, convertRes, generateRes]) {
+    for (const res of [preflightRes, xmlRes, generateRes]) {
       expect(res.statusCode).toBe(429);
       expect(res.json().error).toBe('quota_exceeded');
       expect(res.json().message).toMatch(/monthly quota/i);

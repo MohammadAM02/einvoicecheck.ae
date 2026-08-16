@@ -249,9 +249,9 @@ export function finalizeMonthlyQuota(request) {
  * Register the automatic release hook once per app. Must be called during
  * route registration (before app.ready()); per-request reservation calls run
  * too late to add hooks. Any reservation never finalized — internal error,
- * route throw, converter ERROR — is released when the response is sent
- * (A-008/A-016). Release removes exactly this reservation's opaque token and
- * is idempotent (SREM of a missing member is a no-op).
+ * route throw — is released when the response is sent (A-008/A-016). Release
+ * removes exactly this reservation's opaque token and is idempotent (SREM of a
+ * missing member is a no-op).
  */
 export function registerQuotaReleaseHook(fastify) {
   if (fastify.quotaReleaseHookRegistered) return;

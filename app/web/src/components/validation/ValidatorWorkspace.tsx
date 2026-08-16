@@ -9,6 +9,7 @@ import { BROKEN_XML_SAMPLE, VALID_XML_SAMPLE } from '@/lib/validation-samples';
 import type { ValidateApiSuccess } from '@/lib/validation-ui';
 import { consumeHomepageValidatorHandoff, setHomepageValidatorHandoff } from '@/lib/validator-handoff';
 import { ValidationSummary } from './ValidationSummary';
+import { SafeRepairPanel } from './SafeRepairPanel';
 
 type WorkspaceState =
   | { phase: 'idle' }
@@ -17,7 +18,7 @@ type WorkspaceState =
   | { phase: 'result'; data: ValidateApiSuccess; fileName?: string; origin?: HandoffSource }
   | { phase: 'error'; message: string; status: number | null; fileName?: string; origin?: HandoffSource };
 
-type HandoffSource = 'homepage' | 'xml-generator' | 'xml-repairer';
+type HandoffSource = 'homepage' | 'xml-generator';
 type ConverterHandoffSource = Exclude<HandoffSource, 'homepage'>;
 
 const CONVERTER_HANDOFF_KEY = 'einvoicecheck:converter-handoff';
@@ -26,7 +27,6 @@ const VALIDATOR_PATH = '/tools/uae-e-invoice-validator';
 const HANDOFF_CONTEXT: Record<HandoffSource, { label: string; fileName: string }> = {
   homepage: { label: 'homepage', fileName: 'invoice.xml' },
   'xml-generator': { label: 'XML Generator', fileName: 'generated-invoice.xml' },
-  'xml-repairer': { label: 'XML Repairer', fileName: 'repaired-invoice.xml' },
 };
 
 type InputMethod = 'upload' | 'drop' | 'paste' | 'valid_sample' | 'broken_sample';
@@ -198,11 +198,22 @@ export function ValidatorWorkspace({ context = 'tool' }: {
       : state.origin
         ? `Validated from ${HANDOFF_CONTEXT[state.origin].label}`
         : null;
+    const safeRepair = state.data.result.safeRepair;
+    const hasRepairContent = Boolean(safeRepair && (safeRepair.available || safeRepair.findings.length > 0));
 
     return h('div', { className: 'validator-result' },
       originCopy ? h('p', { className: 'validation-result-origin', role: 'status' }, originCopy) : null,
       state.fileName ? h('p', { className: 'selected-file-name' }, state.fileName) : null,
       h(ValidationSummary, { result: state.data.result, rateLimit: state.data.rateLimit, onReset: reset }),
+      hasRepairContent && safeRepair
+        ? h(SafeRepairPanel, { original: documentText, safeRepair })
+        : null,
+      documentText
+        ? h('details', { className: 'validator-original-xml', 'data-testid': 'validator-original-xml' },
+            h('summary', null, 'Original XML (unchanged)'),
+            h('pre', null, documentText),
+          )
+        : null,
     );
   }
 

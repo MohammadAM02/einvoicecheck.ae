@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { validateXsd } from '../src/rules/convert/xsd.js';
+import { validateXsd } from '../src/rules/xsd.js';
 
 const EXAMPLES = path.join(import.meta.dirname, '..', 'schematron', 'examples');
 const read = (name) => fs.readFileSync(path.join(EXAMPLES, name), 'utf8');

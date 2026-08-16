@@ -130,8 +130,8 @@ export default function WhatWeCheckPage() {
                 <td>Builds XML from the current template set, computes supported totals and lets you validate the generated result.</td>
               </tr>
               <tr>
-                <td>XML Repairer</td>
-                <td>Attempts supported, reviewable repairs and hands the resulting XML back to validation. It is not an automatic compliance guarantee.</td>
+                <td>Validator safe repair</td>
+                <td>Offers at most two metadata-only repairs (encoding declaration, missing cbc/cac declaration) behind an explicit action, always re-judged by the full validation pipeline. Forbidden characters, wrong namespace URIs, structure and semantics are diagnosed but never rewritten.</td>
               </tr>
               <tr>
                 <td>API</td>
