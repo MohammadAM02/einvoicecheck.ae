@@ -25,6 +25,6 @@ export const TODO = {
 
 export const PAYMENT_PROCESSOR = { name: 'PayPal', url: 'https://www.paypal.com' } as const;
 export const COMPETITOR_SLUGS = ['cleartax', 'comarch', 'sovos'] as const;
-export const TOOL_SLUGS = ['uae-e-invoice-validator', 'pint-ae-validator', 'trn-format-checker', 'xml-repairer', 'xml-generator'] as const;
+export const TOOL_SLUGS = ['uae-e-invoice-validator', 'pint-ae-validator', 'trn-format-checker', 'xml-generator'] as const;
 export type CompetitorSlug = (typeof COMPETITOR_SLUGS)[number];
 export type ToolSlug = (typeof TOOL_SLUGS)[number];

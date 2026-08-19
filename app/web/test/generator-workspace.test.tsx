@@ -11,7 +11,7 @@ const generatorClient = vi.hoisted(() => ({
   generateXml: vi.fn(),
 }));
 
-const repairerClient = vi.hoisted(() => ({
+const xmlFile = vi.hoisted(() => ({
   downloadXml: vi.fn(),
   copyXml: vi.fn(),
 }));
@@ -38,17 +38,7 @@ vi.mock('@/lib/generator-client', () => ({
   },
 }));
 
-vi.mock('@/lib/repairer-client', () => ({
-  ...repairerClient,
-  RepairerClientError: class RepairerClientError extends Error {
-    status: number | null;
-    constructor(message: string, status: number | null = null) {
-      super(message);
-      this.name = 'RepairerClientError';
-      this.status = status;
-    }
-  },
-}));
+vi.mock('@/lib/xml-file', () => xmlFile);
 
 vi.mock('@/lib/analytics', () => analytics);
 

@@ -37,6 +37,52 @@ export type XmlValidationResult = {
   format: XmlValidationLayer;
   structure: XmlValidationLayer;
   semantic: XmlValidationLayer;
+  /** Additive Validator-integrated safe-repair analysis (Part B), when present. */
+  safeRepair?: SafeRepairAnalysis;
+};
+
+/** Machine-readable record of one metadata change in the repair candidate. */
+export type SafeRepairAuditEntry = {
+  rule: string;
+  action: 'rename' | 'replace' | 'add' | 'remove';
+  target: string;
+  old: string;
+  new: string;
+  reason: string;
+};
+
+/** Diagnosis-only finding — never auto-repaired. */
+export type SafeRepairFinding = {
+  rule: string;
+  path: string;
+  severity: 'error' | 'warning';
+  message: string;
+  fix?: string;
+  line: number | null;
+  column: number | null;
+  charIndex: number | null;
+};
+
+/**
+ * The validated repair candidate. The candidate XML itself is never part of the
+ * response — the browser materializes it with the same deterministic transforms
+ * (lib/safe-repair.ts) and verifies candidateHash before presenting it.
+ */
+export type SafeRepairCandidate = {
+  originalHash: string;
+  candidateHash: string;
+  audit: SafeRepairAuditEntry[];
+  /** Full validateXmlDocument() layered result of the candidate. */
+  validation: XmlValidationResult;
+  /** Candidate passes the complete pipeline (Strict-mode eligibility). */
+  strictEligible: boolean;
+};
+
+export type SafeRepairAnalysis = {
+  available: boolean;
+  originalHash: string;
+  findings: SafeRepairFinding[];
+  candidate: SafeRepairCandidate | null;
 };
 
 /** Max payload the free tool accepts (bytes of UTF-8 text). */

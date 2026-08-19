@@ -2,7 +2,6 @@ import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import { config } from './config/env.js';
 import { validateRoutes } from './routes/validate.js';
-import { convertRoutes } from './routes/convert.js';
 import { generateRoutes } from './routes/generate.js';
 import { healthRoutes } from './routes/health.js';
 import { usageRoutes } from './routes/usage.js';
@@ -88,6 +87,98 @@ export async function buildApp({ redis, logger = false } = {}) {
     required: ['status', 'issues'],
   });
 
+  // Base layered XML result — the shape every existing /v2/validate client
+  // already understands. The public XmlValidationResult extends it additively
+  // with an optional safeRepair analysis; candidateValidation references this
+  // base so the schema stays non-recursive.
+  app.addSchema({
+    $id: 'BaseXmlValidationResult',
+    type: 'object',
+    properties: {
+      valid: { type: 'boolean' },
+      inputFormat: { type: 'string', enum: ['xml'] },
+      validationScope: { type: 'string', enum: ['pint-ae-ubl-xml'] },
+      invoiceType: { type: ['string', 'null'] },
+      schemaVersion: { type: 'string' },
+      format: { $ref: 'LayerResult#' },
+      structure: { $ref: 'LayerResult#' },
+      semantic: { $ref: 'LayerResult#' },
+    },
+    required: [
+      'valid',
+      'inputFormat',
+      'validationScope',
+      'invoiceType',
+      'schemaVersion',
+      'format',
+      'structure',
+      'semantic',
+    ],
+  });
+
+  app.addSchema({
+    $id: 'SafeRepairAuditEntry',
+    type: 'object',
+    properties: {
+      rule: { type: 'string' },
+      action: { type: 'string', enum: ['rename', 'replace', 'add', 'remove'] },
+      target: { type: 'string' },
+      old: { type: 'string' },
+      new: { type: 'string' },
+      reason: { type: 'string' },
+    },
+    required: ['rule', 'action', 'target', 'old', 'new', 'reason'],
+  });
+
+  app.addSchema({
+    $id: 'SafeRepairFinding',
+    type: 'object',
+    properties: {
+      rule: { type: 'string' },
+      path: { type: 'string' },
+      severity: { type: 'string', enum: ['error', 'warning'] },
+      message: { type: 'string' },
+      fix: { type: 'string' },
+      line: { type: ['integer', 'null'] },
+      column: { type: ['integer', 'null'] },
+      charIndex: { type: ['integer', 'null'] },
+    },
+    required: ['rule', 'path', 'severity', 'message'],
+  });
+
+  app.addSchema({
+    $id: 'SafeRepairAnalysis',
+    type: 'object',
+    properties: {
+      available: { type: 'boolean' },
+      originalHash: { type: 'string' },
+      findings: { type: 'array', items: { $ref: 'SafeRepairFinding#' } },
+      candidate: {
+        anyOf: [
+          {
+            type: 'object',
+            properties: {
+              originalHash: { type: 'string' },
+              candidateHash: { type: 'string' },
+              audit: { type: 'array', items: { $ref: 'SafeRepairAuditEntry#' } },
+              validation: { $ref: 'BaseXmlValidationResult#' },
+              strictEligible: { type: 'boolean' },
+            },
+            required: [
+              'originalHash',
+              'candidateHash',
+              'audit',
+              'validation',
+              'strictEligible',
+            ],
+          },
+          { type: 'null' },
+        ],
+      },
+    },
+    required: ['available', 'originalHash', 'findings', 'candidate'],
+  });
+
   app.addSchema({
     $id: 'XmlValidationResult',
     type: 'object',
@@ -100,6 +191,7 @@ export async function buildApp({ redis, logger = false } = {}) {
       format: { $ref: 'LayerResult#' },
       structure: { $ref: 'LayerResult#' },
       semantic: { $ref: 'LayerResult#' },
+      safeRepair: { $ref: 'SafeRepairAnalysis#' },
     },
     required: [
       'valid',
@@ -172,8 +264,7 @@ export async function buildApp({ redis, logger = false } = {}) {
         },
       },
       tags: [
-        { name: 'validation', description: 'Invoice preflight validation' },
-        { name: 'convert', description: 'Format-only converter: repair + audit + refusal guardrails' },
+        { name: 'validation', description: 'Invoice preflight validation (incl. Validator-integrated safe repair)' },
         { name: 'generate', description: 'PINT-AE XML invoice generation from form data' },
         { name: 'usage', description: 'Per-key usage metering' },
         { name: 'ops', description: 'Operational probes' },
@@ -183,7 +274,6 @@ export async function buildApp({ redis, logger = false } = {}) {
 
   await app.register(healthRoutes);
   await app.register(validateRoutes);
-  await app.register(convertRoutes);
   await app.register(generateRoutes);
   await app.register(usageRoutes);
 

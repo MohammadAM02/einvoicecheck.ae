@@ -1,8 +1,7 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { GuardrailNotice } from '@/components/Chrome';
 import { InvoiceValidator } from '@/components/InvoiceValidator';
-import { RepairerWorkspace } from '@/components/RepairerWorkspace';
 import { GeneratorWorkspace } from '@/components/GeneratorWorkspace';
 import { ScopePanel } from '@/components/ScopePanel';
 import { ToolPageHeader } from '@/components/ProductExperience';
@@ -60,13 +59,6 @@ const TOOLS: Record<ToolSlug, ToolDef> = {
     targetKeyword: 'e invoicing UAE',
     blurb: 'Check the shape of a UAE Tax Registration Number before it reaches an invoice. Format only - this does not confirm the TRN is registered with the FTA.',
   },
-  'xml-repairer': {
-    title: 'Free UBL XML repairer — fix format defects before validation',
-    h1: 'XML Repairer',
-    description: 'Repair format defects in UBL 2.1 / PINT AE XML invoices: fix namespace URIs, prefix case, illegal characters, and encoding declarations — never touches invoice data. Free, no signup.',
-    targetKeyword: 'UBL XML repairer',
-    blurb: 'Fix UBL XML formatting issues before validation. The repairer fixes namespace URIs, prefix casing, illegal characters, missing declarations, and encoding mismatches — without ever touching invoice data (TRNs, amounts, dates). Every change is audited.',
-  },
   'xml-generator': {
     title: 'Free UAE e-invoice XML generator — build PINT-AE XML from a form',
     h1: 'XML Generator',
@@ -89,6 +81,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ToolPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  // The standalone XML Repairer retired (Part B): old links permanently
+  // redirect to the main Validator instead of dead-ending on a 404.
+  if (slug === 'xml-repairer') permanentRedirect('/tools/uae-e-invoice-validator');
   const tool = TOOLS[slug as ToolSlug];
   if (!tool) notFound();
   const isValidator = slug === 'uae-e-invoice-validator';
@@ -136,16 +131,6 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                     template set — with computed totals, supported data-entry checks, and a form-first
                     flow. It <strong>never transmits anything</strong> until you choose to validate the
                     result.
-                  </p>
-                </div>
-              ) : slug === 'xml-repairer' ? (
-                <div className="validator-tool-primary">
-                  <RepairerWorkspace />
-                  <p className="muted validator-tool-context">
-                    The repairer fixes <strong>format only</strong> — namespace URIs, prefix casing,
-                    illegal XML characters, missing declarations, and encoding mismatches. It will
-                    <strong>never</strong> change a TRN, amount, date, or any other invoice data value.
-                    Every repair is audited with a machine-readable trail and SHA-256 hashes.
                   </p>
                 </div>
               ) : (

@@ -1,5 +1,6 @@
 import { validateInvoice } from '../rules/engine.js';
 import { validateXmlDocument } from '../rules/xml-validation.js';
+import { analyzeSafeRepair } from '../rules/safe-repair.js';
 import { looksLikeXml } from '../rules/xml.js';
 import {
   authenticate,
@@ -157,6 +158,19 @@ export async function validateRoutes(fastify) {
       if (!quota.ok) return quotaRejectedReply(reply, quota);
 
       const result = validateXmlDocument(request.body);
+
+      // Safe-repair analysis (Part B): additive only. Attach whenever a
+      // deterministic candidate exists or diagnosis findings were produced
+      // (spec: show Apply safe repairs when a deterministic candidate is
+      // available) — the candidate is judged by the complete pipeline inside
+      // the analysis, so one request remains one validation unit. Repaired
+      // XML is NEVER returned here — the caller materializes it only behind
+      // an explicit UI action and verifies it against candidateHash.
+      const safeRepair = analyzeSafeRepair(request.body);
+      if (safeRepair.available || safeRepair.findings.length > 0) {
+        result.safeRepair = safeRepair;
+      }
+
       finalizeMonthlyQuota(request);
       await meter(request, '/v2/validate', 200, outcomeFor(flattenIssues(result), result.valid));
       return reply.code(200).send(result);

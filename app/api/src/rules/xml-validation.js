@@ -59,29 +59,50 @@ const hasError = (issues) => issues.some((i) => i.severity === 'error');
  *   semantic: {status, issues},
  * }}
  */
+/** Layered parse-failure result (F-01 contract): malformed input is a 200
+ * with a failed format layer, never a route crash. */
+function parseFailed(message) {
+  return {
+    valid: false,
+    inputFormat: 'xml',
+    validationScope: 'pint-ae-ubl-xml',
+    invoiceType: null,
+    schemaVersion: SCHEMA_VERSION_DEFAULT,
+    format: layer('failed', [
+      withLocation({
+        path: '/',
+        rule: 'ENG-PARSE-01',
+        severity: 'error',
+        message: `Could not parse the invoice: ${message}`,
+        fix: 'Send a canonical JSON invoice or a valid UBL 2.1 / PINT AE XML document.',
+      }),
+    ]),
+    structure: layer('skipped', []),
+    semantic: layer('skipped', []),
+  };
+}
+
 export function validateXmlDocument(xml) {
-  const { invoice, parseError } = normalizeInput(xml, 'application/xml');
+  let normalized;
+  try {
+    normalized = normalizeInput(xml, 'application/xml');
+  } catch (err) {
+    // jsdom's XML parser throws for forbidden XML 1.0 characters instead of
+    // returning a parseError; fold those into the layered parse gate so the
+    // caller gets a valid:false diagnosis (F-01 contract) instead of a crash.
+    normalized = { invoice: null, parseError: err?.message || String(err) };
+  }
+  const { invoice, parseError } = normalized;
 
   if (parseError) {
-    return {
-      valid: false,
-      inputFormat: 'xml',
-      validationScope: 'pint-ae-ubl-xml',
-      invoiceType: null,
-      schemaVersion: SCHEMA_VERSION_DEFAULT,
-      format: layer('failed', [
-        withLocation({
-          path: '/',
-          rule: 'ENG-PARSE-01',
-          severity: 'error',
-          message: `Could not parse the invoice: ${parseError}`,
-          fix: 'Send a canonical JSON invoice or a valid UBL 2.1 / PINT AE XML document.',
-        }),
-      ]),
-      structure: layer('skipped', []),
-      semantic: layer('skipped', []),
-    };
+    return parseFailed(parseError);
   }
+
+  // Structure and semantic layers re-parse the document; their parsers throw
+  // on namespace well-formedness violations (e.g. an unbound prefix) and
+  // forbidden characters. Convert any such throw into the layered parse-gate
+  // result instead of crashing the route.
+  try {
 
   // Structure: neutral XSD authority.
   const xsd = validateXsd(xml);
@@ -118,4 +139,7 @@ export function validateXmlDocument(xml) {
     structure,
     semantic,
   };
+  } catch (err) {
+    return parseFailed(err?.message || String(err));
+  }
 }

@@ -153,6 +153,31 @@ describe('free tool proxies to the strict XML API', () => {
     expect(body.rateLimit.limit).toBeGreaterThan(0);
   });
 
+  it('passes the additive safeRepair analysis through unchanged', async () => {
+    const withRepair = {
+      ...VALID_XML_RESULT,
+      valid: false,
+      safeRepair: {
+        available: true,
+        originalHash: 'a'.repeat(64),
+        findings: [],
+        candidate: {
+          originalHash: 'a'.repeat(64),
+          candidateHash: 'b'.repeat(64),
+          audit: [{ rule: 'FMT-DECL-01', action: 'replace', target: '/processing-instruction(xml)', old: 'ISO-8859-1', new: 'utf-8', reason: 'Declared encoding did not match UTF-8.' }],
+          validation: VALID_XML_RESULT,
+          strictEligible: true,
+        },
+      },
+    };
+    stubApi(apiJson(withRepair));
+
+    const res = await post(VALID_XML);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.result.safeRepair).toEqual(withRepair.safeRepair);
+  });
+
   it('validateDocument rejects a missing API key without calling the network', async () => {
     vi.stubEnv('EINVOICECHECK_API_KEY', '');
     const fetchMock = vi.fn();

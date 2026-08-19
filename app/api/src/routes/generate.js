@@ -29,7 +29,7 @@ async function meter(request, statusCode, outcome) {
 
 /**
  * POST /v1/generate — generate PINT-AE UBL XML invoices from a form data object.
- * Mirrors /v1/convert's security posture: API-key auth, per-key rate limiting,
+ * Mirrors /v1/validate's security posture: API-key auth, per-key rate limiting,
  * usage metering, no payload persistence.
  */
 export async function generateRoutes(fastify) {

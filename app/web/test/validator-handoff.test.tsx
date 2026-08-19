@@ -60,7 +60,7 @@ afterEach(() => {
 });
 
 describe('ValidatorWorkspace handoff', () => {
-  it('pre-fills + auto-validates a repairer handoff from sessionStorage, then clears it', async () => {
+  it('ignores a retired repairer handoff source without validating it', async () => {
     validationClient.validateInvoiceDocument.mockResolvedValue(successResponse);
 
     sessionStorage.setItem(
@@ -70,22 +70,11 @@ describe('ValidatorWorkspace handoff', () => {
 
     render(h(ValidatorWorkspace, { context: 'tool' }));
 
-    await waitFor(() => {
-      expect(
-        sessionStorage.getItem('einvoicecheck:converter-handoff'),
-      ).toBeNull();
-    });
-
-    expect(validationClient.validateInvoiceDocument).toHaveBeenCalledWith(
-      '<Invoice/>',
-      expect.any(AbortSignal),
-    );
-
     expect(
-      screen.getByRole('heading', { name: 'Preflight passed' }),
-    ).toBeTruthy();
-    expect(screen.getByText('Validated from XML Repairer')).toBeTruthy();
-    expect(screen.getByText('repaired-invoice.xml')).toBeTruthy();
+      sessionStorage.getItem('einvoicecheck:converter-handoff'),
+    ).toBeNull();
+    expect(validationClient.validateInvoiceDocument).not.toHaveBeenCalled();
+    expect(screen.getByText('Validate an invoice')).toBeTruthy();
   });
 
   it('pre-fills + auto-validates when the converter handoff comes from the xml-generator', async () => {
