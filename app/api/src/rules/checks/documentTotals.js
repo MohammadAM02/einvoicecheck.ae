@@ -4,7 +4,7 @@ import { moneyEq, round2, isNumber, fmt } from '../money.js';
 /**
  * Document-level total arithmetic. Rule IDs below are the PINT AE / EN 16931
  * calculation rules confirmed from the PINT AE business-rule set
- * (https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessrule/):
+ * (PINT AE Billing v1.0.4 resources: https://docs.peppol.eu/poac/ae/upcoming/pint-ae/):
  *
  *   IBR-CO-10  sum of line net (ibt-106) = Σ line net (ibt-131)
  *   IBR-CO-13  total w/o tax (ibt-109)  = ibt-106 - allowances (ibt-107) + charges (ibt-108)

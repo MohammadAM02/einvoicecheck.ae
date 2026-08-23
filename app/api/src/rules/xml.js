@@ -5,10 +5,10 @@ import { XMLParser, XMLValidator } from 'fast-xml-parser';
  * canonical invoice model. This is intentionally a documented-field mapping,
  * not full XSD/Schematron validation.
  *
- * TODO(pint-ae-xsd): wire the official PINT AE UBL XSD + Schematron here so
- * structural/cardinality violations are caught before the semantic rule engine
- * runs. Until then we map the documented BT-* fields and run deterministic
- * semantic checks on them.
+ * The XML pipeline applies the parser gate, native UBL 2.1 XSD validation,
+ * deterministic semantic checks, and the node-only PINT AE Schematron layer in
+ * xml-validation.js. This mapper only projects the documented BT-* fields
+ * needed by the deterministic engine.
  */
 
 const parser = new XMLParser({

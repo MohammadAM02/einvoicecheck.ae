@@ -75,10 +75,10 @@ api.einvoicecheck.ae ──CNAME──► sfm2368q.up.railway.app ──► API 
 
 ## 4. Validation Rule Engine — Gap Analysis
 
-### Coverage vs PINT AE v1.0.1
+### Coverage vs PINT AE Billing v1.0.4
 
 ```
-Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessrule/
+Spec source: https://docs.peppol.eu/poac/ae/upcoming/pint-ae/
 ```
 
 | Rule ID | Your Check | PINT AE Ref | Status |
@@ -108,8 +108,8 @@ Spec source: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessr
 | IBR-CO-15 tax-inclusive | `documentTotals.js` — `ENG-TOT-15` | IBR-CO-15 | ✅ |
 | IBR-CO-16 payable | `documentTotals.js` — `ENG-TOT-16` | IBR-CO-16 | ✅ |
 | IBR-CO-17 allowance/charge total | (covered by CO-13) | IBR-CO-17 | ✅ (redundant) |
-| IBR-CO-11 prepaid ≤ payable | ❌ **Missing** | IBR-CO-11 | 🔴 Gap |
-| IBR-073 date format YYYY-MM-DD | ❌ **Missing** | IBR-073 | 🔴 Gap |
+| IBR-CO-11 prepaid ≤ payable | `schematron.js` — `ENG-SCH-01/IBR-CO-11` | IBR-CO-11 | ✅ |
+| IBR-073 date format YYYY-MM-DD | `schematron.js` — `ENG-SCH-01/IBR-073` | IBR-073 | ✅ |
 
 ### Fault Injection Findings (Adversarial Review)
 

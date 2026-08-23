@@ -15,7 +15,8 @@
  * the API tests; the vendored rules tree keeps only the browser-safe
  * schematronRule adapter (schematron.js).
  *
- * Files: app/api/schematron/*.sch (vendored from docs.peppol.eu/poac/ae/v1.0.1)
+ * Files: app/api/schematron/*.sch (PINT AE Billing v1.0.4 working copies,
+ * mirrored from the vendored app/api/pint-ae-resources source tree)
  */
 import fs from 'node:fs';
 import path from 'node:path';

@@ -91,14 +91,14 @@ the JSON preflight path and the XML path.
 | `ENG-REQ-*` | Core mandatory header/party/total fields | UAE Electronic Invoice mandatory fields v1.0 (MoF, 23 Feb 2026) — 51 mandatory fields |
 | `ENG-TRN-*` | Seller TRN mandatory + **15 numeric digits**; buyer TRN 15 digits when present | FTA VAT TRN = 15 digits; PINT AE BT-31 / BT-48 |
 | `ENG-CUR-*` | Currency present + ISO 4217; **AED** tax accounting currency for non-AED invoices | PINT AE **IBR-005 / IBR-CL-04 / IBR-053 / IBR-077**; UAE Guidelines v1.1 (VAT reported in AED) |
-| `ENG-VAT-*` | VAT category ∈ {S, Z, E, O, AE, N} + rate consistency (S ⇒ 5%, Z/E/O ⇒ 0) | [AE VAT category code list](https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/codelist/Aligned-TaxCategoryCodes/); EN 16931 BR-S/BR-Z/BR-E |
+| `ENG-VAT-*` | VAT category ∈ {S, Z, E, O, AE, N} + rate consistency (S ⇒ 5%, Z/E/O ⇒ 0) | [PINT AE Billing resources](https://docs.peppol.eu/poac/ae/upcoming/pint-ae/); EN 16931 BR-S/BR-Z/BR-E |
 | `ENG-LINE-*` | Line net = quantity × unit price (± line allowance/charge) | BT-131; EN 16931 BR-CO-4 (PINT AE) |
 | `ENG-TAX-*` | Per-category tax = taxable × rate; taxable reconciles to line nets | EN 16931 BR-S-08 / BR-S-09 (PINT AE VAT breakdown) |
 | `ENG-TOT-*` | Document totals reconcile (line sum → tax-exclusive → tax → tax-inclusive → payable) | PINT AE **IBR-CO-10 / IBR-CO-13 / IBR-CO-14 / IBR-CO-15 / IBR-CO-16** |
 
-The `IBR-CO-*` and `IBR-005/IBR-CL-04` identifiers are taken directly from the
-PINT AE business-rule set:
-<https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/businessrule/>.
+The `IBR-CO-*` and `IBR-005/IBR-CL-04` identifiers are taken from the
+PINT AE Billing v1.0.4 resources:
+<https://docs.peppol.eu/poac/ae/upcoming/pint-ae/>.
 Per-VAT-category rules (`BR-S-08/09`) are the EN 16931 rules PINT AE inherits;
 the exact PINT-AE schematron IDs are confirmed against the vendored v1.0.4
 package — see `app/api/pint-ae-resources/`.
@@ -109,7 +109,7 @@ package — see `app/api/pint-ae-resources/`.
   `libxmljs2`) runs on the input in the converter pipeline and surfaces
   `XSD-01`/`XSD-ERR` issues as non-blocking `dataIssues`.
 - Complete **Schematron** interpreter: the official PINT-AE v1.0.4 `.sch` rule
-  sets (UBL validation + jurisdiction-aligned, 302 asserts) run over XML payloads
+  sets (UBL validation + jurisdiction-aligned) run over XML payloads
   at `/v2/validate` (`src/schematron-interpreter.js`), yielding real `ibr-*`
   rule IDs. `ENG-SCH-01` (IBR-073, IBR-CO-11) remains the deterministic engine
   adapter; the route dedupes IBR-073 against the interpreter's `ibr-073`.

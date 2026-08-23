@@ -6,8 +6,7 @@
  *
  * PINT AE business rules implemented as deterministic checks, registered
  * ahead of the semantic rules (registry.js). Rule IDs carry the official
- * PINT AE references (https://docs.peppol.eu/poac/ae/v1.0.1/
- * pint-ae/trn-invoice/businessrule/):
+ * PINT AE Billing v1.0.4 references (see the vendored ruleset manifest
  *
  *   IBR-073    ibt-002 (Issue date) shall be in the format YYYY-MM-DD
  *   IBR-CO-11  ibt-113 (Prepaid amount) shall not exceed ibt-115 (Payable amount)

@@ -297,16 +297,13 @@ Except where the critic ledger already records production evidence (notably the 
 
 ---
 
-## Stale or contradictory internal documentation discovered
+## Documentation caveats
 
-The following comments/docs should be treated as stale until cleaned up; runtime code/tests take precedence:
-
-- `app/api/src/schematron-interpreter.js` header still mentions a `v1.0.1` source URL even though the sync guard and upgrade commit establish a v1.0.4 vendored source of truth.
-- `app/api/src/rules/registry.js` and `structure.js` retain historical language about the official runner being a future upgrade / the hand-written path being “instead of” official XSD. The current XML runtime now does run native UBL XSD plus the node-only Billing Schematron interpreter outside the browser-safe rule registry.
-- `app/api/README.md` still describes `/v1/validate` as accepting JSON or XML and describes old endpoint/rule behavior that no longer matches the current route contract.
-- generator route documentation contains broader guarantees than the actual full-PINT test coverage supports.
-
-These are documentation defects, not alternative sources of truth.
+- Generator documentation must continue to distinguish its native UBL 2.1 XSD
+  gate from the full XML validation pipeline until generator conformance is
+  independently verified.
+- This document remains repository evidence, not a certification or live-
+  production attestation.
 
 ---
 
@@ -353,7 +350,8 @@ Ordered by risk and dependency:
 5. **Close F-03 reverse charge with scenario tests against v1.0.4.** Include line, document allowance/charge, subtotal and generator cases.
 6. **Close F-04 impossible dates with calendar-aware validation and regression tests.**
 7. **Close F-05 BaseQuantity pricing semantics with real PINT AE fixtures.**
-8. **Clean stale internal docs/comments only after the runtime facts above are locked.**
+8. **Keep active comments and documentation synchronized with the runtime and
+   the versioned ruleset manifest.**
 
 ---
 

@@ -2,7 +2,7 @@
  * UAE / PINT AE code lists.
  *
  * Sources (fetched July 2026):
- *  - AE VAT category codes: https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/codelist/Aligned-TaxCategoryCodes/
+ *  - AE VAT category codes: https://docs.peppol.eu/poac/ae/upcoming/pint-ae/
  *  - UAE Electronic Invoicing Guidelines v1.1 (MoF, 01 June 2026)
  *  - UAE Electronic Invoice mandatory fields v1.0 (MoF, 23 Feb 2026)
  *

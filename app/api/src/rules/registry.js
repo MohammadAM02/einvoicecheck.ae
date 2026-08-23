@@ -11,10 +11,9 @@ import { structureRule } from './structure.js';
 
 /**
  * Ordered rule registry. Order is fixed for deterministic output. The
- * Schematron + structural (XSD-lite) layers (PINT AE rule IDs) run ahead of
- * the semantic rules; when the official UBL/PINT AE XSD + Schematron ruleset
- * is vendored with a runner (see TODO(pint-ae-xsd) in xml.js), its adapter
- * registers here too.
+ * The XML pipeline separately runs native UBL 2.1 XSD validation and the
+ * node-only PINT AE Billing Schematron interpreter. This registry contains the
+ * deterministic rules shared by canonical JSON preflight and XML validation.
  */
 export const RULES = [
   schematronRule,

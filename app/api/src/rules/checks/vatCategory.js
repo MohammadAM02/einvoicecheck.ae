@@ -6,7 +6,7 @@ import { VAT_CATEGORY_CODES, isKnownVatCategory } from '../codelists.js';
  * every tax subtotal.
  *
  * Cites: AE VAT category code list (S, Z, E, O, AE, N) —
- *   https://docs.peppol.eu/poac/ae/v1.0.1/pint-ae/trn-invoice/codelist/Aligned-TaxCategoryCodes/ ;
+ *   https://docs.peppol.eu/poac/ae/upcoming/pint-ae/ ;
  * EN 16931 VAT-category rules "BR-S", "BR-Z", "BR-E" as inherited by PINT AE
  * (standard rated => rate 5, zero rated => 0, exempt/out-of-scope => 0).
  */
