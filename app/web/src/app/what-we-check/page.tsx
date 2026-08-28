@@ -65,8 +65,9 @@ export default function WhatWeCheckPage() {
         )}
       />
 
-      <div className="section">
-        <div className="container">
+      <div className="what-we-check-page">
+        <div className="section">
+          <div className="container">
           <div className="section-label">Product scope</div>
           <h1 style={{ marginBottom: 12 }}>What EInvoiceCheck checks</h1>
           <p className="lead" style={{ marginBottom: 24 }}>
@@ -192,6 +193,7 @@ export default function WhatWeCheckPage() {
             ))}
           </div>
         </div>
+      </div>
       </div>
     </>
   );

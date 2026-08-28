@@ -87,14 +87,15 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const tool = TOOLS[slug as ToolSlug];
   if (!tool) notFound();
   const isValidator = slug === 'uae-e-invoice-validator';
+  const isGenerator = slug === 'xml-generator';
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbSchema([{ name: 'Home', path: '/' }, { name: tool.h1, path: `/tools/${slug}` }]))} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd({ '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: tool.h1, applicationCategory: 'BusinessApplication', operatingSystem: 'Web browser', description: tool.description, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } })} />
 
-      <div className={isValidator ? 'section validator-station-section' : 'section'}>
-        <div className={isValidator ? 'container validator-station-page' : 'container'} style={isValidator ? undefined : { maxWidth: 800 }}>
+      <div className={isValidator ? 'section validator-station-section' : isGenerator ? 'section generator-route-section' : 'section'}>
+        <div className={isValidator ? 'container validator-station-page' : isGenerator ? 'container generator-route-page' : 'container'} style={isValidator || isGenerator ? undefined : { maxWidth: 800 }}>
           {isValidator ? (
             <>
               <header className="validator-station-page__header">
@@ -124,7 +125,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               />
 
               {slug === 'xml-generator' ? (
-                <div className="validator-tool-primary">
+                <div className="validator-tool-primary generator-route-primary">
                   <GeneratorWorkspace />
                   <p className="muted validator-tool-context">
                     The generator builds <strong>format-correct</strong> PINT-AE XML from the current
@@ -185,7 +186,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
       <div className="section">
         <div className="container" style={{ maxWidth: isValidator ? 980 : 800 }}>
-          {!isValidator ? (
+          {!isValidator && slug !== 'xml-generator' ? (
             <div className="card" style={{ maxWidth: 560 }}>
               <h3 style={{ marginBottom: 8 }}>Get it when it lands</h3>
               <p className="muted" style={{ marginBottom: 12 }}>

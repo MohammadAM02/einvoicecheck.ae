@@ -41,6 +41,15 @@ describe('dedicated validator page boundaries', () => {
     expect(route).not.toContain('Want the error list emailed, plus launch access?');
   });
 
+  it('gives the live XML Generator a dedicated route and no launch continuation', () => {
+    const route = source('app', 'tools', '[slug]', 'page.tsx');
+
+    expect(route).toContain('generator-route-page');
+    expect(route).toContain('slug === \'xml-generator\'');
+    expect(route).toContain("slug !== 'xml-generator'");
+    expect(route).toContain('Get it when it lands');
+  });
+
   it('removes the retired homepage hero validator', () => {
     expect(existsSync(path.join(process.cwd(), 'src', 'components', 'HeroValidator.tsx'))).toBe(false);
   });

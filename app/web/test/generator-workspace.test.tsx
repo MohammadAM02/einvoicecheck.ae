@@ -105,6 +105,53 @@ describe('GeneratorWorkspace', () => {
     expect(screen.queryByText(/Preflight passed/)).toBeNull();
   });
 
+  it('exposes manually controlled accordion sections with Document open first', () => {
+    render(h(GeneratorWorkspace));
+
+    const documentToggle = screen.getByRole('button', { name: /Document section/i });
+    const partiesToggle = screen.getByRole('button', { name: /Parties section/i });
+    const linesToggle = screen.getByRole('button', { name: /Lines section/i });
+    const totalsToggle = screen.getByRole('button', { name: /Totals \/ XML section/i });
+
+    expect(documentToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(partiesToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(linesToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(totalsToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(documentToggle.getAttribute('aria-controls')).toBe('generator-panel-document');
+
+    fireEvent.click(partiesToggle);
+    expect(partiesToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByTestId('generator-panel-parties').getAttribute('data-collapsed')).toBe('false');
+
+    fireEvent.click(partiesToggle);
+    expect(partiesToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getByTestId('generator-panel-parties').getAttribute('data-collapsed')).toBe('true');
+  });
+
+  it('shows honest current-state summaries for incomplete and complete sections', () => {
+    render(h(GeneratorWorkspace));
+
+    expect(screen.getByTestId('section-summary-document').textContent).toMatch(/Incomplete/);
+    expect(screen.getByTestId('section-summary-parties').textContent).toMatch(/Incomplete/);
+    expect(screen.getByTestId('section-summary-lines').textContent).toMatch(/Incomplete/);
+
+    fireEvent.click(screen.getByTestId('fill-sample-btn'));
+
+    expect(screen.getByTestId('section-summary-document').textContent).toMatch(/Complete/);
+    expect(screen.getByTestId('section-summary-parties').textContent).toMatch(/Complete/);
+    expect(screen.getByTestId('section-summary-lines').textContent).toMatch(/Complete/);
+  });
+
+  it('renders one semantic control for every manual input', () => {
+    const { container } = render(h(GeneratorWorkspace));
+
+    expect(container.querySelectorAll('#template-select')).toHaveLength(1);
+    expect(container.querySelectorAll('#invoice-number')).toHaveLength(1);
+    expect(container.querySelectorAll('#supplier-trn')).toHaveLength(1);
+    expect(container.querySelectorAll('#customer-trn')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-testid="line-description-0"]')).toHaveLength(1);
+  });
+
   it('associates generator controls with semantic groups and labels', () => {
     render(h(GeneratorWorkspace));
 
