@@ -42,7 +42,7 @@
 | F-05 | Valid UBL BaseQuantity price falsely rejected | P2 | unresolved | `388b72d` records that line arithmetic still uses the normalized `quantity × unitPrice` model and keeps BaseQuantity semantics open. Documentation evidence only; representative PINT AE fixtures remain required. |
 | F-06 | Generator fields lack programmatic labels | P2 | inspected | `2a77a7a` / merge `7d7cad5` add unique ids, associated labels, fieldset/legend groups, hidden line-item labels, and component tests. `8f3f822` also replaces duplicated visual steppers with semantic ordered lists, `aria-current="step"`, and focused primitive tests. Repository evidence only; test execution, deployment, and live accessibility verification remain required. |
 | F-07 | Legal pages are indexable drafts with paid-plan language | P1 | fixed-local | `/contact` and `/legal/*` are noindexed and removed from sitemap on current main. Draft/support/operator placeholders remain pending founder inputs and live deployment verification. |
-| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | `4b20348` tightened claims; `52c69da` adds a caveated What We Check page; `2ed4553`, `5d8de34`, `864fedd`, and `7abf2b4` wire navigation, homepage scope, sitemap, and tests. `388b72d` adds a repository-truth coverage baseline and safe/unsafe claim list. Deployment, live-page, and search re-index evidence remain required. |
+| F-08 / CL-002 | Scope contradiction: docs vs Google indexed result | P1 | inspected | `4b20348` tightened claims; `52c69da` adds a caveated What We Check page; `2ed4553`, `5d8de34`, `864fedd`, and `7abf2b4` wire navigation, homepage scope, sitemap, and tests. `388b72d` adds a repository-truth coverage baseline and safe/unsafe claim list. `e04af97` aligns active validator docs/comments to the vendored PINT AE Billing v1.0.4 source, removes the unsupported exact assert count, and preserves repository-only/non-certification caveats. Deployment, live-page, and search re-index evidence remain required. |
 | F-09 | Homepage missing canonical tag | P2 | inspected | `2a77a7a` / merge `7d7cad5` route homepage metadata through `pageMetadata({ path: '/' })` and add conservative website/organization/software schema. Deployment and live source verification remain required. |
 | F-10 | Results panel wastes desktop space (452px on 1363px viewport) | P3 | inspected | `2a77a7a` / merge `7d7cad5` add desktop focused-results CSS: hide intro and expand result container to 920px. `8f3f822` adds mobile containment. `2913e65` moves validation into a dedicated station with a 1240px page/canvas and contained rule/code overflow. Repository evidence only; tests were not recorded as executed, and deployment plus live 375/768/1024/1440px visual verification remain required. |
 | F-11 | Generator wastes desktop width (single column) | P3 | unresolved | Generator currently has a two-column desktop layout; visual verification is still separate from this state record. |
@@ -65,8 +65,10 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `b48d0c8f4d3d876176aaf1619e58282a009c7f13` — `Merge PR #23: validator reskin, generator import, and safe repair`
-- **Scanned:** 2026-08-19
+- **Last scanned main commit:** `e04af97b64e14cdc011b545c6d32d34f53214c1e` — `docs: sync validator documentation`
+- **Scanned:** 2026-08-24
+- `e04af97` synchronizes validator documentation/comments with the vendored PINT AE Billing v1.0.4 source, removes an unsupported exact Schematron assert count, and records repository-only/non-certification caveats.
+- F-08 gains repository documentation evidence only; no deployment, live verification, or runtime behavior is inferred. No new material risk found.
 - `4bf3e47`→merge `b48d0c8` adds browser-only CSV/JSON Generator imports, Validator-integrated metadata repair, retires the standalone Repairer and `/v1/convert`, and applies the playful-geometric frontend reskin.
 - F-14 is now present on `main` as `fixed-local`; no deployment or live route verification is inferred.
 - F-21 added: the repair UI still permits copy/download after a candidate hash mismatch or when WebCrypto cannot verify the hash.
