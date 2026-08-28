@@ -86,7 +86,7 @@ function PreflightRoute() {
 
 export default function HomeClient() {
   return (
-    <main className="main-content">
+    <main className="main-content homepage-smoothing">
       <section className="compliance-hero" id="validate">
         <div className="container">
           <div className="hero-intro hero-intro--story">
@@ -155,6 +155,7 @@ export default function HomeClient() {
           <a href="/legal/refunds">Refunds</a>
           <a href="/contact">Contact</a>
           <a href="/docs">Documentation</a>
+          <a href="#validate" className="footer-return-link">Back to validator</a>
         </nav>
       </footer>
     </main>

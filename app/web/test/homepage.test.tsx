@@ -141,6 +141,14 @@ describe('Homepage', () => {
     ]) expect(screen.getByRole('link', { name }).getAttribute('href')).toBe(href);
   });
 
+  it('offers a footer return action that targets the validator anchor', () => {
+    renderHomepage();
+
+    const link = screen.getByRole('link', { name: 'Back to validator' });
+    expect(link.getAttribute('href')).toBe('#validate');
+    expect(link.closest('nav')).toBeTruthy();
+  });
+
   it('has no serious or critical accessibility violations', async () => {
     const { container } = renderHomepage();
     const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });

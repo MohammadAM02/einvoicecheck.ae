@@ -1,0 +1,334 @@
+/* Targeted public UX smoothing. Every production selector is route scoped. */
+
+/* Homepage: preserve the story while removing the largest pauses. */
+.homepage-smoothing > #audience,
+.homepage-smoothing > #example,
+.homepage-smoothing > #api,
+.homepage-smoothing > #scope,
+.homepage-smoothing > #faq {
+  scroll-margin-top: 24px;
+}
+
+.homepage-smoothing > #audience .visual-story--route {
+  gap: clamp(24px, 4vw, 48px);
+}
+
+.homepage-smoothing > #example,
+.homepage-smoothing > #api,
+.homepage-smoothing > #scope,
+.homepage-smoothing > #faq {
+  padding-block: clamp(32px, 5vw, 56px);
+}
+
+.homepage-smoothing > #footer {
+  margin-bottom: clamp(28px, 4vw, 52px);
+}
+
+.homepage-smoothing .footer-return-link {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* The route story runs once, then remains useful and readable. */
+@keyframes homepageRouteFillOnce {
+  0%, 8% { transform: scaleX(0); opacity: 0; }
+  28%, 100% { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes homepageDocumentTravelOnce {
+  0%, 8% { left: -10px; opacity: 0; }
+  18% { opacity: 1; }
+  52%, 100% { left: calc(100% - 24px); opacity: 1; }
+}
+
+@keyframes homepagePreflightPulseOnce {
+  0%, 26% { opacity: 0; transform: scale(0.98); }
+  42%, 100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes homepageDiagnosticRevealOnce {
+  0%, 24% { opacity: 0.42; transform: translateY(8px); border-color: rgba(255, 137, 126, 0.16); }
+  42%, 100% { opacity: 1; transform: translateY(0); border-color: rgba(255, 137, 126, 0.48); }
+}
+
+.homepage-smoothing .route-line::after {
+  animation-name: homepageRouteFillOnce;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.homepage-smoothing .route-line--second::after {
+  animation-delay: 2.35s;
+}
+
+.homepage-smoothing .route-document {
+  animation-name: homepageDocumentTravelOnce;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.homepage-smoothing .route-node__pulse {
+  animation-name: homepagePreflightPulseOnce;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.homepage-smoothing .route-diagnostic {
+  animation-name: homepageDiagnosticRevealOnce;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+/* What We Check: cap only this route's headings, not global typography. */
+.what-we-check-page h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+}
+
+.what-we-check-page h2,
+.what-we-check-page .section-title {
+  font-size: clamp(1.45rem, 3vw, 1.8rem);
+}
+
+/* XML Generator: a dedicated wide hook and a responsive shared-control workbench. */
+.generator-route-page.container,
+.generator-route-section .generator-route-primary {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.generator-route-page .generator-workspace {
+  width: 100%;
+}
+
+.generator-route-page .generator-workspace {
+  min-width: 0;
+}
+
+.generator-route-page .generator-rail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.generator-route-page .generator-accordion-toggle {
+  display: none;
+}
+
+.generator-route-page .generator-section-summary {
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.generator-route-page .generator-preview-disclosure {
+  min-width: 0;
+}
+
+.generator-route-page .generator-preview-summary {
+  min-height: 44px;
+  padding: 12px 14px;
+  cursor: pointer;
+  color: var(--navy);
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+@media (max-width: 1023px) {
+  .generator-route-page .generator-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .generator-route-page .generator-accordion-toggle {
+    display: flex;
+    width: 100%;
+    min-height: 44px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0 12px;
+    border: 0;
+    background: transparent;
+    color: var(--navy);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+
+  .generator-route-page .generator-accordion-toggle > span:first-child {
+    flex: 0 0 auto;
+    font-family: var(--font-heading);
+    font-weight: 800;
+  }
+
+  .generator-route-page .generator-accordion-toggle > .generator-section-summary {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  .generator-route-page .generator-accordion-panel[data-collapsed='true'] > .generator-accordion-content {
+    display: none;
+  }
+
+  .generator-route-page .generator-accordion-panel[data-collapsed='false'] > .generator-accordion-toggle {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+
+  .generator-route-page .generator-preview-disclosure {
+    margin-top: 12px;
+  }
+
+}
+
+@media (min-width: 1024px) {
+  .generator-route-page .generator-workspace {
+    max-width: none;
+  }
+
+  .generator-route-page .generator-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    align-items: start;
+    gap: 24px;
+  }
+
+  .generator-route-page .generator-form {
+    display: contents;
+  }
+
+  .generator-route-page .generator-form > .generator-section {
+    grid-column: 1;
+  }
+
+  .generator-route-page .generator-form > .generator-section:nth-of-type(1) {
+    grid-row: 1;
+  }
+
+  .generator-route-page .generator-form > .generator-section:nth-of-type(2) {
+    grid-row: 2;
+  }
+
+  .generator-route-page .generator-form > .generator-section:nth-of-type(3) {
+    grid-row: 3;
+  }
+
+  .generator-route-page .generator-form > .generator-rail {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    position: sticky;
+    top: 20px;
+    align-self: start;
+  }
+
+  .generator-route-page .generator-layout .generator-preview-disclosure {
+    min-width: 0;
+  }
+
+  .generator-route-page .generator-layout .generator-preview {
+    max-width: none;
+  }
+
+  .generator-route-page .generator-layout .generator-section,
+  .generator-route-page .generator-layout .generator-totals,
+  .generator-route-page .generator-layout .generator-actions,
+  .generator-route-page .generator-layout .generator-error,
+  .generator-route-page .generator-layout .next-action-panel,
+  .generator-route-page .generator-layout .generator-legend {
+    min-width: 0;
+  }
+
+  .generator-route-page .generator-lines {
+    display: grid;
+    gap: 8px;
+  }
+
+  .generator-route-page .generator-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+  }
+
+  .generator-route-page .generator-row-fields {
+    display: grid;
+    grid-template-columns: minmax(180px, 2fr) minmax(72px, 0.7fr) minmax(96px, 0.9fr) minmax(150px, 1.2fr);
+    flex-wrap: nowrap;
+  }
+
+  .generator-route-page .generator-row-fields .generator-input,
+  .generator-route-page .generator-row-fields .generator-input:first-child,
+  .generator-route-page .generator-row-fields .generator-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .generator-route-page .generator-row-ext {
+    justify-content: flex-end;
+  }
+
+  .generator-route-page .generator-section {
+    padding: 16px;
+  }
+
+  .generator-route-page .generator-section > legend.generator-section-title {
+    display: block;
+  }
+
+  .generator-route-page .generator-section > .generator-accordion-toggle,
+  .generator-route-page .generator-totals > .generator-accordion-toggle {
+    display: none;
+  }
+
+  .generator-route-page .generator-accordion-content {
+    display: block !important;
+  }
+
+  .generator-route-page .generator-rail {
+    display: flex;
+  }
+
+  .generator-route-page .generator-totals {
+    position: sticky;
+    top: 20px;
+  }
+
+  .generator-route-page .generator-actions {
+    position: sticky;
+    top: 310px;
+    z-index: 1;
+    padding: 8px;
+    background: var(--bg-card);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-smoothing .route-node__pulse,
+  .homepage-smoothing .route-line::after,
+  .homepage-smoothing .route-document,
+  .homepage-smoothing .route-diagnostic {
+    animation: none !important;
+  }
+
+  .homepage-smoothing .route-node__pulse {
+    display: none;
+  }
+
+  .homepage-smoothing .route-line::after {
+    transform: none;
+    opacity: 0.7;
+  }
+
+  .homepage-smoothing .route-document {
+    left: calc(100% - 24px);
+    opacity: 1;
+  }
+
+  .homepage-smoothing .route-diagnostic {
+    opacity: 1;
+    transform: none;
+  }
+}
