@@ -1,7 +1,9 @@
 # Implementation Plan
 
 Task: `targeted-public-ux-smoothing`
-Status: `AWAITING_APPROVAL`
+Status: `SPECIFICATION_APPROVED_IMPLEMENTATION_DEFERRED`
+
+> **Status recorded 2026-08-28 20:43 AST:** the specification is approved. The implementation plan is retained for review and future approval; no production implementation, deployment, migration, or secret change is authorized by this document.
 
 ## Objective
 
@@ -105,7 +107,7 @@ Smooth the homepage, `/what-we-check`, and XML Generator UX while preserving the
 3. Add Generator-specific route width/hooks and suppress the generic launch continuation for the live Generator while retaining it for unshipped tools.
 4. Restructure `GeneratorWorkspace` presentation around the existing form state: accessible mobile accordion, derived summaries, desktop spreadsheet grid, sticky totals/actions rail, and expandable conditional XML output. Preserve all existing handlers and import mode.
 5. Run focused tests during each change, then the full suite and production build. Perform manual responsive/keyboard verification at 390px, 768px, 1024px, and 1440px, including populated-form breakpoint crossing.
-6. Independently inspect the final diff against allowed scope and record verification/handoff artifacts. Do not deploy or publish.
+6. Independently inspect the final diff against allowed scope and record verification/handoff artifacts. Do not publish product changes or deploy.
 
 ## Test and verification commands
 

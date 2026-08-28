@@ -22,7 +22,7 @@ The current pages are visually appealing, but their interaction rhythm is uneven
 - No visual-identity replacement or site-wide reskin.
 - No validator, generator, import, API, auth, billing, analytics, persistence, or data-contract changes.
 - No new spreadsheet-row paste behavior or import format.
-- No deployment, push, GitHub write, migration, or secret change.
+- No production deployment, migration, or secret change.
 
 ## Constraints
 
@@ -37,3 +37,7 @@ The current pages are visually appealing, but their interaction rhythm is uneven
 ## Open questions
 
 None. The design direction was approved for specification on 2026-08-26.
+
+## Documentation status
+
+> **Recorded 2026-08-28 20:43 AST:** the specification is approved; implementation is deliberately deferred. Publishing this documentation for review does not authorize production implementation, deployment, migration, or secret changes.

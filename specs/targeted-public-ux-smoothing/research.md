@@ -1,7 +1,8 @@
 # Research
 
 Task: `targeted-public-ux-smoothing`
-Repository/branch/commit: `C:/Users/AMG/code/https-einvoicecheck.ae`, `main`, `e04af97b64e14cdc011b545c6d32d34f53214c1e`
+Research snapshot recorded: `2026-08-26`
+Repository/branch/commit at snapshot: `C:/Users/AMG/code/https-einvoicecheck.ae`, `main`, `e04af97b64e14cdc011b545c6d32d34f53214c1e`
 
 ## Verified facts
 

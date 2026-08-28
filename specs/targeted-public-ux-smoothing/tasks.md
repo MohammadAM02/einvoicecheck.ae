@@ -26,10 +26,10 @@ Task: `targeted-public-ux-smoothing`
   - Files: tests and verification artifacts only; no production changes unless a verified regression is fixed inside approved scope.
   - Verification: Generator import tests, full `npm test`, `npm run build`, `git diff --check`, artifact validation, and scope verification all pass; exact results recorded.
 
-- [ ] T-006: Perform independent diff review and write handoff.
+- [ ] T-006: Perform independent product-change diff review and write handoff.
   - Depends on: T-005.
   - Files: `specs/targeted-public-ux-smoothing/verification.md`, `specs/targeted-public-ux-smoothing/handoff.md`, `.hermes/work/targeted-public-ux-smoothing/*`.
-  - Verification: every acceptance ID maps to evidence; unverified visual limitations are stated; no deployment/push claim is made.
+  - Verification: every acceptance ID maps to evidence; unverified visual limitations are stated; no product deployment claim is made.
 
 ## Dependency notes
 
