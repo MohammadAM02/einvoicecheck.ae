@@ -37,7 +37,10 @@ describe('design tokens', () => {
     expect(css).toMatch(/\.generator-route-page\.container[^}]*max-width:\s*1200px/s);
     expect(css).toContain('position: sticky');
     expect(css).toContain('.generator-rail');
-    expect(css).toContain(".generator-accordion-panel[data-collapsed='true'] > *:not(.generator-accordion-toggle)");
+    expect(css).toContain(".generator-route-page .generator-accordion-panel[data-collapsed='true'] > .generator-accordion-content");
+    expect(css).toContain('.generator-route-page .generator-accordion-content');
+    expect(css).not.toContain('.generator-layout.generator-totals-collapsed .generator-preview-disclosure');
+    expect(css).not.toMatch(/\.generator-layout \.generator-preview-disclosure[^}]*grid-column/s);
     expect(css).toContain('animation-iteration-count: 1');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('font-size: clamp(2rem, 5vw, 2.75rem)');

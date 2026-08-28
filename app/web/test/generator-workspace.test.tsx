@@ -105,8 +105,8 @@ describe('GeneratorWorkspace', () => {
     expect(screen.queryByText(/Preflight passed/)).toBeNull();
   });
 
-  it('exposes manually controlled accordion sections with Document open first', () => {
-    render(h(GeneratorWorkspace));
+  it('exposes manually controlled accordion sections with distinct descendant regions', () => {
+    const { container } = render(h(GeneratorWorkspace));
 
     const documentToggle = screen.getByRole('button', { name: /Document section/i });
     const partiesToggle = screen.getByRole('button', { name: /Parties section/i });
@@ -117,7 +117,23 @@ describe('GeneratorWorkspace', () => {
     expect(partiesToggle.getAttribute('aria-expanded')).toBe('false');
     expect(linesToggle.getAttribute('aria-expanded')).toBe('false');
     expect(totalsToggle.getAttribute('aria-expanded')).toBe('false');
-    expect(documentToggle.getAttribute('aria-controls')).toBe('generator-panel-document');
+    const controlledRegions = [
+      { toggle: documentToggle, panel: 'generator-panel-document', content: 'generator-content-document', text: 'Template' },
+      { toggle: partiesToggle, panel: 'generator-panel-parties', content: 'generator-content-parties', text: 'Supplier TRN' },
+      { toggle: linesToggle, panel: 'generator-panel-lines', content: 'generator-content-lines', text: 'Add line' },
+      { toggle: totalsToggle, panel: 'generator-panel-totals', content: 'generator-content-totals', text: 'Payable' },
+    ];
+
+    for (const { toggle, panel, content, text } of controlledRegions) {
+      const controlsId = toggle.getAttribute('aria-controls');
+      expect(controlsId).toBe(content);
+      const controlledRegion = controlsId ? container.querySelector(`#${controlsId}`) : null;
+      const panelElement = screen.getByTestId(panel);
+      expect(controlledRegion).toBeTruthy();
+      expect(controlledRegion).not.toBe(panelElement);
+      expect(panelElement.contains(controlledRegion)).toBe(true);
+      expect(controlledRegion?.textContent).toContain(text);
+    }
 
     fireEvent.click(partiesToggle);
     expect(partiesToggle.getAttribute('aria-expanded')).toBe('true');
@@ -126,6 +142,22 @@ describe('GeneratorWorkspace', () => {
     fireEvent.click(partiesToggle);
     expect(partiesToggle.getAttribute('aria-expanded')).toBe('false');
     expect(screen.getByTestId('generator-panel-parties').getAttribute('data-collapsed')).toBe('true');
+  });
+
+  it('keeps the conditional XML preview inside the Totals / XML controlled region', async () => {
+    const { container } = render(h(GeneratorWorkspace));
+
+    fireEvent.click(screen.getByTestId('fill-sample-btn'));
+    await waitFor(() => expect(screen.getByTestId('xml-preview-disclosure')).toBeTruthy(), { timeout: 3000 });
+
+    const totalsToggle = screen.getByRole('button', { name: /Totals \/ XML section/i });
+    const controlsId = totalsToggle.getAttribute('aria-controls');
+    const controlledRegion = controlsId ? container.querySelector(`#${controlsId}`) : null;
+
+    expect(controlsId).toBe('generator-content-totals');
+    expect(controlledRegion).toBeTruthy();
+    expect(controlledRegion?.contains(screen.getByTestId('total-payable'))).toBe(true);
+    expect(controlledRegion?.contains(screen.getByTestId('xml-preview-disclosure'))).toBe(true);
   });
 
   it('shows honest current-state summaries for incomplete and complete sections', () => {
@@ -140,6 +172,25 @@ describe('GeneratorWorkspace', () => {
     expect(screen.getByTestId('section-summary-document').textContent).toMatch(/Complete/);
     expect(screen.getByTestId('section-summary-parties').textContent).toMatch(/Complete/);
     expect(screen.getByTestId('section-summary-lines').textContent).toMatch(/Complete/);
+  });
+
+  it('includes current TRN values and honest format status in the Parties summary', () => {
+    render(h(GeneratorWorkspace));
+
+    const initialSummary = screen.getByTestId('section-summary-parties');
+    expect(initialSummary.textContent).toContain('Supplier TRN missing');
+    expect(initialSummary.textContent).toContain('Customer TRN missing');
+    expect(initialSummary.textContent).toContain('Incomplete');
+
+    fireEvent.change(screen.getByTestId('supplier-trn'), { target: { value: '12345' } });
+    fireEvent.change(screen.getByTestId('customer-trn'), { target: { value: '100987654300003' } });
+
+    expect(initialSummary.textContent).toContain('12345');
+    expect(initialSummary.textContent).toContain('invalid format');
+    expect(initialSummary.textContent).toContain('100987654300003');
+    expect(initialSummary.textContent).toContain('valid 15-digit format');
+    expect(initialSummary.textContent).toContain('Incomplete');
+    expect(initialSummary.textContent).not.toMatch(/^Complete/);
   });
 
   it('renders one semantic control for every manual input', () => {

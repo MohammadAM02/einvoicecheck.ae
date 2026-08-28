@@ -105,6 +105,12 @@ function trnValid(v: string): boolean {
   return /^[0-9]{15}$/.test(stripTrn(v));
 }
 
+function trnSummary(label: string, value: string): string {
+  const digits = stripTrn(value);
+  if (!digits) return `${label} TRN missing`;
+  return `${label} TRN ${digits} · ${trnValid(value) ? 'valid 15-digit format' : 'invalid format'}`;
+}
+
 function computeTotals(lines: FormLine[], templateId: string) {
   const template = TEMPLATES.find((t) => t.id === templateId);
   const categories = template ? template.categories : ['S'];
@@ -240,7 +246,7 @@ export function GeneratorWorkspace(): React.ReactElement {
   });
   const summaries = {
     document: `${currentTemplate.name} · ${form.invoiceNumber.trim() || 'Invoice number missing'} · ${form.issueDate.trim() || 'Issue date missing'}`,
-    parties: `${form.supplierName.trim() || 'Supplier missing'} → ${form.customerName.trim() || 'Customer missing'}`,
+    parties: `${form.supplierName.trim() || 'Supplier missing'} · ${trnSummary('Supplier', form.supplierTrn)} → ${form.customerName.trim() || 'Customer missing'} · ${trnSummary('Customer', form.customerTrn)}`,
     lines: `${form.lines.length} line${form.lines.length === 1 ? '' : 's'} · ${linesComplete ? 'all line checks pass' : 'line details needed'}`,
     totals: `Payable AED ${totals.payable.toFixed(2)} · ${state.phase === 'ready' ? 'XML ready' : state.phase === 'building' ? 'Building XML' : 'XML appears when valid'}`,
   };
@@ -585,7 +591,7 @@ export function GeneratorWorkspace(): React.ReactElement {
             className: 'generator-accordion-toggle',
             type: 'button',
             'aria-expanded': openSections.document,
-            'aria-controls': 'generator-panel-document',
+            'aria-controls': 'generator-content-document',
             onClick: () => toggleSection('document'),
             'aria-label': `Document section, ${completion.document ? 'complete' : 'incomplete'}`,
           },
@@ -593,10 +599,17 @@ export function GeneratorWorkspace(): React.ReactElement {
             h('span', { className: 'generator-section-summary', 'data-testid': 'section-summary-document' }, `${completion.document ? 'Complete' : 'Incomplete'} · ${summaries.document}`),
           ),
 
-          /* Template select */
           h(
             'div',
-            { className: 'generator-field' },
+            {
+              className: 'generator-accordion-content',
+              id: 'generator-content-document',
+              'data-testid': 'generator-content-document',
+            },
+            /* Template select */
+            h(
+              'div',
+              { className: 'generator-field' },
             h('label', { className: 'generator-label-text', htmlFor: 'template-select' }, 'Template'),
             h(
               'select',
@@ -703,6 +716,7 @@ export function GeneratorWorkspace(): React.ReactElement {
               'PINT-AE billing 1.0.4',
             ),
           ),
+          ),
         ),
 
         /* ---- Parties Section ---- */
@@ -719,7 +733,7 @@ export function GeneratorWorkspace(): React.ReactElement {
             className: 'generator-accordion-toggle',
             type: 'button',
             'aria-expanded': openSections.parties,
-            'aria-controls': 'generator-panel-parties',
+            'aria-controls': 'generator-content-parties',
             onClick: () => toggleSection('parties'),
             'aria-label': `Parties section, ${completion.parties ? 'complete' : 'incomplete'}`,
           },
@@ -727,10 +741,17 @@ export function GeneratorWorkspace(): React.ReactElement {
             h('span', { className: 'generator-section-summary', 'data-testid': 'section-summary-parties' }, `${completion.parties ? 'Complete' : 'Incomplete'} · ${summaries.parties}`),
           ),
 
-          /* Supplier TRN */
           h(
             'div',
-            { className: 'generator-field' },
+            {
+              className: 'generator-accordion-content',
+              id: 'generator-content-parties',
+              'data-testid': 'generator-content-parties',
+            },
+            /* Supplier TRN */
+            h(
+              'div',
+              { className: 'generator-field' },
             h('label', { className: 'generator-label-text', htmlFor: 'supplier-trn' }, 'Supplier TRN'),
             h('input', {
               id: 'supplier-trn',
@@ -818,6 +839,7 @@ export function GeneratorWorkspace(): React.ReactElement {
               'data-testid': 'customer-name',
             }),
           ),
+          ),
         ),
 
         /* ---- Lines Section ---- */
@@ -834,7 +856,7 @@ export function GeneratorWorkspace(): React.ReactElement {
             className: 'generator-accordion-toggle',
             type: 'button',
             'aria-expanded': openSections.lines,
-            'aria-controls': 'generator-panel-lines',
+            'aria-controls': 'generator-content-lines',
             onClick: () => toggleSection('lines'),
             'aria-label': `Lines section, ${completion.lines ? 'complete' : 'incomplete'}`,
           },
@@ -843,7 +865,14 @@ export function GeneratorWorkspace(): React.ReactElement {
           ),
           h(
             'div',
-            { className: 'generator-lines', 'data-testid': 'lines-section' },
+            {
+              className: 'generator-accordion-content',
+              id: 'generator-content-lines',
+              'data-testid': 'generator-content-lines',
+            },
+            h(
+              'div',
+              { className: 'generator-lines', 'data-testid': 'lines-section' },
             form.lines.map((line, idx) => {
               const ext = computeLineExt(line);
               const descriptionId = `line-description-${line.key}`;
@@ -951,6 +980,7 @@ export function GeneratorWorkspace(): React.ReactElement {
               '+ Add line',
             ),
           ),
+          ),
         ),
 
         h('aside', { className: 'generator-rail', 'aria-label': 'Generator summary and actions' },
@@ -968,14 +998,21 @@ export function GeneratorWorkspace(): React.ReactElement {
             className: 'generator-accordion-toggle',
             type: 'button',
             'aria-expanded': openSections.totals,
-            'aria-controls': 'generator-panel-totals',
+            'aria-controls': 'generator-content-totals',
             onClick: () => toggleSection('totals'),
             'aria-label': 'Totals / XML section',
           },
             h('span', null, `Totals / XML section · ${openSections.totals ? 'Open' : 'Collapsed'}`),
             h('span', { className: 'generator-section-summary', 'data-testid': 'section-summary-totals' }, summaries.totals),
           ),
-          h('h3', { className: 'generator-section-title' }, 'Totals'),
+          h(
+            'div',
+            {
+              className: 'generator-accordion-content',
+              id: 'generator-content-totals',
+              'data-testid': 'generator-content-totals',
+            },
+            h('h3', { className: 'generator-section-title' }, 'Totals'),
           h(
             'div',
             { className: 'generator-totals-grid' },
@@ -1034,6 +1071,27 @@ export function GeneratorWorkspace(): React.ReactElement {
                 `AED ${totals.payable.toFixed(2)}`,
               ),
             ),
+          ),
+          (isReady || isBuilding)
+            ? h(
+                'details',
+                { className: 'generator-preview-disclosure', 'data-testid': 'xml-preview-disclosure', open: isBuilding },
+                h('summary', { className: 'generator-preview-summary' }, 'XML Preview'),
+                h(
+                  'div',
+                  { className: 'generator-preview generator-preview--totals-xml', 'data-testid': 'xml-preview' },
+                  h(
+                    'div',
+                    { className: 'generator-preview-header' },
+                    h('span', null, 'XML Preview'),
+                    isBuilding
+                      ? h('span', { className: 'generator-spinner' })
+                      : null,
+                  ),
+                  h('pre', { className: 'generator-preview-code' }, state.phase === 'ready' ? state.xml : ''),
+                ),
+              )
+            : null,
           ),
         ),
 
@@ -1136,27 +1194,6 @@ export function GeneratorWorkspace(): React.ReactElement {
           ),
         ),
 
-        /* ---- XML Preview inside the summary/actions rail ---- */
-        (isReady || isBuilding)
-          ? h(
-              'details',
-              { className: 'generator-preview-disclosure', 'data-testid': 'xml-preview-disclosure', open: isBuilding },
-              h('summary', { className: 'generator-preview-summary' }, 'XML Preview'),
-              h(
-                'div',
-                { className: 'generator-preview generator-preview--totals-xml', 'data-testid': 'xml-preview' },
-                h(
-                  'div',
-                  { className: 'generator-preview-header' },
-                  h('span', null, 'XML Preview'),
-                  isBuilding
-                    ? h('span', { className: 'generator-spinner' })
-                    : null,
-                ),
-                h('pre', { className: 'generator-preview-code' }, state.phase === 'ready' ? state.xml : ''),
-              ),
-            )
-          : null,
       ),
       ),
     ),

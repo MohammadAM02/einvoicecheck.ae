@@ -100,32 +100,32 @@
   width: 100%;
 }
 
-.generator-workspace {
+.generator-route-page .generator-workspace {
   min-width: 0;
 }
 
-.generator-rail {
+.generator-route-page .generator-rail {
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 12px;
 }
 
-.generator-accordion-toggle {
+.generator-route-page .generator-accordion-toggle {
   display: none;
 }
 
-.generator-section-summary {
+.generator-route-page .generator-section-summary {
   color: var(--ink-muted);
   font-size: 0.78rem;
   font-weight: 500;
 }
 
-.generator-preview-disclosure {
+.generator-route-page .generator-preview-disclosure {
   min-width: 0;
 }
 
-.generator-preview-summary {
+.generator-route-page .generator-preview-summary {
   min-height: 44px;
   padding: 12px 14px;
   cursor: pointer;
@@ -135,11 +135,11 @@
 }
 
 @media (max-width: 1023px) {
-  .generator-layout {
+  .generator-route-page .generator-layout {
     grid-template-columns: 1fr;
   }
 
-  .generator-accordion-toggle {
+  .generator-route-page .generator-accordion-toggle {
     display: flex;
     width: 100%;
     min-height: 44px;
@@ -155,13 +155,13 @@
     text-align: left;
   }
 
-  .generator-accordion-toggle > span:first-child {
+  .generator-route-page .generator-accordion-toggle > span:first-child {
     flex: 0 0 auto;
     font-family: var(--font-heading);
     font-weight: 800;
   }
 
-  .generator-accordion-toggle > .generator-section-summary {
+  .generator-route-page .generator-accordion-toggle > .generator-section-summary {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -169,22 +169,19 @@
     text-align: right;
   }
 
-  .generator-accordion-panel[data-collapsed='true'] > *:not(.generator-accordion-toggle) {
+  .generator-route-page .generator-accordion-panel[data-collapsed='true'] > .generator-accordion-content {
     display: none;
   }
 
-  .generator-accordion-panel[data-collapsed='false'] > .generator-accordion-toggle {
+  .generator-route-page .generator-accordion-panel[data-collapsed='false'] > .generator-accordion-toggle {
     border-bottom: 1px solid var(--border);
     margin-bottom: 14px;
   }
 
-  .generator-preview-disclosure {
+  .generator-route-page .generator-preview-disclosure {
     margin-top: 12px;
   }
 
-  .generator-layout.generator-totals-collapsed .generator-preview-disclosure {
-    display: none;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -192,33 +189,33 @@
     max-width: none;
   }
 
-  .generator-layout {
+  .generator-route-page .generator-layout {
     grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
     align-items: start;
     gap: 24px;
   }
 
-  .generator-form {
+  .generator-route-page .generator-form {
     display: contents;
   }
 
-  .generator-form > .generator-section {
+  .generator-route-page .generator-form > .generator-section {
     grid-column: 1;
   }
 
-  .generator-form > .generator-section:nth-of-type(1) {
+  .generator-route-page .generator-form > .generator-section:nth-of-type(1) {
     grid-row: 1;
   }
 
-  .generator-form > .generator-section:nth-of-type(2) {
+  .generator-route-page .generator-form > .generator-section:nth-of-type(2) {
     grid-row: 2;
   }
 
-  .generator-form > .generator-section:nth-of-type(3) {
+  .generator-route-page .generator-form > .generator-section:nth-of-type(3) {
     grid-row: 3;
   }
 
-  .generator-form > .generator-rail {
+  .generator-route-page .generator-form > .generator-rail {
     grid-column: 2;
     grid-row: 1 / span 4;
     position: sticky;
@@ -226,33 +223,29 @@
     align-self: start;
   }
 
-  .generator-layout .generator-preview-disclosure {
-    position: sticky;
-    top: 20px;
-    grid-column: 2;
-    grid-row: 5;
+  .generator-route-page .generator-layout .generator-preview-disclosure {
     min-width: 0;
   }
 
-  .generator-layout .generator-preview {
+  .generator-route-page .generator-layout .generator-preview {
     max-width: none;
   }
 
-  .generator-layout .generator-section,
-  .generator-layout .generator-totals,
-  .generator-layout .generator-actions,
-  .generator-layout .generator-error,
-  .generator-layout .next-action-panel,
-  .generator-layout .generator-legend {
+  .generator-route-page .generator-layout .generator-section,
+  .generator-route-page .generator-layout .generator-totals,
+  .generator-route-page .generator-layout .generator-actions,
+  .generator-route-page .generator-layout .generator-error,
+  .generator-route-page .generator-layout .next-action-panel,
+  .generator-route-page .generator-layout .generator-legend {
     min-width: 0;
   }
 
-  .generator-lines {
+  .generator-route-page .generator-lines {
     display: grid;
     gap: 8px;
   }
 
-  .generator-row {
+  .generator-route-page .generator-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -260,46 +253,50 @@
     padding: 8px 10px;
   }
 
-  .generator-row-fields {
+  .generator-route-page .generator-row-fields {
     display: grid;
     grid-template-columns: minmax(180px, 2fr) minmax(72px, 0.7fr) minmax(96px, 0.9fr) minmax(150px, 1.2fr);
     flex-wrap: nowrap;
   }
 
-  .generator-row-fields .generator-input,
-  .generator-row-fields .generator-input:first-child,
-  .generator-row-fields .generator-select {
+  .generator-route-page .generator-row-fields .generator-input,
+  .generator-route-page .generator-row-fields .generator-input:first-child,
+  .generator-route-page .generator-row-fields .generator-select {
     min-width: 0;
     width: 100%;
   }
 
-  .generator-row-ext {
+  .generator-route-page .generator-row-ext {
     justify-content: flex-end;
   }
 
-  .generator-section {
+  .generator-route-page .generator-section {
     padding: 16px;
   }
 
-  .generator-section > legend.generator-section-title {
+  .generator-route-page .generator-section > legend.generator-section-title {
     display: block;
   }
 
-  .generator-section > .generator-accordion-toggle,
-  .generator-totals > .generator-accordion-toggle {
+  .generator-route-page .generator-section > .generator-accordion-toggle,
+  .generator-route-page .generator-totals > .generator-accordion-toggle {
     display: none;
   }
 
-  .generator-rail {
+  .generator-route-page .generator-accordion-content {
+    display: block !important;
+  }
+
+  .generator-route-page .generator-rail {
     display: flex;
   }
 
-  .generator-totals {
+  .generator-route-page .generator-totals {
     position: sticky;
     top: 20px;
   }
 
-  .generator-actions {
+  .generator-route-page .generator-actions {
     position: sticky;
     top: 310px;
     z-index: 1;
