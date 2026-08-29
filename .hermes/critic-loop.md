@@ -56,6 +56,7 @@
 | F-19 | Homepage promises a practical fix for every validator finding although the engine may omit suggestions | P1 | open | `2913e65` says EInvoiceCheck shows “the smallest practical fix” and presents every result as Rule / Location / Meaning / Fix. The same commit’s design spec says not every engine finding includes a suggested fix. `9b1f633` repeats the promise in official standalone validator-reskin spikes; their READMEs explicitly label them prototypes, not production routes. This remains a repository-confirmed trust/capability mismatch; copy correction, test execution, deployment, and live verification are absent. |
 | F-20 | Generator fabricates invoice facts to satisfy validation | P1 | open | `fea42b7` hard-codes supplier/customer street and city, copies each TRN into the trade-license field, assigns sequential IDs under scheme `0160`, applies commodity nature code `DL8.48.3.1`, uses education exemption code `VATEX-AE-EDU`, and declares debit-card payment code `55` without collecting those facts. Full-pipeline validation proves structural acceptance, not truthfulness. Generated invoices can therefore be formally valid but commercially false. Repository evidence only; no deployment or live claim. |
 | F-21 | Safe-repair candidates remain downloadable when hash verification fails or cannot run | P1 | open | Merge `b48d0c8` adds Validator-integrated repair. In `SafeRepairPanel`, a false candidate-hash comparison shows a warning but still leaves Download XML and Copy active; when WebCrypto is unavailable, verification is `null` and the same controls remain active. The focused test checks the warning but not blocking the output. This lets users export bytes that were not confirmed to match the server-validated candidate. Repository evidence only; disable export unless the hash matches, add regressions, deploy, and live-test. |
+| F-22 | Repository safety and release-approval gates were deleted | P1 | open | `474492e` deletes the Hermes secret scan, allowed-scope check, artifact validation, approval-hash verification, completion verification, and task-state gate. `7e59f43` also deletes the matching task/verification templates. These were repository-side safeguards rather than production runtime code, but their removal leaves future changes without the recorded checks against leaked credentials, out-of-scope edits, stale approvals, or unsupported completion claims. No replacement automation or equivalent control is present in these diffs. Restore or replace the gates and verify they run before release; no deployment or live claim. |
 
 ## Resolved
 
@@ -65,8 +66,10 @@
 
 ## Repository monitor
 
-- **Last scanned main commit:** `ed5eb54825624b12bfa7219e74fb5e4e392cb476` — `Merge pull request #24 from motivatedc-creator/docs/targeted-public-ux-smoothing`
-- **Scanned:** 2026-08-29
+- **Last scanned main commit:** `7e59f43868a5e38f7ddfc827da4444d25f7864f5` — `Delete .hermes/templates directory`
+- **Scanned:** 2026-08-30
+- `474492e` deletes the repository's Hermes secret, scope, artifact, approval-integrity, completion, and task-state gates; `7e59f43` deletes their task/verification templates.
+- F-22 added: future changes no longer receive those repository-side safety and release checks. This is not a production-runtime change, and no deployment or live verification is inferred.
 - `1b4fd0c` and follow-up `33d3139`, merged by `ed5eb54`, add a wider Generator workbench, a mobile/tablet accordion with corrected controlled-region semantics, scoped homepage motion/spacing changes, scoped What We Check heading caps, and removal of the live Generator's contradictory launch CTA.
 - F-11 is marked `fixed-local` on repository evidence: 26 files/214 tests, type checking, and a production build are reported passing. Manual 390/768/1024/1440px and keyboard review, deployment, and live verification remain outstanding.
 - F-08 content and validation scope are unchanged; F-18 concerns the separate account drawer/Quickstart tabs and is not addressed. F-19 and F-20 remain open. No new material risk found.
